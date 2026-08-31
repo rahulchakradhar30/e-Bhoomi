@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Default deny all access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Secure document storage rules
+    // Path format: /documents/{state}/{district}/{caseId}/original/...
+    match /documents/{stateId}/{districtId}/{caseId}/{type}/{fileName} {
+      // Original documents can only be read by authenticated users
+      allow read: if request.auth != null;
+
+      // Only authenticated officers can upload original source documents
+      allow create: if request.auth != null
+                    && request.resource.size < 25 * 1024 * 1024 // 25MB max
+                    && (request.resource.contentType.matches('application/pdf') ||
+                        request.resource.contentType.matches('image/.*'));
+
+      // Original documents must never be overwritten or deleted directly from client
+      allow update, delete: if false;
+    }
+  }
+}

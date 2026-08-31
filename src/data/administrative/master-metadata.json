@@ -1,0 +1,14 @@
+{
+  "sourceFile": "Kurnool_District_Sachivalayam_Master_2025_500plus.xlsx",
+  "sourceSheet": "Kurnool Sachivalayams",
+  "sourceVersion": "2025-GSWS-500plus",
+  "dateBasis": "Records published/available in the 2025-era GSWS code system; current district portal used to verify names/codes",
+  "importedAt": "2026-08-31T10:41:24.407Z",
+  "record_counts": {
+    "districts": 1,
+    "revenue_divisions": 3,
+    "mandals": 23,
+    "localities": 518,
+    "sachivalayams": 518
+  }
+}

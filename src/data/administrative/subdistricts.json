@@ -1,0 +1,232 @@
+[
+  {
+    "subdistrict_code": "5149",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Adoni",
+    "local_name": "Adoni",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5164",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Gonegandla",
+    "local_name": "Gonegandla",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5168",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Holagonda",
+    "local_name": "Holagonda",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5174",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Kosigi",
+    "local_name": "Kosigi",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5176",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Kowthalam",
+    "local_name": "Kowthalam",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5181",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Mantralayam",
+    "local_name": "Mantralayam",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5193",
+    "district_code": "511",
+    "division_code": "RD-511-ADONI",
+    "state_code": "28",
+    "name": "Peddakadubur",
+    "local_name": "Peddakadubur",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5256",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "C-Belagal",
+    "local_name": "C-Belagal",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5257",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "Gudur",
+    "local_name": "Gudur",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5170",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "Kallur",
+    "local_name": "Kallur",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5171",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "Kodumur",
+    "local_name": "Kodumur",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5259",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "Kurnool Urban",
+    "local_name": "Kurnool Urban",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5186",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "Orvakal",
+    "local_name": "Orvakal",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5200",
+    "district_code": "511",
+    "division_code": "RD-511-KURNOOL",
+    "state_code": "28",
+    "name": "Veldurthi",
+    "local_name": "Veldurthi",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5151",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Alur",
+    "local_name": "Alur",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5152",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Aspari",
+    "local_name": "Aspari",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5159",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Chippagiri",
+    "local_name": "Chippagiri",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5160",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Devanakonda",
+    "local_name": "Devanakonda",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5167",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Halaharvi",
+    "local_name": "Halaharvi",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5177",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Krishnagiri",
+    "local_name": "Krishnagiri",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5179",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Maddikera",
+    "local_name": "Maddikera",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5191",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Pattikonda",
+    "local_name": "Pattikonda",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5198",
+    "district_code": "511",
+    "division_code": "RD-511-PATTIKONDA",
+    "state_code": "28",
+    "name": "Tuggali",
+    "local_name": "Tuggali",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  }
+]

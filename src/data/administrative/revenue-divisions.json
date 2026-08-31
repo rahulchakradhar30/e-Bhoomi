@@ -1,0 +1,26 @@
+[
+  {
+    "division_code": "RD-511-ADONI",
+    "district_code": "511",
+    "state_code": "28",
+    "name": "Adoni Revenue Division",
+    "local_name": "Adoni రెవెన్యూ డివిజన్",
+    "status": "ACTIVE"
+  },
+  {
+    "division_code": "RD-511-KURNOOL",
+    "district_code": "511",
+    "state_code": "28",
+    "name": "Kurnool Revenue Division",
+    "local_name": "Kurnool రెవెన్యూ డివిజన్",
+    "status": "ACTIVE"
+  },
+  {
+    "division_code": "RD-511-PATTIKONDA",
+    "district_code": "511",
+    "state_code": "28",
+    "name": "Pattikonda Revenue Division",
+    "local_name": "Pattikonda రెవెన్యూ డివిజన్",
+    "status": "ACTIVE"
+  }
+]

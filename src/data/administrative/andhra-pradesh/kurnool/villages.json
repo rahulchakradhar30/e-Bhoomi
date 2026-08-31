@@ -1,0 +1,110 @@
+[
+  {
+    "village_code": "600101",
+    "subdistrict_code": "5102",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Gargeyapuram",
+    "local_name": "గార్గేయపురం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600102",
+    "subdistrict_code": "5102",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Ulchala",
+    "local_name": "ఉల్చాల",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600103",
+    "subdistrict_code": "5102",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Munagalapadu",
+    "local_name": "మునగలపాడు",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600104",
+    "subdistrict_code": "5101",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Joharapuram",
+    "local_name": "జోహరాపురం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600105",
+    "subdistrict_code": "5105",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Kallur Gramam",
+    "local_name": "కల్లూరు గ్రామం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600106",
+    "subdistrict_code": "5108",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Arekal",
+    "local_name": "ఆరేకల్",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600107",
+    "subdistrict_code": "5108",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Basapuram",
+    "local_name": "బసపురం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600108",
+    "subdistrict_code": "5108",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Dibbanakal",
+    "local_name": "దిబ్బనకల్",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600109",
+    "subdistrict_code": "5109",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Mantralayam",
+    "local_name": "మంత్రాలయం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600110",
+    "subdistrict_code": "5109",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Madhavaram",
+    "local_name": "మాధవరం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600111",
+    "subdistrict_code": "5116",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Pattikonda Gramam",
+    "local_name": "పత్తికొండ గ్రామం",
+    "status": "ACTIVE"
+  },
+  {
+    "village_code": "600112",
+    "subdistrict_code": "5116",
+    "district_code": "545",
+    "state_code": "28",
+    "name": "Devanabanda",
+    "local_name": "దేవనబండ",
+    "status": "ACTIVE"
+  }
+]

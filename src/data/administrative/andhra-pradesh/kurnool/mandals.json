@@ -1,0 +1,212 @@
+[
+  {
+    "subdistrict_code": "5101",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "Kurnool Urban",
+    "local_name": "కర్నూలు అర్బన్",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5102",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "Kurnool Rural",
+    "local_name": "కర్నూలు రూరల్",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5103",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "Kodumur",
+    "local_name": "కోడుమూరు",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5104",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "Orvakal",
+    "local_name": "ఓర్వకల్లు",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5105",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "Kallur",
+    "local_name": "కల్లూరు",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5106",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "C.Belagal",
+    "local_name": "సీ.బెళగల్",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5107",
+    "district_code": "545",
+    "division_code": "RD-545-01",
+    "state_code": "28",
+    "name": "Gudur",
+    "local_name": "గూడూరు",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5108",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Adoni",
+    "local_name": "ఆదోని",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5109",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Mantralayam",
+    "local_name": "మంత్రాలయం",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5110",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Yemmiganur",
+    "local_name": "ఎమ్మిగనూరు",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5111",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Nandavaram",
+    "local_name": "నందవరం",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5112",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Holagunda",
+    "local_name": "హోళగుంద",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5113",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Alur",
+    "local_name": "ఆలూరు",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5114",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Aspari",
+    "local_name": "ఆస్పరి",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5115",
+    "district_code": "545",
+    "division_code": "RD-545-02",
+    "state_code": "28",
+    "name": "Kowthalam",
+    "local_name": "కౌతాళం",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5116",
+    "district_code": "545",
+    "division_code": "RD-545-03",
+    "state_code": "28",
+    "name": "Pattikonda",
+    "local_name": "పత్తికొండ",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5117",
+    "district_code": "545",
+    "division_code": "RD-545-03",
+    "state_code": "28",
+    "name": "Maddikera East",
+    "local_name": "మద్దికెర ఈస్ట్",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5118",
+    "district_code": "545",
+    "division_code": "RD-545-03",
+    "state_code": "28",
+    "name": "Tuggali",
+    "local_name": "తుగ్గలి",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5119",
+    "district_code": "545",
+    "division_code": "RD-545-03",
+    "state_code": "28",
+    "name": "Devanakonda",
+    "local_name": "దేవనకొండ",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5120",
+    "district_code": "545",
+    "division_code": "RD-545-03",
+    "state_code": "28",
+    "name": "Krishnagiri",
+    "local_name": "కృష్ణగిరి",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  },
+  {
+    "subdistrict_code": "5121",
+    "district_code": "545",
+    "division_code": "RD-545-03",
+    "state_code": "28",
+    "name": "Veldurthi",
+    "local_name": "వెల్దుర్తి",
+    "type": "Mandal",
+    "status": "ACTIVE"
+  }
+]
