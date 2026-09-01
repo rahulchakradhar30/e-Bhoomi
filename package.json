@@ -4,9 +4,11 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "node scripts/sync-and-run.js dev",
-    "build": "node scripts/sync-and-run.js build",
-    "start": "node scripts/sync-and-run.js start",
-    "lint": "node scripts/sync-and-run.js lint",
+    "build": "next build",
+    "build:local": "node scripts/sync-and-run.js build",
+    "start": "next start",
+    "start:local": "node scripts/sync-and-run.js start",
+    "lint": "next lint",
     "import:master-data": "node scripts/import-kurnool-master-data.js",
     "seed:master-data": "node scripts/seed-master-data.js"
   },

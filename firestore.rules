@@ -93,7 +93,11 @@ service cloud.firestore {
     match /officers/{officerId} {
       // Officers can read their own and any officer profile (directory access)
       allow read: if isSignedIn() && (uid() == officerId || isOfficer());
-      allow create, update: if isAdmin();
+      allow create: if isAdmin();
+      
+      // Admin can update anything. Officers can only update their own mustChangePassword flag on first login.
+      allow update: if isAdmin() || (isSignedIn() && uid() == officerId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChangePassword', 'updatedAt']));
+      
       allow delete: if false; // Soft-delete only via accountStatus field
     }
 

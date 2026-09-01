@@ -3,7 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase/admin-init';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: officerId } = await Promise.resolve(params);
