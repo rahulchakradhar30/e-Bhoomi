@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
 import { WorkspaceHeader } from '@/components/workspace/WorkspaceHeader';
