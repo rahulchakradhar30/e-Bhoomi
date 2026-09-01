@@ -10,7 +10,7 @@
 
 ## 📌 Geographic, Language & Public Discovery Scope
 
-- **Active Geographic Scope**: **Andhra Pradesh — Kurnool District** (LGD District Code: `545`, LGD State Code: `28`)
+- **Active Geographic Scope**: **Andhra Pradesh — Kurnool District** (LGD District Code: `511`, LGD State Code: `28`)
 - **Active Languages**: **Telugu** (`te`) + **English** (`en`)
 - **Public Land Record Discovery Flow**: 
   1. **Location**: State → District → Revenue Division → Mandal → Village / Ward / Town

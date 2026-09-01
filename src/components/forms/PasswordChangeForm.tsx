@@ -72,9 +72,13 @@ export const PasswordChangeForm: React.FC = () => {
       setTimeout(() => {
         router.push(redirectDashboard);
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Password change error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update credentials.');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError('The current/temporary password you entered is incorrect. Please check your credential email and try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to update credentials.');
+      }
     } finally {
       setLoading(false);
     }

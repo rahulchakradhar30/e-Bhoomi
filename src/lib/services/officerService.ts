@@ -3,10 +3,6 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebase/firestore';
 import { OfficerProfile } from '../../types/officer';
@@ -23,13 +19,12 @@ export async function getOfficerProfile(officerId: string): Promise<OfficerProfi
 }
 
 export async function getOfficerByAuthUid(authUid: string): Promise<OfficerProfile | null> {
-  const q = query(
-    collection(db, OFFICERS_COLLECTION),
-    where('authUid', '==', authUid)
-  );
-  const querySnap = await getDocs(q);
-  if (!querySnap.empty) {
-    return querySnap.docs[0].data() as OfficerProfile;
+  // Officers are stored with their Firebase Auth UID as the Firestore document ID.
+  // Direct document get satisfies the rule uid()==officerId without custom claims.
+  const ref = doc(db, OFFICERS_COLLECTION, authUid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    return snap.data() as OfficerProfile;
   }
   return null;
 }

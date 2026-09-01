@@ -4,62 +4,77 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============================================================
-    // HELPER FUNCTIONS
+    // HELPER FUNCTIONS — use custom claims, never Firestore lookups
+    // Claims are set server-side by Admin SDK on account creation.
     // ============================================================
 
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isUser(uid) {
-      return isSignedIn() && request.auth.uid == uid;
+    function uid() {
+      return request.auth.uid;
     }
 
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    // Read role directly from Firebase Auth custom claims (fast, no extra read)
+    function claimRole() {
+      return request.auth.token.role;
     }
 
-    function getOfficerData() {
-      return get(/databases/$(database)/documents/officers/$(request.auth.uid)).data;
-    }
-
-    function hasRole(role) {
+    function isAdmin() {
       return isSignedIn() && (
-        (getUserData() != null && getUserData().role == role) ||
-        (getOfficerData() != null && getOfficerData().roleId == role)
+        claimRole() == 'SYSTEM_ADMIN' ||
+        claimRole() == 'STATE_ADMIN' ||
+        request.auth.token.admin == true
       );
     }
 
     function isOfficer() {
       return isSignedIn() && (
-        hasRole('FIELD_OFFICER') ||
-        hasRole('MRO') ||
-        hasRole('RDO') ||
-        hasRole('DISTRICT_ADMIN') ||
-        hasRole('STATE_ADMIN') ||
-        hasRole('SYSTEM_ADMIN')
+        claimRole() == 'SYSTEM_ADMIN'    ||
+        claimRole() == 'STATE_ADMIN'     ||
+        claimRole() == 'DISTRICT_COLLECTOR' ||
+        claimRole() == 'RDO_OFFICER'     ||
+        claimRole() == 'TAHSILDAR_MRO'   ||
+        claimRole() == 'FIELD_VRO'       ||
+        // Legacy role names kept for compatibility
+        claimRole() == 'DISTRICT_ADMIN'  ||
+        claimRole() == 'RDO'             ||
+        claimRole() == 'MRO'             ||
+        claimRole() == 'FIELD_OFFICER'
       );
     }
 
-    function isAdmin() {
+    function isDistrictOrAbove() {
       return isSignedIn() && (
-        hasRole('STATE_ADMIN') ||
-        hasRole('SYSTEM_ADMIN')
+        claimRole() == 'SYSTEM_ADMIN'       ||
+        claimRole() == 'STATE_ADMIN'        ||
+        claimRole() == 'DISTRICT_COLLECTOR' ||
+        claimRole() == 'DISTRICT_ADMIN'
       );
     }
 
-    // Default deny all access
+    // Default deny all — explicit rules below grant access
     match /{document=**} {
       allow read, write: if false;
+    }
+
+    // ============================================================
+    // OTP SESSIONS (admin login 2FA) — admin SDK only via backend
+    // ============================================================
+    match /adminOtpSessions/{sessionId} {
+      allow read, write: if false; // server-side (Admin SDK) only
     }
 
     // ============================================================
     // USER PROFILES
     // ============================================================
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isOfficer());
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isUser(userId) || isAdmin();
+      // Own profile or any signed-in officer can read (for subordinate lookup)
+      allow read: if isSignedIn() && (uid() == userId || isOfficer());
+      // Admin SDK creates profiles (provisioning). Users can update their own.
+      allow create: if isSignedIn() && uid() == userId;
+      allow update: if isSignedIn() && (uid() == userId || isAdmin());
       allow delete: if isAdmin();
     }
 
@@ -67,7 +82,7 @@ service cloud.firestore {
     // ADMIN PROFILES
     // ============================================================
     match /admins/{adminId} {
-      allow read: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow read: if isSignedIn() && (uid() == adminId || isAdmin());
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
@@ -76,9 +91,10 @@ service cloud.firestore {
     // OFFICER PROFILES
     // ============================================================
     match /officers/{officerId} {
-      allow read: if isOfficer();
+      // Officers can read their own and any officer profile (directory access)
+      allow read: if isSignedIn() && (uid() == officerId || isOfficer());
       allow create, update: if isAdmin();
-      allow delete: if false; // Officers cannot be deleted, only deactivated
+      allow delete: if false; // Soft-delete only via accountStatus field
     }
 
     // ============================================================
@@ -91,7 +107,7 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // ROLES & PERMISSIONS
+    // ROLES & PERMISSIONS (reference data)
     // ============================================================
     match /roles/{roleId} {
       allow read: if isSignedIn();
@@ -104,10 +120,10 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // JURISDICTIONS & MASTER DATA
+    // JURISDICTIONS & MASTER DATA (public read)
     // ============================================================
     match /jurisdictions/{jurisdictionId} {
-      allow read: if true; // Public administrative hierarchy view
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -132,6 +148,11 @@ service cloud.firestore {
     }
 
     match /mandals/{mandalId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /sachivalayams/{sachivalayamId} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -168,17 +189,17 @@ service cloud.firestore {
 
     match /fieldVerifications/{verificationId} {
       allow read: if isOfficer();
-      allow create, update: if hasRole('FIELD_OFFICER') || isOfficer();
+      allow create, update: if isOfficer();
       allow delete: if false;
     }
 
     // ============================================================
-    // AUDIT LOGS
+    // AUDIT LOGS (append-only, admin read)
     // ============================================================
     match /auditLogs/{logId} {
-      allow read: if isOfficer() && (hasRole('DISTRICT_ADMIN') || isAdmin());
-      allow create: if isSignedIn();
-      allow update, delete: if false; // Immutable audit log
+      allow read: if isDistrictOrAbove();
+      allow create: if isSignedIn(); // Any authenticated user can append
+      allow update, delete: if false; // Immutable
     }
 
     // ============================================================
@@ -186,7 +207,7 @@ service cloud.firestore {
     // ============================================================
     match /notifications/{notificationId} {
       allow read: if isSignedIn();
-      allow create, update: if hasRole('DISTRICT_ADMIN') || isAdmin();
+      allow create, update: if isDistrictOrAbove() || isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -195,7 +216,7 @@ service cloud.firestore {
     // ============================================================
     match /delegations/{delegationId} {
       allow read: if isOfficer();
-      allow create, update: if hasRole('MRO') || hasRole('RDO') || isAdmin();
+      allow create, update: if isOfficer();
       allow delete: if false;
     }
   }

@@ -37,6 +37,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfiles = async (currentUser: FirebaseUser) => {
     try {
+      // Force-refresh the ID token so custom claims (role, admin) are current
+      // before Firestore rules evaluate them
+      await currentUser.getIdToken(true);
+
       const [uProfile, oProfile] = await Promise.all([
         getUserProfile(currentUser.uid),
         getOfficerByAuthUid(currentUser.uid),
