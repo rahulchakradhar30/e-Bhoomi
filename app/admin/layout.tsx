@@ -24,6 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Villages', href: '/admin/villages' },
     { label: 'Officer Directory', href: '/admin/officers' },
     { label: 'Provision Officer', href: '/admin/officers/create' },
+    { label: 'Transfer Officer', href: '/admin/officers/transfer' },
     { label: 'Jurisdictions', href: '/admin/jurisdictions' },
     { label: 'Roles & Permissions', href: '/admin/roles' },
     { label: 'Notifications', href: '/admin/notifications' },

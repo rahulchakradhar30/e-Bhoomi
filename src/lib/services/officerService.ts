@@ -1,6 +1,8 @@
 import {
+  collection,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
@@ -8,6 +10,12 @@ import { db } from '../firebase/firestore';
 import { OfficerProfile } from '../../types/officer';
 
 const OFFICERS_COLLECTION = 'officers';
+
+export async function getAllOfficers(): Promise<OfficerProfile[]> {
+  const ref = collection(db, OFFICERS_COLLECTION);
+  const snap = await getDocs(ref);
+  return snap.docs.map(doc => doc.data() as OfficerProfile);
+}
 
 export async function getOfficerProfile(officerId: string): Promise<OfficerProfile | null> {
   const ref = doc(db, OFFICERS_COLLECTION, officerId);

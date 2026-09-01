@@ -141,45 +141,6 @@ export const OfficerCreateForm: React.FC = () => {
         </div>
       )}
 
-      {/* ── Location ─────────────────────────────────────────────────── */}
-      <div className="form-field-group">
-        <label className="form-label">State</label>
-        <select className="form-select" value={stateCode} onChange={(e) => setStateCode(e.target.value)}>
-          {states.map(s => (
-            <option key={s.state_code} value={s.state_code}>{s.name} ({s.short_code || s.display_code})</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="form-field-group">
-        <label className="form-label">District (LGD)</label>
-        <select className="form-select" value={districtCode} onChange={(e) => setDistrictCode(e.target.value)}>
-          {districts.map(d => (
-            <option key={d.district_code} value={d.district_code}>{d.name} (LGD: {d.district_code})</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="form-field-group">
-        <label className="form-label">Subdistrict / Mandal</label>
-        <select className="form-select" value={subdistrictCode} onChange={(e) => setSubdistrictCode(e.target.value)}>
-          <option value="">Select Mandal...</option>
-          {subdistricts.map(sd => (
-            <option key={sd.subdistrict_code} value={sd.subdistrict_code}>{sd.name} ({sd.type})</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="form-field-group">
-        <label className="form-label">Sachivalayam / Jurisdiction</label>
-        <select className="form-select" value={sachivalayamCode} onChange={(e) => setSachivalayamCode(e.target.value)}>
-          <option value="">Select Sachivalayam...</option>
-          {sachivalayams.map(s => (
-            <option key={s.sachivalayam_code} value={s.sachivalayam_code}>{s.name} ({s.area_type})</option>
-          ))}
-        </select>
-      </div>
-
       {/* ── Role ──────────────────────────────────────────────────────── */}
       <div className="form-field-group">
         <label className="form-label">Official Role</label>
@@ -191,6 +152,53 @@ export const OfficerCreateForm: React.FC = () => {
           <option value="STATE_ADMIN">State Administrator</option>
         </select>
       </div>
+
+      {/* ── Location ─────────────────────────────────────────────────── */}
+      <div className="form-field-group">
+        <label className="form-label">State</label>
+        <select className="form-select" value={stateCode} onChange={(e) => setStateCode(e.target.value)}>
+          {states.map(s => (
+            <option key={s.state_code} value={s.state_code}>{s.name} ({s.short_code || s.display_code})</option>
+          ))}
+        </select>
+      </div>
+
+      {(role !== 'STATE_ADMIN') && (
+        <div className="form-field-group">
+          <label className="form-label">District (LGD)</label>
+          <select className="form-select" value={districtCode} onChange={(e) => setDistrictCode(e.target.value)}>
+            {districts.map(d => (
+              <option key={d.district_code} value={d.district_code}>{d.name} (LGD: {d.district_code})</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {(role === 'FIELD_VRO' || role === 'TAHSILDAR_MRO' || role === 'RDO_OFFICER') && (
+        <div className="form-field-group">
+          <label className="form-label">Subdistrict / Mandal</label>
+          <select className="form-select" value={subdistrictCode} onChange={(e) => setSubdistrictCode(e.target.value)}>
+            <option value="">Select Mandal...</option>
+            {subdistricts.map(sd => (
+              <option key={sd.subdistrict_code} value={sd.subdistrict_code}>{sd.name} ({sd.type})</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {role === 'FIELD_VRO' && (
+        <div className="form-field-group">
+          <label className="form-label">Sachivalayam / Jurisdiction</label>
+          <select className="form-select" value={sachivalayamCode} onChange={(e) => setSachivalayamCode(e.target.value)}>
+            <option value="">Select Sachivalayam...</option>
+            {sachivalayams.map(s => (
+              <option key={s.sachivalayam_code} value={s.sachivalayam_code}>{s.name} ({s.area_type})</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+
 
       {/* ── Officer details ───────────────────────────────────────────── */}
       <div className="form-field-group">
