@@ -35,11 +35,11 @@ export const Footer: React.FC = () => {
             © {new Date().getFullYear()} Government of India. All Rights Reserved.
           </div>
           <div className="footer-team-attribution">
-            <span className="attribution-sih">SIH 2026</span>
-            <span className="attribution-sep">|</span>
-            <span className="attribution-team">Team <strong>DigitalX</strong></span>
-            <span className="attribution-sep">|</span>
-            <span className="attribution-members">Rahul Chakradhar | Karthika | Bharath Yuvaraj | Spandana Reddy | Mohaniesh | Ashad</span>
+            <span className="attribution-sih">SIH 2026
+              <span className="attribution-sep">|</span>
+              <span className="attribution-team">Team <strong>DigitalX</strong></span>
+              <span className="attribution-sep">|</span>
+              <span className="attribution-members">Rahul Chakradhar | Karthika | Bharath Yuvaraj | Spandana Reddy | Mohaniesh | Ashad </span>
           </div>
         </div>
       </div>
