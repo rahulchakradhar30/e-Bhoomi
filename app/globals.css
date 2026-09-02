@@ -1416,6 +1416,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 768px) {
+  .header-left-brands { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  .brand-vertical-divider { height: 32px; }
+  .dept-logo { height: 48px; max-width: 100%; }
+  .ministry-logo { height: 36px; max-width: 100%; }
+  .ebhoomi-logo { height: 42px; max-width: 100%; }
   .summary-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .master-data-hierarchy-grid { grid-template-columns: 1fr; }
   .contextual-header-inner { flex-direction: column; align-items: flex-start; }
