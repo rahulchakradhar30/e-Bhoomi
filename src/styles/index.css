@@ -15,8 +15,8 @@
   --border-light: #E2E8F0;
   --border-dark: #334155;
   --radius-gov: 4px;
-  --font-sans: 'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Kannada', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Noto Sans Display', 'Noto Sans Telugu', 'Noto Sans Kannada', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Kannada', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Noto Sans Display', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Kannada', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 * {
@@ -1518,26 +1518,37 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 768px) {
-  .hero-title { font-size: 1.35rem; }
+  .hero-title { font-size: 1.5rem; }
+  .hero-subtitle { font-size: 0.85rem; }
   .header-container { padding: 0.65rem 0; }
-  .hero-search-section { padding: 1.5rem 0; }
+  .hero-search-section { padding: 1.25rem 0 0.85rem 0; }
   .quick-services-section { padding: 1.5rem 0; }
   .simple-login-section { padding: 2rem 0; }
-  .header-left-brands { flex-wrap: nowrap; justify-content: center; gap: 0.5rem; width: 100%; }
-  .brand-vertical-divider { height: 24px; }
-  .dept-logo { height: 36px; max-width: 30vw; object-fit: contain; }
-  .ministry-logo { height: 28px; max-width: 25vw; object-fit: contain; }
-  .ebhoomi-logo { height: 32px; max-width: 25vw; object-fit: contain; }
+  .header-left-brands { flex-wrap: nowrap; justify-content: space-between; gap: 0.5rem; width: 100%; }
+  .brand-vertical-divider { height: 20px; }
+  .dept-logo { height: 34px; max-width: 32vw; object-fit: contain; }
+  .ministry-logo { height: 26px; max-width: 28vw; object-fit: contain; }
+  .ebhoomi-logo { height: 28px; max-width: 28vw; object-fit: contain; }
   .summary-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .master-data-hierarchy-grid { grid-template-columns: 1fr; }
   .contextual-header-inner { flex-direction: column; align-items: flex-start; }
   .subordinate-view-banner { flex-direction: column; align-items: flex-start; }
-  .header-inner { flex-direction: column; text-align: center; gap: 0.75rem; }
+  .header-inner { flex-direction: column; text-align: center; gap: 0.5rem; }
   .services-cards-grid { grid-template-columns: 1fr; }
   .metadata-info-grid { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+
+  /* Input & select sizing on mobile to prevent browser auto-zoom */
+  .form-select, .form-input, .search-input-field {
+    font-size: 16px !important;
+    height: 42px;
+  }
 }
 
-@media (max-width: 540px) {
-  .summary-cards-grid { grid-template-columns: 1fr; }
-  .services-cards-grid { grid-template-columns: 1fr; }
+@media (max-width: 480px) {
+  .hero-title { font-size: 1.25rem; }
+  .hero-subtitle { font-size: 0.8rem; }
+  .content-container { padding: 0 1rem; }
+  .top-utility-bar { font-size: 0.7rem; padding: 0.35rem 0; }
+  .goi-flag-text { font-size: 0.65rem; letter-spacing: 0.04em; }
+  .utility-sep { margin: 0 0.3rem; }
 }

@@ -212,7 +212,7 @@ export const PublicLandSearch: React.FC = () => {
     <div className="public-land-search-card">
       {/* Header Banner */}
       <div className="public-search-header">
-        <h1 className="public-search-title">DIGITAL LAND RECORD SEARCH</h1>
+        <h2 className="public-search-title">DIGITAL LAND RECORD SEARCH</h2>
         <div className="public-search-subtitle">Access Your Digitized Land Records</div>
         <p className="public-search-description">
           Select your location and verify your registered mobile number to access land records associated with your jurisdiction.
