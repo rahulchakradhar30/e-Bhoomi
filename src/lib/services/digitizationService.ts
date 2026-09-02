@@ -84,6 +84,14 @@ export async function createDigitizationCase(caseDoc: DigitizationCaseDocument):
   });
 }
 
+export async function saveDigitizationDraft(
+  draftDoc: Partial<DigitizationCaseDocument>
+): Promise<void> {
+  if (!draftDoc.caseId) return;
+  const ref = doc(db, DIGITIZATION_CASES_COLLECTION, draftDoc.caseId);
+  await setDoc(ref, { ...draftDoc, workflowStatus: 'DRAFT', updatedAt: new Date().toISOString() }, { merge: true });
+}
+
 export async function updateDigitizationCase(
   caseId: string,
   updates: Partial<Omit<DigitizationCaseDocument, 'caseId' | 'createdAt'>>

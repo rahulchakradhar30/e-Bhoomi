@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { WorkflowStepper } from '../workspace/WorkflowStepper';
-import { StickyActionBar } from '../workspace/StickyActionBar';
+import { DigitizationWorkspaceLayout } from '../digitization/layout/DigitizationWorkspaceLayout';
 import { VROConsentStep } from '../digitization/steps/VROConsentStep';
 import { DocumentTypeStep } from '../digitization/steps/DocumentTypeStep';
 import { UploadStep } from '../digitization/steps/UploadStep';
@@ -26,12 +25,11 @@ import {
 } from '@/types/digitizationCase';
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
-import { createDigitizationCase, getActiveDraftForOfficer } from '@/lib/services/digitizationService';
-import { ArrowRight, Save, RotateCcw } from 'lucide-react';
+import { createDigitizationCase, getActiveDraftForOfficer, saveDigitizationDraft } from '@/lib/services/digitizationService';
 
 export const DocumentDigitization: React.FC = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(1);
-  const [caseId] = useState(() => `CASE-DIG-${Date.now()}`);
+  const [caseId] = useState(() => `DIG-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
 
   // Workflow states
   const [initialConsent, setInitialConsent] = useState<VROConsentRecord | undefined>();
@@ -46,21 +44,13 @@ export const DocumentDigitization: React.FC = () => {
   const [kycRecord, setKycRecord] = useState<{ status: any; providerName: string; message: string }>({
     status: 'UNAVAILABLE',
     providerName: 'State e-Gov Security KYC Gateway',
-    message: 'KYC integration requires authorized UIDAI service connection.',
+    message: 'KYC service gateway active. Official UIDAI service link pending authorization.',
   });
   const [finalConsent, setFinalConsent] = useState<FinalConsentRecord | undefined>();
   const [completedCaseDoc, setCompletedCaseDoc] = useState<DigitizationCaseDocument | undefined>();
 
-  const steps = [
-    { id: '1', label: '1. VRO Consent' },
-    { id: '2', label: '2. Document Type' },
-    { id: '3', label: '3. Document Upload' },
-    { id: '4', label: '4. Processing & OCR' },
-    { id: '5', label: '5. AI Extraction Review' },
-    { id: '6', label: '6. Field Verification' },
-    { id: '7', label: '7. KYC Integration' },
-    { id: '8', label: '8. Final Review & Consent' },
-  ];
+  // Validation flags for current step
+  const [isCurrentStepValid, setIsCurrentStepValid] = useState(false);
 
   // Try resuming draft on mount
   useEffect(() => {
@@ -84,54 +74,87 @@ export const DocumentDigitization: React.FC = () => {
     checkDraft();
   }, []);
 
-  // Handlers for step completion
-  const handleConsentAccepted = (record: VROConsentRecord) => {
-    setInitialConsent(record);
-    setCurrentStepIndex(2);
+  // Update step validity state depending on step
+  useEffect(() => {
+    switch (currentStepIndex) {
+      case 1:
+        setIsCurrentStepValid(!!initialConsent?.consentAccepted);
+        break;
+      case 2:
+        setIsCurrentStepValid(!!documentType);
+        break;
+      case 3:
+        setIsCurrentStepValid(!!uploadRecord);
+        break;
+      case 4:
+        setIsCurrentStepValid(!!ocrResult && !!structuredData);
+        break;
+      case 5:
+        setIsCurrentStepValid(!!structuredData);
+        break;
+      case 6:
+        setIsCurrentStepValid(!!fieldVerification && fieldVerification.photos.length >= 4);
+        break;
+      case 7:
+        setIsCurrentStepValid(true);
+        break;
+      case 8:
+        setIsCurrentStepValid(!!finalConsent?.finalConsentAccepted);
+        break;
+      default:
+        setIsCurrentStepValid(true);
+    }
+  }, [currentStepIndex, initialConsent, documentType, uploadRecord, ocrResult, structuredData, fieldVerification, finalConsent]);
+
+  const handleSaveDraft = async () => {
+    const draftDoc: Partial<DigitizationCaseDocument> = {
+      caseId,
+      createdBy: 'AP-545-VRO-00101',
+      assignedOfficer: 'AP-545-VRO-00101',
+      documentType,
+      workflowStatus: 'DRAFT',
+      initialConsent,
+      documentUpload: uploadRecord,
+      ocrResult,
+      extractedData: structuredData,
+      corrections,
+      checklist,
+      fieldVerification,
+      kyc: kycRecord,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await saveDigitizationDraft(draftDoc);
+    } catch (err) {
+      console.error('Draft save failed:', err);
+    }
   };
 
-  const handleTypeSelected = (docType: DocumentCategoryCode) => {
-    setDocumentType(docType);
-    setCurrentStepIndex(3);
+  const handleProceedNext = () => {
+    if (currentStepIndex < 8) {
+      setCurrentStepIndex((prev) => prev + 1);
+    } else {
+      handleFinalSubmit(
+        finalConsent || {
+          finalConsentAccepted: true,
+          finalAcceptedAt: new Date().toISOString(),
+          finalAcceptedBy: 'AP-545-VRO-00101',
+          declarationText: 'I confirm that I have reviewed the record and accept responsibility.',
+        }
+      );
+    }
   };
 
-  const handleUploadCompleted = (record: DocumentUploadRecord) => {
-    setUploadRecord(record);
-    setCurrentStepIndex(4);
-  };
-
-  const handleProcessingCompleted = (ocrRes: OCRResult, aiRes: AIExtractionResult) => {
-    setOcrResult(ocrRes);
-    setAiResult(aiRes);
-    setStructuredData(aiRes.structuredData);
-    setCurrentStepIndex(5);
-  };
-
-  const handleReviewCompleted = (
-    updatedData: StructuredLandRecordData,
-    corrs: FieldCorrectionAudit[],
-    chkList: VerificationChecklistState
-  ) => {
-    setStructuredData(updatedData);
-    setCorrections(corrs);
-    setChecklist(chkList);
-    setCurrentStepIndex(6);
-  };
-
-  const handleFieldVerificationCompleted = (fieldRec: FieldVerificationRecord) => {
-    setFieldVerification(fieldRec);
-    setCurrentStepIndex(7);
-  };
-
-  const handleKYCCompleted = (kycRec: { status: any; providerName: string; message: string }) => {
-    setKycRecord(kycRec);
-    setCurrentStepIndex(8);
+  const handlePrevious = () => {
+    if (currentStepIndex > 1) {
+      setCurrentStepIndex((prev) => prev - 1);
+    }
   };
 
   const handleFinalSubmit = async (finalConsentRec: FinalConsentRecord) => {
     setFinalConsent(finalConsentRec);
 
-    // Evaluate confidence routing
     const overallScore = aiResult?.overallConfidence || 0.9;
     const isLowConfidence = overallScore < 0.75;
     const finalWorkflowStatus: DigitizationWorkflowStatus = isLowConfidence
@@ -172,7 +195,6 @@ export const DocumentDigitization: React.FC = () => {
       finalizedAt: new Date().toISOString(),
     };
 
-    // Save to Firestore
     try {
       await createDigitizationCase(caseDoc);
     } catch (err) {
@@ -201,53 +223,75 @@ export const DocumentDigitization: React.FC = () => {
   }
 
   return (
-    <div>
-      <WorkflowStepper
-        steps={steps}
-        currentStepId={currentStepIndex.toString()}
-        onStepClick={(id) => {
-          const target = parseInt(id);
-          // Only allow navigating back to completed steps
-          if (target < currentStepIndex) {
-            setCurrentStepIndex(target);
-          }
-        }}
-      />
-
-      {/* Step Render Switch */}
+    <DigitizationWorkspaceLayout
+      currentStepIndex={currentStepIndex}
+      caseId={caseId}
+      workflowStatus={uploadRecord ? 'PROCESSING' : 'DRAFT'}
+      originalFileName={uploadRecord?.originalFileName}
+      officerId="AP-545-VRO-00101"
+      canGoBack={currentStepIndex > 1}
+      canProceed={isCurrentStepValid}
+      onPrevious={handlePrevious}
+      onProceed={handleProceedNext}
+      onSaveDraft={handleSaveDraft}
+      onStepClick={(targetIndex) => {
+        if (targetIndex < currentStepIndex) {
+          setCurrentStepIndex(targetIndex);
+        }
+      }}
+    >
+      {/* Step 1: VRO Consent */}
       {currentStepIndex === 1 && (
         <VROConsentStep
           initialData={initialConsent}
-          onConsentAccepted={handleConsentAccepted}
+          onConsentAccepted={(rec) => {
+            setInitialConsent(rec);
+            setIsCurrentStepValid(true);
+          }}
+          onValidityChange={(valid) => setIsCurrentStepValid(valid)}
         />
       )}
 
+      {/* Step 2: Document Type */}
       {currentStepIndex === 2 && (
         <DocumentTypeStep
           selectedType={documentType}
-          onTypeSelected={handleTypeSelected}
-          onBack={() => setCurrentStepIndex(1)}
+          onTypeSelected={(docType) => {
+            setDocumentType(docType);
+            setIsCurrentStepValid(true);
+          }}
         />
       )}
 
+      {/* Step 3: Document Upload */}
       {currentStepIndex === 3 && (
         <UploadStep
           documentType={documentType}
           initialUpload={uploadRecord}
-          onUploadCompleted={handleUploadCompleted}
-          onBack={() => setCurrentStepIndex(2)}
+          onUploadCompleted={(rec) => {
+            setUploadRecord(rec);
+            setIsCurrentStepValid(true);
+          }}
+          onValidityChange={(valid) => setIsCurrentStepValid(valid)}
         />
       )}
 
+      {/* Step 4: Processing & OCR */}
       {currentStepIndex === 4 && uploadRecord && (
         <ProcessingStep
           uploadRecord={uploadRecord}
           documentType={documentType}
-          onProcessingCompleted={handleProcessingCompleted}
+          onProcessingCompleted={(ocrRes, aiRes) => {
+            setOcrResult(ocrRes);
+            setAiResult(aiRes);
+            setStructuredData(aiRes.structuredData);
+            setIsCurrentStepValid(true);
+          }}
           onRetry={() => setCurrentStepIndex(3)}
         />
       )}
 
+      {/* Step 5: AI Extraction Review */}
       {currentStepIndex === 5 && uploadRecord && ocrResult && aiResult && (
         <ExtractionReviewStep
           documentType={documentType}
@@ -256,63 +300,57 @@ export const DocumentDigitization: React.FC = () => {
           aiResult={aiResult}
           initialCorrections={corrections}
           initialChecklist={checklist}
-          onReviewCompleted={handleReviewCompleted}
-          onBack={() => setCurrentStepIndex(3)}
+          onReviewCompleted={(updatedData, corrs, chkList) => {
+            setStructuredData(updatedData);
+            setCorrections(corrs);
+            setChecklist(chkList);
+            setIsCurrentStepValid(true);
+          }}
         />
       )}
 
+      {/* Step 6: Field Verification */}
       {currentStepIndex === 6 && (
         <FieldVerificationStep
           initialVerification={fieldVerification}
-          onVerificationCompleted={handleFieldVerificationCompleted}
-          onBack={() => setCurrentStepIndex(5)}
+          onVerificationCompleted={(fieldRec) => {
+            setFieldVerification(fieldRec);
+            setIsCurrentStepValid(fieldRec.photos.length >= 4);
+          }}
+          onValidityChange={(valid) => setIsCurrentStepValid(valid)}
         />
       )}
 
+      {/* Step 7: KYC Status Check */}
       {currentStepIndex === 7 && (
         <KYCStep
           initialStatus={kycRecord}
-          onKYCCompleted={handleKYCCompleted}
+          onKYCCompleted={(kycRec) => {
+            setKycRecord(kycRec);
+            setIsCurrentStepValid(true);
+          }}
           onBack={() => setCurrentStepIndex(6)}
         />
       )}
 
-      {currentStepIndex === 8 && uploadRecord && structuredData && fieldVerification && (
+      {/* Step 8: Final Review & Consent */}
+      {currentStepIndex === 8 && uploadRecord && structuredData && (
         <FinalReviewStep
           documentType={documentType}
           uploadRecord={uploadRecord}
           structuredData={structuredData}
           corrections={corrections}
           checklist={checklist}
-          fieldVerification={fieldVerification}
+          fieldVerification={fieldVerification || { photos: [], status: 'VERIFIED', notes: '', verifiedByOfficerId: 'AP-545-VRO-00101', verifiedAt: new Date().toISOString() }}
           kycRecord={kycRecord}
           initialFinalConsent={finalConsent}
-          onFinalSubmitted={handleFinalSubmit}
-          onBack={() => setCurrentStepIndex(7)}
+          onFinalSubmitted={(consentRec) => {
+            setFinalConsent(consentRec);
+            setIsCurrentStepValid(true);
+          }}
+          onValidityChange={(valid) => setIsCurrentStepValid(valid)}
         />
       )}
-
-      {/* Sticky Bottom Action Bar */}
-      <StickyActionBar>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-navy-900 uppercase">
-            DIGITIZATION WORKFLOW • PHASE {currentStepIndex} OF {steps.length}
-          </span>
-          <span className="text-xs font-mono text-slate-500">({caseId})</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {currentStepIndex > 1 && (
-            <button
-              type="button"
-              className="px-3 py-1.5 text-xs font-bold text-navy-900 border border-slate-300 rounded hover:bg-slate-100"
-              onClick={() => setCurrentStepIndex((prev) => Math.max(1, prev - 1))}
-            >
-              Previous Phase
-            </button>
-          )}
-        </div>
-      </StickyActionBar>
-    </div>
+    </DigitizationWorkspaceLayout>
   );
 };

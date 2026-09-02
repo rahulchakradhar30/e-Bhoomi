@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { WorkspacePanel } from '@/components/workspace/WorkspacePanel';
 import { SUPPORTED_DOCUMENT_TYPES, DocumentCategoryCode } from '@/config/digitizationSchemas';
-import { FileUp, FileText, CheckCircle2, AlertCircle, Trash2, ArrowRight, UploadCloud } from 'lucide-react';
+import { FileUp, FileText, CheckCircle2, AlertCircle, Trash2, UploadCloud } from 'lucide-react';
 import { DocumentUploadRecord } from '@/types/digitizationCase';
 
 interface UploadStepProps {
   documentType: DocumentCategoryCode;
   initialUpload?: DocumentUploadRecord;
   onUploadCompleted: (uploadRecord: DocumentUploadRecord) => void;
-  onBack: () => void;
+  onValidityChange?: (isValid: boolean) => void;
+  onBack?: () => void;
 }
 
 export const UploadStep: React.FC<UploadStepProps> = ({
   documentType,
   initialUpload,
   onUploadCompleted,
-  onBack,
+  onValidityChange,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -26,6 +27,10 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   const [uploadRecord, setUploadRecord] = useState<DocumentUploadRecord | null>(initialUpload || null);
 
   const docConfig = SUPPORTED_DOCUMENT_TYPES.find((d) => d.code === documentType) || SUPPORTED_DOCUMENT_TYPES[0];
+
+  useEffect(() => {
+    onValidityChange?.(!!uploadRecord);
+  }, [uploadRecord]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMsg(null);
@@ -53,7 +58,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     if (!selectedFile) return;
 
     setUploading(true);
-    setUploadProgress(20);
+    setUploadProgress(30);
     setErrorMsg(null);
 
     try {
@@ -61,7 +66,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
       formData.append('file', selectedFile);
       formData.append('documentType', documentType);
 
-      setUploadProgress(60);
+      setUploadProgress(70);
 
       const res = await fetch('/api/digitization/upload', {
         method: 'POST',
@@ -99,35 +104,36 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     setSelectedFile(null);
     setUploadRecord(null);
     setErrorMsg(null);
+    onValidityChange?.(false);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Category Header Banner */}
-      <div className="bg-navy-900 text-white p-4 rounded-md shadow-sm flex items-center justify-between">
-        <div>
-          <span className="text-[10px] font-mono uppercase text-amber-400 tracking-wider">
-            Selected Document Category
-          </span>
-          <h3 className="text-lg font-bold">
-            {docConfig.titleEn} • <span className="font-serif text-amber-300">{docConfig.titleTe}</span>
-          </h3>
+    <div className="space-y-4 max-w-4xl mx-auto">
+      {/* Category Banner */}
+      <div className="bg-navy-900 text-white p-3.5 rounded-md shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <FileText className="w-5 h-5 text-amber-300" />
+          <div>
+            <span className="text-[10px] font-mono uppercase text-amber-400">Target Document Category:</span>
+            <h4 className="text-sm font-bold">
+              {docConfig.titleEn} • <span className="font-serif text-amber-300">{docConfig.titleTe}</span>
+            </h4>
+          </div>
         </div>
-        <div className="bg-navy-800 text-slate-200 text-xs px-3 py-1.5 rounded border border-navy-700 font-mono">
-          Code: {docConfig.code}
-        </div>
+        <span className="bg-navy-800 text-slate-200 text-xs px-2.5 py-1 rounded font-mono border border-navy-700">
+          {docConfig.code}
+        </span>
       </div>
 
       <WorkspacePanel
-        title="PHASE 3: SECURE PHYSICAL DOCUMENT SCAN UPLOAD"
-        guidance="Preferred format: Multi-page PDF for complete register preservation. High-resolution JPG/JPEG/PNG scans are also supported."
+        title="DOCUMENT SCAN FILE UPLOAD"
+        guidance="Preferred format: Multi-page PDF for complete register preservation. High-resolution JPG/JPEG/PNG scans (min 300 DPI) are also supported."
       >
-        {/* Upload Container */}
         {!uploadRecord ? (
           <div className="space-y-4">
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-                selectedFile ? 'border-navy-800 bg-navy-50/40' : 'border-slate-300 bg-slate-50/60 hover:bg-slate-100/60'
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+                selectedFile ? 'border-navy-800 bg-navy-50/40' : 'border-slate-300 bg-slate-50 hover:bg-slate-100/70'
               }`}
             >
               <input
@@ -139,7 +145,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
               />
 
               {!selectedFile ? (
-                <label htmlFor="doc-file-input" className="cursor-pointer block space-y-3">
+                <label htmlFor="doc-file-input" className="cursor-pointer block space-y-2.5">
                   <div className="w-12 h-12 bg-navy-900 text-amber-300 rounded-full flex items-center justify-center mx-auto shadow-sm">
                     <UploadCloud className="w-6 h-6" />
                   </div>
@@ -148,30 +154,32 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                       Click to Select or Drag & Drop Physical Scan File
                     </h4>
                     <p className="text-xs text-slate-500 mt-1">
-                      PDF Preferred (Preserves multi-page revenue record order) • Max File Size: 25MB
+                      PDF Preferred (Preserves multi-page revenue record order) • Max Size: 25MB
                     </p>
-                    <div className="mt-2 flex items-center justify-center gap-2 text-[11px] text-slate-600">
-                      <span className="bg-slate-200 px-2 py-0.5 rounded font-mono">PDF</span>
-                      <span className="bg-slate-200 px-2 py-0.5 rounded font-mono">JPG</span>
-                      <span className="bg-slate-200 px-2 py-0.5 rounded font-mono">JPEG</span>
-                      <span className="bg-slate-200 px-2 py-0.5 rounded font-mono">PNG</span>
+                    <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-slate-600 font-mono">
+                      <span className="bg-slate-200 px-2 py-0.5 rounded">PDF</span>
+                      <span className="bg-slate-200 px-2 py-0.5 rounded">JPG</span>
+                      <span className="bg-slate-200 px-2 py-0.5 rounded">JPEG</span>
+                      <span className="bg-slate-200 px-2 py-0.5 rounded">PNG</span>
                     </div>
                   </div>
                 </label>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-3 p-3 bg-white border border-navy-700/40 rounded-md max-w-md mx-auto">
-                    <FileText className="w-8 h-8 text-navy-800" />
-                    <div className="text-left truncate">
-                      <p className="font-bold text-navy-900 text-xs truncate">{selectedFile.name}</p>
-                      <p className="text-[11px] text-slate-500 font-mono">
-                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • {selectedFile.type || 'Document'}
-                      </p>
+                <div className="space-y-3 max-w-md mx-auto">
+                  <div className="flex items-center justify-between p-3 bg-white border border-navy-800/40 rounded-md">
+                    <div className="flex items-center gap-3 truncate">
+                      <FileText className="w-6 h-6 text-navy-800 flex-shrink-0" />
+                      <div className="text-left truncate">
+                        <p className="font-bold text-navy-900 text-xs truncate">{selectedFile.name}</p>
+                        <p className="text-[10px] text-slate-500 font-mono">
+                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • {selectedFile.type || 'Document'}
+                        </p>
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={handleRemove}
-                      className="p-1 hover:bg-slate-100 rounded text-red-600 ml-auto"
+                      className="p-1 hover:bg-slate-100 text-red-600 rounded ml-2"
                       title="Remove file"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -179,14 +187,14 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                   </div>
 
                   {uploading && (
-                    <div className="max-w-md mx-auto space-y-1">
+                    <div className="space-y-1">
                       <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                         <div
                           className="bg-navy-900 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${uploadProgress}%` }}
                         />
                       </div>
-                      <p className="text-[11px] font-mono text-navy-900 font-bold text-right">
+                      <p className="text-[10px] font-mono text-navy-900 font-bold text-right">
                         Encrypting & Uploading: {uploadProgress}%
                       </p>
                     </div>
@@ -196,10 +204,10 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                     <button
                       type="button"
                       onClick={handleUploadSubmit}
-                      className="px-6 py-2.5 bg-navy-900 hover:bg-navy-800 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-md shadow-md flex items-center gap-2 mx-auto"
+                      className="w-full py-2 bg-navy-900 hover:bg-navy-800 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-md shadow-md flex items-center justify-center gap-2"
                     >
                       <FileUp className="w-4 h-4" />
-                      <span>Upload & Initialize OCR Pipeline</span>
+                      <span>Upload & Process Document</span>
                     </button>
                   )}
                 </div>
@@ -214,12 +222,12 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             )}
           </div>
         ) : (
-          /* Upload Success Display */
-          <div className="bg-amber-50/50 border border-amber-200 p-5 rounded-md space-y-4">
+          /* Upload Success Box */
+          <div className="bg-amber-50/70 border border-amber-300 p-4 rounded-md space-y-3">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6 text-green-700" />
+              <CheckCircle2 className="w-6 h-6 text-green-700 flex-shrink-0" />
               <div>
-                <h4 className="font-bold text-navy-900 text-sm uppercase">
+                <h4 className="font-bold text-navy-900 text-xs uppercase">
                   DOCUMENT SECURELY ATTACHED & VALIDATED
                 </h4>
                 <p className="text-xs text-slate-600">
@@ -238,44 +246,25 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                 <span className="font-bold text-navy-900">{uploadRecord.pageCount} Page(s)</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">SIZE:</span>
+                <span className="text-slate-400 block text-[10px]">FILE SIZE:</span>
                 <span className="font-bold text-navy-900">
                   {(uploadRecord.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="pt-1 flex justify-between items-center text-xs">
               <button
                 type="button"
                 onClick={handleRemove}
-                className="text-xs text-red-700 font-semibold underline hover:text-red-900"
+                className="text-red-700 font-semibold underline hover:text-red-900"
               >
                 Re-upload Different Document
               </button>
-
-              <button
-                type="button"
-                onClick={() => onUploadCompleted(uploadRecord)}
-                className="px-6 py-2.5 bg-navy-900 hover:bg-navy-800 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-md shadow flex items-center gap-2"
-              >
-                <span>Proceed to OCR & AI Extraction</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <span className="font-mono text-slate-500 font-semibold">Ready for Processing</span>
             </div>
           </div>
         )}
-
-        {/* Navigation Buttons */}
-        <div className="mt-8 pt-4 border-t flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-4 py-2 text-xs font-bold text-navy-900 border border-slate-300 rounded hover:bg-slate-100"
-          >
-            ← Back to Category Selection
-          </button>
-        </div>
       </WorkspacePanel>
     </div>
   );
