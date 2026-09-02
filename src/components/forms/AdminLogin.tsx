@@ -6,9 +6,9 @@ import {
   Lock, Eye, EyeOff, ShieldAlert, AlertCircle,
   Mail, ArrowLeft, RefreshCw, CheckCircle2, Shield
 } from 'lucide-react';
-import { signInWithEmailPassword, signOut } from '@/lib/services/authService';
+import { signInWithEmailPassword, signOut, requestPasswordReset } from '@/lib/services/authService';
 
-type LoginStep = 'CREDENTIALS' | 'OTP_SENT' | 'SUCCESS';
+type LoginStep = 'CREDENTIALS' | 'FORGOT_PASSWORD' | 'OTP_SENT' | 'SUCCESS';
 
 export const AdminLogin: React.FC = () => {
   const router = useRouter();
@@ -29,6 +29,7 @@ export const AdminLogin: React.FC = () => {
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -70,6 +71,33 @@ export const AdminLogin: React.FC = () => {
       setError('Invalid ID or password.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Forgot Password handler for System Admin
+  // ──────────────────────────────────────────────────────────────────────────
+  const handleAdminForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    setResetSent(false);
+
+    try {
+      const input = adminId.trim();
+      if (!input) {
+        setError('Please enter your System Admin ID.');
+        setLoading(false);
+        return;
+      }
+
+      let targetEmail = input.includes('@') ? input.toLowerCase() : `${input.toLowerCase()}@e-bhoomi.gov.in`;
+      await requestPasswordReset(targetEmail);
+    } catch {
+      // Confidential handling
+    } finally {
+      setLoading(false);
+      setResetSent(true);
     }
   };
 
@@ -167,7 +195,9 @@ export const AdminLogin: React.FC = () => {
       <div className="admin-login-badge-header">
         <ShieldAlert className="w-8 h-8 text-navy flex-shrink-0" />
         <div>
-          <h1 className="simple-login-title">SYSTEM ADMIN LOGIN</h1>
+          <h1 className="simple-login-title">
+            {step === 'FORGOT_PASSWORD' ? 'FORGOT PASSWORD' : 'SYSTEM ADMIN LOGIN'}
+          </h1>
         </div>
       </div>
 
@@ -205,6 +235,19 @@ export const AdminLogin: React.FC = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('FORGOT_PASSWORD');
+                  setError(null);
+                  setResetSent(false);
+                }}
+                style={{ background: 'none', border: 'none', color: '#0369a1', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
 
           {error && <ErrorBanner message={error} />}
@@ -213,6 +256,64 @@ export const AdminLogin: React.FC = () => {
             <Lock className="w-4 h-4" />
             <span>{loading ? 'Signing in...' : 'Sign In'}</span>
           </button>
+        </form>
+      )}
+
+      {/* ── STEP: Forgot Password ──────────────────────────────────── */}
+      {step === 'FORGOT_PASSWORD' && (
+        <form onSubmit={handleAdminForgotPassword} className="simple-login-form">
+          <div className="form-field-group">
+            <label className="form-label">System Admin ID</label>
+            <input
+              type="text"
+              id="forgot-admin-id"
+              className="form-input"
+              placeholder="Enter System Admin ID"
+              value={adminId}
+              onChange={(e) => setAdminId(e.target.value)}
+              autoComplete="username"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          {resetSent && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0',
+              borderRadius: 6, padding: 12, color: '#065f46',
+              fontSize: 14, marginTop: 12, marginBottom: 12
+            }}>
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: '#059669' }} />
+              <span style={{ fontWeight: 600 }}>Your reset password link is sent.</span>
+            </div>
+          )}
+
+          {error && !resetSent && <ErrorBanner message={error} />}
+
+          <button
+            type="submit"
+            className="login-submit-btn"
+            disabled={loading}
+            style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+          >
+            <Mail className="w-4 h-4" />
+            <span>{loading ? 'Sending reset link...' : 'Send Reset Link'}</span>
+          </button>
+
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setStep('CREDENTIALS');
+                setError(null);
+                setResetSent(false);
+              }}
+              style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            >
+              <ArrowLeft className="w-3 h-3" /> Back to Sign In
+            </button>
+          </div>
         </form>
       )}
 

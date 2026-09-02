@@ -9,9 +9,24 @@ import {
   onAuthStateChanged,
   setPersistence,
   browserSessionPersistence,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   User as FirebaseUser,
   AuthError,
 } from 'firebase/auth';
+
+/**
+ * Initiates confidential password reset email.
+ * Intentionally swallows user-not-found/invalid-email errors to prevent account enumeration.
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  try {
+    if (email && email.includes('@')) {
+      await firebaseSendPasswordResetEmail(auth, email);
+    }
+  } catch (error) {
+    console.warn('[PasswordReset] Request processed silently.');
+  }
+}
 import { auth } from '../firebase/auth';
 
 // Enforce session-scoped authentication persistence for privileged officer sessions
