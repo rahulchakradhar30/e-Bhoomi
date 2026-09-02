@@ -57,7 +57,7 @@ export const AdminLogin: React.FC = () => {
       if (!res.ok) {
         // If account is not admin, sign out of Firebase too
         await signOut();
-        throw new Error(data.message || 'OTP dispatch failed.');
+        throw new Error('Invalid ID or password.');
       }
 
       // Store token and masked email for OTP verification step
@@ -67,7 +67,7 @@ export const AdminLogin: React.FC = () => {
       startResendCooldown();
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed.');
+      setError('Invalid ID or password.');
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ export const AdminLogin: React.FC = () => {
           setIdToken('');
           setOtp('');
         }
-        throw new Error(data.message || 'OTP verification failed.');
+        throw new Error('Invalid security code.');
       }
 
       // OTP verified — redirect to admin dashboard
@@ -105,7 +105,7 @@ export const AdminLogin: React.FC = () => {
       setTimeout(() => router.push('/admin/dashboard'), 800);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'OTP verification failed.');
+      setError('Invalid security code.');
     } finally {
       setLoading(false);
     }
@@ -125,11 +125,11 @@ export const AdminLogin: React.FC = () => {
         body: JSON.stringify({ idToken }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Resend failed.');
+      if (!res.ok) throw new Error('Resend failed.');
       setOtp('');
       startResendCooldown();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Resend failed.');
+      setError('Failed to resend code.');
     } finally {
       setLoading(false);
     }
@@ -167,39 +167,7 @@ export const AdminLogin: React.FC = () => {
       <div className="admin-login-badge-header">
         <ShieldAlert className="w-8 h-8 text-navy flex-shrink-0" />
         <div>
-          <h1 className="simple-login-title">SYSTEM ADMINISTRATION CONSOLE</h1>
-          <p className="simple-login-subtitle">
-            High-Security Portal for System Administrators, Master Data Curators, and Auditing Authorities.
-          </p>
-        </div>
-      </div>
-
-      {/* ── Step indicator ─────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '8px', margin: '16px 0', alignItems: 'center' }}>
-        {(['CREDENTIALS', 'OTP_SENT'] as const).map((s, i) => (
-          <React.Fragment key={s}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700,
-              background: step === s ? '#1e3a5f' : (step === 'OTP_SENT' && s === 'CREDENTIALS') || step === 'SUCCESS' ? '#059669' : '#e2e8f0',
-              color: step === s || (step === 'OTP_SENT' && s === 'CREDENTIALS') || step === 'SUCCESS' ? '#fff' : '#94a3b8',
-              transition: 'all 0.3s',
-              flexShrink: 0,
-            }}>
-              {(step === 'OTP_SENT' && s === 'CREDENTIALS') || step === 'SUCCESS' ? '✓' : i + 1}
-            </div>
-            <div style={{ flex: 1, height: 2, background: (step === 'OTP_SENT' && s === 'CREDENTIALS') || step === 'SUCCESS' ? '#059669' : '#e2e8f0', display: i === 1 ? 'none' : 'block', transition: 'all 0.3s' }} />
-          </React.Fragment>
-        ))}
-        <div style={{
-          width: 28, height: 28, borderRadius: '50%', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700,
-          background: step === 'SUCCESS' ? '#059669' : '#e2e8f0',
-          color: step === 'SUCCESS' ? '#fff' : '#94a3b8',
-          flexShrink: 0,
-        }}>✓</div>
-        <div style={{ marginLeft: 8, fontSize: 12, color: '#64748b' }}>
-          {step === 'CREDENTIALS' ? 'Credentials' : step === 'OTP_SENT' ? 'Verify OTP' : 'Access Granted'}
+          <h1 className="simple-login-title">SYSTEM ADMIN LOGIN</h1>
         </div>
       </div>
 
@@ -207,12 +175,12 @@ export const AdminLogin: React.FC = () => {
       {step === 'CREDENTIALS' && (
         <form onSubmit={handleCredentialsSubmit} className="simple-login-form">
           <div className="form-field-group">
-            <label className="form-label">System Admin Login ID / Email</label>
+            <label className="form-label">System Admin ID</label>
             <input
               type="text"
               id="admin-login-id"
               className="form-input"
-              placeholder="e.g. eBhoomi.ap@gmail.com"
+              placeholder="Enter System Admin ID"
               value={adminId}
               onChange={(e) => setAdminId(e.target.value)}
               autoComplete="username"
@@ -221,13 +189,13 @@ export const AdminLogin: React.FC = () => {
           </div>
 
           <div className="form-field-group">
-            <label className="form-label">Admin Master Key / Password</label>
+            <label className="form-label">Password</label>
             <div className="password-input-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="admin-password"
                 className="form-input password-input"
-                placeholder="Enter master admin password..."
+                placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -243,7 +211,7 @@ export const AdminLogin: React.FC = () => {
 
           <button type="submit" className="login-submit-btn" disabled={loading} style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
             <Lock className="w-4 h-4" />
-            <span>{loading ? 'Verifying credentials...' : 'Continue to Security Verification'}</span>
+            <span>{loading ? 'Signing in...' : 'Sign In'}</span>
           </button>
         </form>
       )}
@@ -258,11 +226,10 @@ export const AdminLogin: React.FC = () => {
             <Mail className="w-5 h-5 flex-shrink-0" style={{ color: '#059669', marginTop: 2 }} />
             <div>
               <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#065f46' }}>
-                Security code sent to your email
+                Security code sent
               </p>
               <p style={{ margin: '4px 0 0', fontSize: 13, color: '#047857' }}>
-                A 6-digit security code was dispatched to <strong>{maskedEmail}</strong>.
-                It expires in 5 minutes.
+                A 6-digit security code was dispatched to your registered address. It expires in 5 minutes.
               </p>
             </div>
           </div>
@@ -293,7 +260,7 @@ export const AdminLogin: React.FC = () => {
             style={{ opacity: (loading || otp.replace(/\s/g, '').length !== 6) ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
           >
             <Shield className="w-4 h-4" />
-            <span>{loading ? 'Verifying code...' : 'Verify & Access Console'}</span>
+            <span>{loading ? 'Verifying code...' : 'Sign In'}</span>
           </button>
 
           {/* Resend + Back row */}

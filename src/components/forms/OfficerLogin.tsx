@@ -87,7 +87,7 @@ export const OfficerLogin: React.FC = () => {
       router.push(resolveDashboardRoute(officer.roleId));
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed. Please check your credentials.');
+      setError('Invalid ID or password.');
       setStep('CREDENTIALS');
     }
   };
@@ -99,32 +99,25 @@ export const OfficerLogin: React.FC = () => {
       <div className="admin-login-badge-header">
         <ShieldCheck className="w-8 h-8 text-navy flex-shrink-0" />
         <div>
-          <h1 className="simple-login-title">AUTHORIZED OFFICER SIGN IN</h1>
-          <p className="simple-login-subtitle">
-            Secure authentication portal for Field Officers, Tahsildars, RDOs, District Collectors, and State Authorities.
-          </p>
+          <h1 className="simple-login-title">OFFICER LOGIN</h1>
         </div>
       </div>
 
       <form onSubmit={handleLogin} className="simple-login-form">
         {/* ── Login ID ─────────────────────────────────────────── */}
         <div className="form-field-group">
-          <label className="form-label">Official Login ID</label>
+          <label className="form-label">Officer ID</label>
           <input
             type="text"
             id="officer-login-id"
             className="form-input"
-            placeholder="e.g. AP-511-VRO-123456"
+            placeholder="Enter Officer ID"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
             autoComplete="username"
-            autoCapitalize="characters"
             disabled={isLoading}
             required
           />
-          <span style={{ fontSize: 11, color: '#64748b', marginTop: 4, display: 'block' }}>
-            Use the Login ID from the credential email sent by e-Bhoomi system administrator.
-          </span>
         </div>
 
         {/* ── Password ──────────────────────────────────────────── */}
@@ -135,7 +128,7 @@ export const OfficerLogin: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               id="officer-password"
               className="form-input password-input"
-              placeholder="Enter official credentials..."
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
@@ -175,7 +168,7 @@ export const OfficerLogin: React.FC = () => {
               fontSize: 13,
             }}>
               <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
-              <span>{loadingLabel}</span>
+              <span>Signing in...</span>
             </div>
           )}
         </div>
@@ -188,8 +181,8 @@ export const OfficerLogin: React.FC = () => {
           style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
         >
           {isLoading
-            ? <><Loader2 className="w-4 h-4 animate-spin" /><span>{loadingLabel || 'Authenticating...'}</span></>
-            : <><KeyRound className="w-4 h-4" /><span>Authenticate &amp; Access Workspace</span></>
+            ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Signing in...</span></>
+            : <><KeyRound className="w-4 h-4" /><span>Sign In</span></>
           }
         </button>
       </form>
