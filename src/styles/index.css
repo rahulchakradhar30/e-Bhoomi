@@ -1,7 +1,5 @@
 /* e-Bhoomi Official Government of India Web Portal Styling - Version 12 Complete Design System Restoration */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
   --goi-navy: #0B2545;
   --goi-blue: #003366;
@@ -17,7 +15,8 @@
   --border-light: #E2E8F0;
   --border-dark: #334155;
   --radius-gov: 4px;
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Kannada', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Noto Sans Display', 'Noto Sans Telugu', 'Noto Sans Kannada', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 * {
@@ -38,9 +37,9 @@ body {
 
 /* Base Headings & Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   color: var(--goi-navy);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.25;
 }
 
@@ -187,7 +186,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .contextual-app-title {
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -219,7 +218,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .user-role-title {
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.04em;
 }
@@ -415,7 +414,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-title {
   font-size: 2.25rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -624,7 +623,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .simple-login-title {
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.03em;
   margin-bottom: 0.35rem;
@@ -700,7 +699,7 @@ h1, h2, h3, h4, h5, h6 {
 .mfa-code-input {
   letter-spacing: 0.35em;
   font-size: 1.25rem !important;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
 }
 
@@ -731,7 +730,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .dashboard-main-title {
   font-size: 1.65rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.02em;
 }
@@ -805,14 +804,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .summary-card-title {
   font-size: 0.725rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.05em;
 }
 
 .summary-card-count {
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: 700;
   margin-top: 0.5rem;
 }
 
@@ -843,7 +842,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .panel-title {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.03em;
 }
@@ -886,7 +885,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .workflow-title {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   margin-bottom: 0.75rem;
 }
@@ -984,7 +983,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .panel-title-text {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.03em;
   margin-bottom: 0.35rem;
@@ -1053,7 +1052,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .auto-gen-tag {
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   background-color: var(--goi-blue);
   color: #FFFFFF;
   padding: 0.2rem 0.5rem;
@@ -1125,7 +1124,7 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: 1px solid var(--border-color);
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   display: flex;
   align-items: center;
@@ -1177,7 +1176,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .display-code-badge {
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   background-color: var(--goi-navy);
   color: #FFFFFF;
   padding: 0.1rem 0.4rem;
@@ -1208,7 +1207,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .subordinate-banner-title {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
   letter-spacing: 0.02em;
 }
@@ -1229,7 +1228,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.3rem;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
   background-color: var(--goi-navy);
   color: #FFFFFF;
   padding: 0.3rem 0.65rem;
@@ -1277,7 +1276,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .modal-title-text {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--goi-navy);
 }
 
@@ -1315,7 +1314,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .banner-alert-title {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.03em;
 }
 
@@ -1342,7 +1341,7 @@ h1, h2, h3, h4, h5, h6 {
 .officer-records-table th {
   background-color: #F8FAFC;
   color: var(--goi-navy);
-  font-weight: 800;
+  font-weight: 700;
   text-align: left;
   padding: 0.75rem 1rem;
   border-bottom: 2px solid var(--border-color);
@@ -1429,7 +1428,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-brand-title {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #FFFFFF;
   letter-spacing: 0.02em;
 }
