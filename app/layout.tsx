@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { SessionTimeoutProvider } from '@/components/auth/SessionTimeoutProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -50,9 +51,11 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
-          <div className="ebhoomi-full-portal-layout">
-            {children}
-          </div>
+          <SessionTimeoutProvider>
+            <div className="ebhoomi-full-portal-layout">
+              {children}
+            </div>
+          </SessionTimeoutProvider>
         </AuthProvider>
       </body>
     </html>

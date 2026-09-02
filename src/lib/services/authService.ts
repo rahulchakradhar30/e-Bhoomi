@@ -7,10 +7,17 @@ import {
   RecaptchaVerifier,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  setPersistence,
+  browserSessionPersistence,
   User as FirebaseUser,
   AuthError,
 } from 'firebase/auth';
 import { auth } from '../firebase/auth';
+
+// Enforce session-scoped authentication persistence for privileged officer sessions
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserSessionPersistence).catch(() => {});
+}
 
 export interface PhoneAuthSession {
   confirmationResult: ConfirmationResult;
