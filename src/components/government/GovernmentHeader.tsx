@@ -40,14 +40,6 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ showPublicNa
       <div className="header-container">
         <div className="content-container header-inner">
           <GovernmentLogos />
-
-          {showPublicNav && (
-            <div className="nav-actions-group">
-              <Link href="/login" className="gov-nav-btn login-btn">
-                Officer Sign In
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </header>

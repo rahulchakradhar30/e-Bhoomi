@@ -27,7 +27,7 @@ export default function PublicNotificationsPage() {
 
   return (
     <div className="ebhoomi-full-portal-layout">
-      <GovernmentHeader showPublicNav={true} />
+      <GovernmentHeader showPublicNav={false} />
       
       <main className="portal-main-content">
         <div className="content-container" style={{ padding: '40px 16px', maxWidth: '800px', margin: '0 auto' }}>

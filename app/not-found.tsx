@@ -8,7 +8,7 @@ import { ShieldAlert, ArrowLeft } from 'lucide-react';
 export default function NotFound() {
   return (
     <div className="ebhoomi-full-portal-layout">
-      <GovernmentHeader showPublicNav={true} />
+      <GovernmentHeader showPublicNav={false} />
       <main className="portal-main-content flex-align-center" style={{ justifyContent: 'center', padding: '4rem 1.5rem' }}>
         <div className="table-empty-state" style={{ maxWidth: '520px', backgroundColor: '#FFFFFF', padding: '3rem 2rem' }}>
           <ShieldAlert className="w-14 h-14 text-navy margin-bottom-sm" />
