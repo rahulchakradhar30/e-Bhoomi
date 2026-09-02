@@ -30,28 +30,23 @@ service cloud.firestore {
     }
 
     function isOfficer() {
-      return isSignedIn() && (
-        claimRole() == 'SYSTEM_ADMIN'    ||
-        claimRole() == 'STATE_ADMIN'     ||
+      return isAdmin() || (isSignedIn() && (
         claimRole() == 'DISTRICT_COLLECTOR' ||
         claimRole() == 'RDO_OFFICER'     ||
         claimRole() == 'TAHSILDAR_MRO'   ||
         claimRole() == 'FIELD_VRO'       ||
-        // Legacy role names kept for compatibility
         claimRole() == 'DISTRICT_ADMIN'  ||
         claimRole() == 'RDO'             ||
         claimRole() == 'MRO'             ||
         claimRole() == 'FIELD_OFFICER'
-      );
+      ));
     }
 
     function isDistrictOrAbove() {
-      return isSignedIn() && (
-        claimRole() == 'SYSTEM_ADMIN'       ||
-        claimRole() == 'STATE_ADMIN'        ||
+      return isAdmin() || (isSignedIn() && (
         claimRole() == 'DISTRICT_COLLECTOR' ||
         claimRole() == 'DISTRICT_ADMIN'
-      );
+      ));
     }
 
     // Default deny all — explicit rules below grant access
