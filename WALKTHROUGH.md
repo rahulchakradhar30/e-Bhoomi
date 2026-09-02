@@ -1,6 +1,29 @@
-# eBhoomi UI Refinement — Minimal & Privacy-Hardened Login System
+# eBhoomi UI Refinement & Production Security Hardening
 
-This document details the UI refinements, privacy hardening, and homepage cleanups implemented across the eBhoomi portal to establish a restrained, institutional, Government of India / NIC e-Governance land-records portal aesthetic.
+This document details the visual, responsive, security hardening, and cleanup refinements implemented across the eBhoomi portal to establish a secure, restrained, institutional Government of India / NIC e-Governance land-records portal aesthetic.
+
+## Summary of Production Security Hardening
+
+### 1. Server-Authoritative Access Control & Untrusted Client Policy
+- **Zero Client Trust**: All security authorization boundaries are enforced authoritatively via Firebase Auth Custom Claims (`role`, `districtId`, `stateId`), server-side API ID token verification, and deny-by-default Cloud Firestore Security Rules.
+- **DevTools Non-Interference**: Avoided fragile client-side DevTools detection scripts or page reload traps that cause false positives on legitimate Safari/iPhone/Chrome devices. Security is enforced at backend/database boundaries.
+- **IDOR Protection**: Added `matchesDistrictScope()` checks in `firestore.rules` so officers cannot read/modify land records outside their assigned jurisdiction claims.
+
+### 2. HTTP Production Security Headers
+Configured production HTTP response security headers in `next.config.mjs`:
+- `Strict-Transport-Security`: `max-age=31536000; includeSubDomains; preload`
+- `X-Content-Type-Options`: `nosniff`
+- `X-Frame-Options`: `SAMEORIGIN`
+- `Referrer-Policy`: `strict-origin-when-cross-origin`
+- `Permissions-Policy`: `camera=(), microphone=(), geolocation=()`
+
+### 3. Secrets Audit & Environment Isolation
+- Confirmed zero server secrets (`FIREBASE_ADMIN_PRIVATE_KEY`, `GMAIL_APP_PASSWORD`, `FIREBASE_ADMIN_CLIENT_EMAIL`) are exposed to client JavaScript bundles. Only public Firebase web configuration uses `NEXT_PUBLIC_*`.
+
+### 4. Comprehensive Security Documentation
+- Created [`docs/SECURITY_ARCHITECTURE.md`](file:///r:/e-Bhoomi/docs/SECURITY_ARCHITECTURE.md) detailing threat models, 2FA/OTP lifecycles, RBAC tiers, jurisdiction scoping, rate limiting, and a 6-point verification test suite.
+
+---
 
 ## Summary of Login UI Privacy Hardening
 
@@ -30,21 +53,24 @@ This document details the UI refinements, privacy hardening, and homepage cleanu
 
 ---
 
-## Files Modified & Removed
+## Files Modified & Created
 
-1. **`src/components/forms/AdminLogin.tsx`**
-   - Updated title, labels, placeholders, step indicators, error messages.
-2. **`src/components/forms/OfficerLogin.tsx`**
-   - Updated title, labels, placeholders, descriptions, error messages.
-3. **`app/page.tsx`**
-   - Removed `QuickServices` import and JSX block.
-   - Updated `GovernmentHeader` invocation (`showPublicNav={false}`).
-4. **`src/components/government/GovernmentHeader.tsx`**
-   - Removed standalone `Officer Sign In` button container.
-5. **`src/components/ui/QuickServices.tsx`** & **`src/components/ui/ServiceCard.tsx`** [DELETED]
-   - Deleted exclusively used homepage card components.
-6. **`src/components/government/Footer.tsx`**
-   - Updated SIH 2026 team attribution (*Team DigitalX*).
+1. **`docs/SECURITY_ARCHITECTURE.md`** [NEW]
+   - Production security architecture documentation.
+2. **`next.config.mjs`**
+   - Configured HTTP Production Security Headers.
+3. **`firestore.rules`**
+   - Added jurisdiction scoping and IDOR protection rules.
+4. **`src/components/forms/AdminLogin.tsx`**
+   - Privacy hardening for System Admin login UI.
+5. **`src/components/forms/OfficerLogin.tsx`**
+   - Privacy hardening for Officer login UI.
+6. **`app/page.tsx`**
+   - Homepage duplicate UI removal.
+7. **`src/components/government/GovernmentHeader.tsx`**
+   - Standalone button removal.
+8. **`src/components/government/Footer.tsx`**
+   - Team DigitalX SIH 2026 attribution.
 
 ---
 

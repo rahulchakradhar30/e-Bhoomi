@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============================================================
-    // HELPER FUNCTIONS — use custom claims, never Firestore lookups
+    // HELPER FUNCTIONS — use custom claims, never client inputs
     // Claims are set server-side by Admin SDK on account creation.
     // ============================================================
 
@@ -16,7 +16,7 @@ service cloud.firestore {
       return request.auth.uid;
     }
 
-    // Read role directly from Firebase Auth custom claims (fast, no extra read)
+    // Read role directly from Firebase Auth custom claims
     function claimRole() {
       return request.auth.token.role;
     }
@@ -49,6 +49,16 @@ service cloud.firestore {
       ));
     }
 
+    function matchesDistrictScope() {
+      return isAdmin() || (
+        request.auth.token.districtId != null && (
+          resource == null ||
+          resource.data.districtId == request.auth.token.districtId ||
+          resource.data.district_code == request.auth.token.districtId
+        )
+      );
+    }
+
     // Default deny all — explicit rules below grant access
     match /{document=**} {
       allow read, write: if false;
@@ -65,9 +75,7 @@ service cloud.firestore {
     // USER PROFILES
     // ============================================================
     match /users/{userId} {
-      // Own profile or any signed-in officer can read (for subordinate lookup)
       allow read: if isSignedIn() && (uid() == userId || isOfficer());
-      // Admin SDK creates profiles (provisioning). Users can update their own.
       allow create: if isSignedIn() && uid() == userId;
       allow update: if isSignedIn() && (uid() == userId || isAdmin());
       allow delete: if isAdmin();
@@ -86,7 +94,6 @@ service cloud.firestore {
     // OFFICER PROFILES
     // ============================================================
     match /officers/{officerId} {
-      // Officers can read their own and any officer profile (directory access)
       allow read: if isSignedIn() && (uid() == officerId || isOfficer());
       allow create: if isAdmin();
       
@@ -166,7 +173,7 @@ service cloud.firestore {
     // ============================================================
     match /landRecords/{recordId} {
       allow read: if isSignedIn();
-      allow create, update: if isOfficer();
+      allow create, update: if isOfficer() && matchesDistrictScope();
       allow delete: if false;
     }
 
@@ -175,20 +182,20 @@ service cloud.firestore {
     // ============================================================
     match /digitizationCases/{caseId} {
       allow read: if isOfficer();
-      allow create, update: if isOfficer();
+      allow create, update: if isOfficer() && matchesDistrictScope();
       allow delete: if false;
     }
 
     match /correctionRequests/{requestId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isOfficer();
+      allow update: if isOfficer() && matchesDistrictScope();
       allow delete: if false;
     }
 
     match /fieldVerifications/{verificationId} {
       allow read: if isOfficer();
-      allow create, update: if isOfficer();
+      allow create, update: if isOfficer() && matchesDistrictScope();
       allow delete: if false;
     }
 
