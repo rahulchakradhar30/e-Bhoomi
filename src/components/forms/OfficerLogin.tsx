@@ -86,8 +86,14 @@ export const OfficerLogin: React.FC = () => {
 
       router.push(resolveDashboardRoute(officer.roleId));
 
-    } catch (err) {
-      setError('Invalid ID or password.');
+    } catch (err: any) {
+      console.error('[OfficerLogin] Authentication error:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg && (msg.includes('found') || msg.includes('inactive') || msg.includes('recognised') || msg.includes('profile') || msg.includes('administrator'))) {
+        setError(msg);
+      } else {
+        setError('Invalid ID or password.');
+      }
       setStep('CREDENTIALS');
     }
   };

@@ -38,57 +38,95 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { loginId } = body as { loginId: string };
 
-    if (!loginId || typeof loginId !== 'string' || loginId.trim().length < 5) {
+    if (!loginId || typeof loginId !== 'string' || loginId.trim().length < 2) {
       return NextResponse.json(
-        { code: 'resolve/invalid-input', message: 'A valid Login ID is required.' },
+        { code: 'resolve/invalid-input', message: 'A valid Login ID or email is required.' },
         { status: 400 }
       );
     }
 
-    const normalised = loginId.trim().toUpperCase();
+    const trimmed = loginId.trim();
+    const upper = trimmed.toUpperCase();
+    const lower = trimmed.toLowerCase();
 
     // Rate limit
-    if (!checkRateLimit(normalised)) {
+    if (!checkRateLimit(upper)) {
       return NextResponse.json(
         { code: 'resolve/rate-limited', message: 'Too many attempts. Please wait 60 seconds before retrying.' },
         { status: 429 }
       );
     }
 
-    // Lookup officer by loginId using Admin SDK (bypasses Firestore rules)
-    const snap = await adminDb
-      .collection('officers')
-      .where('loginId', '==', normalised)
-      .limit(1)
-      .get();
+    // Attempt multi-field lookup in 'officers' collection
+    let docData: any = null;
 
-    if (snap.empty) {
-      // Generic error — don't reveal whether loginId exists or not
+    const queries = [
+      adminDb.collection('officers').where('loginId', '==', upper).limit(1),
+      adminDb.collection('officers').where('loginId', '==', lower).limit(1),
+      adminDb.collection('officers').where('loginId', '==', trimmed).limit(1),
+      adminDb.collection('officers').where('officerId', '==', upper).limit(1),
+      adminDb.collection('officers').where('officerId', '==', lower).limit(1),
+      adminDb.collection('officers').where('officialEmail', '==', lower).limit(1),
+      adminDb.collection('officers').where('email', '==', lower).limit(1),
+    ];
+
+    for (const q of queries) {
+      const snap = await q.get();
+      if (!snap.empty) {
+        docData = snap.docs[0].data();
+        break;
+      }
+    }
+
+    // Fallback: search in 'users' collection
+    if (!docData) {
+      const userQueries = [
+        adminDb.collection('users').where('loginId', '==', upper).limit(1),
+        adminDb.collection('users').where('loginId', '==', lower).limit(1),
+        adminDb.collection('users').where('email', '==', lower).limit(1),
+      ];
+
+      for (const uq of userQueries) {
+        const snap = await uq.get();
+        if (!snap.empty) {
+          docData = snap.docs[0].data();
+          break;
+        }
+      }
+    }
+
+    if (!docData) {
       return NextResponse.json(
-        { code: 'resolve/not-found', message: 'Login ID not found. Check the credential email and try again.' },
+        { code: 'resolve/not-found', message: 'Officer ID or account not found. Check credentials and try again.' },
         { status: 404 }
       );
     }
 
-    const officer = snap.docs[0].data();
-
-    if (officer.accountStatus !== 'ACTIVE') {
+    if (docData.accountStatus && docData.accountStatus !== 'ACTIVE') {
       return NextResponse.json(
-        { code: 'resolve/account-inactive', message: `Account is ${(officer.accountStatus || 'inactive').toLowerCase()}. Contact your administrator.` },
+        { code: 'resolve/account-inactive', message: `Account is ${(docData.accountStatus || 'inactive').toLowerCase()}. Contact your administrator.` },
         { status: 403 }
       );
     }
 
-    // Return just the email — nothing else
+    const resolvedEmail = docData.officialEmail || docData.email || docData.userEmail;
+
+    if (!resolvedEmail) {
+      return NextResponse.json(
+        { code: 'resolve/no-email', message: 'No registered email address found for this Officer ID.' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      email: officer.officialEmail as string,
+      email: resolvedEmail,
     });
 
   } catch (error) {
     console.error('[resolve-login-id] Error:', error);
     return NextResponse.json(
-      { code: 'resolve/server-error', message: 'Unable to resolve Login ID. Please try again.' },
+      { code: 'resolve/server-error', message: 'Unable to resolve Officer ID. Please try again.' },
       { status: 500 }
     );
   }
