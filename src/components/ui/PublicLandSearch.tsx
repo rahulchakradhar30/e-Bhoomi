@@ -51,6 +51,7 @@ export const PublicLandSearch: React.FC = () => {
 
   // Step 2: Survey Number Selection
   const [surveyQuery, setSurveyQuery] = useState('');
+  const [debouncedSurveyQuery, setDebouncedSurveyQuery] = useState('');
   const [availableSurveys, setAvailableSurveys] = useState<string[]>([]);
   const [selectedSurvey, setSelectedSurvey] = useState('');
 
@@ -119,12 +120,19 @@ export const PublicLandSearch: React.FC = () => {
 
   // Load Survey Numbers when Sachivalayam Changes
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSurveyQuery(surveyQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [surveyQuery]);
+
+  useEffect(() => {
     if (sachivalayamCode) {
-      searchPublicSurveyNumbers(sachivalayamCode, surveyQuery).then(setAvailableSurveys);
+      searchPublicSurveyNumbers(sachivalayamCode, debouncedSurveyQuery).then(setAvailableSurveys);
     } else {
       setAvailableSurveys([]);
     }
-  }, [sachivalayamCode, surveyQuery]);
+  }, [sachivalayamCode, debouncedSurveyQuery]);
 
   // Handle OTP Inputs
   const handleOtpDigitChange = (index: number, value: string) => {
@@ -388,12 +396,14 @@ export const PublicLandSearch: React.FC = () => {
             </div>
           )}
 
-          {searchError && (
-            <div className="otp-error-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" style={{ color: '#dc2626' }} />
-              <span style={{ color: '#991b1b' }}>{searchError}</span>
-            </div>
-          )}
+          <div style={{ minHeight: '48px', marginTop: '16px' }}>
+            {searchError && (
+              <div className="otp-error-box" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" style={{ color: '#dc2626' }} />
+                <span style={{ color: '#991b1b' }}>{searchError}</span>
+              </div>
+            )}
+          </div>
 
           <div className="step-action-bar split">
             <button

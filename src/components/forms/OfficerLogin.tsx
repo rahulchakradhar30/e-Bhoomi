@@ -153,31 +153,32 @@ export const OfficerLogin: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Error ─────────────────────────────────────────────── */}
-        {error && (
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 8,
-            backgroundColor: '#fef2f2', border: '1px solid #fca5a5',
-            borderRadius: 6, padding: 12, color: '#991b1b',
-            fontSize: 14, marginTop: 16,
-          }}>
-            <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: '#dc2626', marginTop: 1 }} />
-            <span>{error}</span>
-          </div>
-        )}
+        {/* ── Status area to prevent CLS ────────────────────────────── */}
+        <div style={{ minHeight: '64px', marginTop: '16px' }}>
+          {error && (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+              backgroundColor: '#fef2f2', border: '1px solid #fca5a5',
+              borderRadius: 6, padding: 12, color: '#991b1b',
+              fontSize: 14,
+            }}>
+              <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: '#dc2626', marginTop: 1 }} />
+              <span>{error}</span>
+            </div>
+          )}
 
-        {/* ── Loading state ────────────────────────────────────── */}
-        {isLoading && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            backgroundColor: '#f0f9ff', border: '1px solid #bae6fd',
-            borderRadius: 6, padding: 12, color: '#0369a1',
-            fontSize: 13, marginTop: 16,
-          }}>
-            <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
-            <span>{loadingLabel}</span>
-          </div>
-        )}
+          {isLoading && !error && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              backgroundColor: '#f0f9ff', border: '1px solid #bae6fd',
+              borderRadius: 6, padding: 12, color: '#0369a1',
+              fontSize: 13,
+            }}>
+              <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+              <span>{loadingLabel}</span>
+            </div>
+          )}
+        </div>
 
         {/* ── Submit ────────────────────────────────────────────── */}
         <button
