@@ -1,12 +1,33 @@
-# eBhoomi UI Refinement & Production Security Hardening
+# eBhoomi UI Refinement, Production Security Hardening & Master Data Consolidation
 
-This document details the visual, responsive, security hardening, and cleanup refinements implemented across the eBhoomi portal to establish a secure, restrained, institutional Government of India / NIC e-Governance land-records portal aesthetic.
+This document details the visual, responsive, security hardening, and master data consolidation refinements implemented across the eBhoomi portal.
+
+## Summary of System Admin Master Data Consolidation & Search Improvement
+
+### 1. Navigation Clean-Up & Consolidation
+- **Removed Duplicate Geography Links**: Removed redundant `Districts`, `Revenue Divisions`, `Subdistricts`, and `Villages` from System Admin top navigation (`layout.tsx`).
+- **Single Central Browser**: `Master Data` (`/admin/master-data`) is now the single authoritative administrative geometry browser for the entire platform.
+- **Safe Route Redirection**: Old routes (`/admin/districts`, `/admin/revenue-divisions`, `/admin/subdistricts`, `/admin/villages`) perform server-side redirects to `/admin/master-data` via `redirect()`, preventing broken bookmarks.
+
+### 2. Integrated Search Engine Across All 5 Hierarchy Levels
+Added real-time, case-insensitive, whitespace-tolerant search inputs to each hierarchy column in [`MasterDataBrowser.tsx`](file:///r:/e-Bhoomi/src/components/tables/MasterDataBrowser.tsx):
+- **Districts Search**: Filters district list by English name, Telugu name, LGD code.
+- **Revenue Divisions Search**: Filters divisions by name, local name, division code within selected district scope.
+- **Mandals Search**: Filters subdistricts by name, type, LGD code within selected division/district scope.
+- **Villages Search**: Filters villages by name, local name, LGD code within selected mandal scope.
+- **Secretariats Search**: Filters secretariats by Sachivalayam name, code, locality name, and local name within selected mandal scope.
+
+### 3. Dynamic Master Data Counters & Secretariat Details
+- **Dynamic Counters**: All column headers compute dynamic total counts from actual database records (`DISTRICTS (N)`, `REVENUE DIVISIONS (N)`, `MANDALS (N)`, `VILLAGES (N)`, `SECRETARIATS (N)`). No hardcoded numbers.
+- **Secretariat Details**: Displays human-readable location details for Secretariats (Name, Code, Urban/Rural status pill, Locality name).
+
+---
 
 ## Summary of Production Security Hardening
 
 ### 1. Server-Authoritative Access Control & Untrusted Client Policy
 - **Zero Client Trust**: All security authorization boundaries are enforced authoritatively via Firebase Auth Custom Claims (`role`, `districtId`, `stateId`), server-side API ID token verification, and deny-by-default Cloud Firestore Security Rules.
-- **DevTools Non-Interference**: Avoided fragile client-side DevTools detection scripts or page reload traps that cause false positives on legitimate Safari/iPhone/Chrome devices. Security is enforced at backend/database boundaries.
+- **DevTools Non-Interference**: Avoided fragile client-side DevTools detection scripts or page reload traps. Security is enforced at backend/database boundaries.
 - **IDOR Protection**: Added `matchesDistrictScope()` checks in `firestore.rules` so officers cannot read/modify land records outside their assigned jurisdiction claims.
 
 ### 2. HTTP Production Security Headers
@@ -17,65 +38,40 @@ Configured production HTTP response security headers in `next.config.mjs`:
 - `Referrer-Policy`: `strict-origin-when-cross-origin`
 - `Permissions-Policy`: `camera=(), microphone=(), geolocation=()`
 
-### 3. Secrets Audit & Environment Isolation
-- Confirmed zero server secrets (`FIREBASE_ADMIN_PRIVATE_KEY`, `GMAIL_APP_PASSWORD`, `FIREBASE_ADMIN_CLIENT_EMAIL`) are exposed to client JavaScript bundles. Only public Firebase web configuration uses `NEXT_PUBLIC_*`.
-
-### 4. Comprehensive Security Documentation
-- Created [`docs/SECURITY_ARCHITECTURE.md`](file:///r:/e-Bhoomi/docs/SECURITY_ARCHITECTURE.md) detailing threat models, 2FA/OTP lifecycles, RBAC tiers, jurisdiction scoping, rate limiting, and a 6-point verification test suite.
-
 ---
 
 ## Summary of Login UI Privacy Hardening
 
 ### 1. System Admin Login (`AdminLogin.tsx`)
-- **Minimal Header**: Changed title to **SYSTEM ADMIN LOGIN**. Removed explanatory subtitle descriptions and decorative step progress indicators.
-- **Generic ID Field**: Changed label to `System Admin ID` and placeholder to `Enter System Admin ID`. Removed all references to *Email*, *Gmail*, or example email addresses (`eBhoomi.ap@gmail.com`).
-- **Generic Password Field**: Changed label to `Password` and placeholder to `Enter password`. Removed internal *Master Key* / *Master Admin Password* wording.
-- **Simple Action Button**: Changed submit button text to `Sign In` / `Signing in...`.
-- **Generic Security Errors**: Standardized error handling to generic message (`Invalid ID or password.`) to prevent account enumeration.
+- Changed title to **SYSTEM ADMIN LOGIN**. Removed explanatory subtitle descriptions and decorative step progress indicators.
+- Changed label to `System Admin ID` and placeholder to `Enter System Admin ID`. Removed all references to *Email*, *Gmail*, or example email addresses (`eBhoomi.ap@gmail.com`).
+- Changed password label to `Password` and placeholder to `Enter password`. Removed internal *Master Key* / *Master Admin Password* wording.
 
 ### 2. Officer Login (`OfficerLogin.tsx`)
-- **Minimal Header**: Changed title to **OFFICER LOGIN**. Removed explanatory paragraphs detailing officer roles (VRO, MRO, RDO, Collector).
-- **Generic ID Field**: Changed label to `Officer ID` and placeholder to `Enter Officer ID`. Removed role-specific examples (`AP-511-VRO-123456`) and helper text.
-- **Generic Password Field**: Changed label to `Password` and placeholder to `Enter password`.
-- **Simple Action Button**: Changed submit button text to `Sign In` / `Signing in...`.
-- **Generic Security Errors**: Standardized error handling to generic message (`Invalid ID or password.`).
-
----
-
-## Summary of Homepage Cleanup
-
-### 1. Duplicate UI Removal
-- **Standalone "Officer Sign In" Button Removed**: Removed the large blue "Officer Sign In" button below the header branding strip across all device breakpoints.
-- **Duplicate Portal Cards Removed**: Completely removed the four bottom portal cards (*Field Officer Portal*, *MRO / Tahsildar Portal*, *Administrative Portal*, and *System Management*) and their container grid from the homepage.
-- **Top Navigation Preserved**: Maintained top government navigation bar (`Home`, `Officer Login`, `System Admin`) as the official administrative access point.
-- **Unused Component Cleanup**: Deleted `QuickServices.tsx` and `ServiceCard.tsx` after confirming they were exclusively used by the homepage portal cards.
+- Changed title to **OFFICER LOGIN**. Removed explanatory paragraphs detailing officer roles (VRO, MRO, RDO, Collector).
+- Changed label to `Officer ID` and placeholder to `Enter Officer ID`. Removed role-specific examples (`AP-511-VRO-123456`) and helper text.
 
 ---
 
 ## Files Modified & Created
 
-1. **`docs/SECURITY_ARCHITECTURE.md`** [NEW]
-   - Production security architecture documentation.
-2. **`next.config.mjs`**
+1. **`src/components/tables/MasterDataBrowser.tsx`**
+   - Added search inputs for all 5 hierarchy columns, dynamic counters, and Secretariat details.
+2. **`app/admin/layout.tsx`**
+   - Cleaned up top navigation by removing duplicate geography items.
+3. **`app/admin/districts/page.tsx`**, **`app/admin/revenue-divisions/page.tsx`**, **`app/admin/subdistricts/page.tsx`**, **`app/admin/villages/page.tsx`**
+   - Added server-side redirects to `/admin/master-data`.
+4. **`docs/SECURITY_ARCHITECTURE.md`**
+   - Comprehensive security architecture documentation.
+5. **`next.config.mjs`**
    - Configured HTTP Production Security Headers.
-3. **`firestore.rules`**
+6. **`firestore.rules`**
    - Added jurisdiction scoping and IDOR protection rules.
-4. **`src/components/forms/AdminLogin.tsx`**
-   - Privacy hardening for System Admin login UI.
-5. **`src/components/forms/OfficerLogin.tsx`**
-   - Privacy hardening for Officer login UI.
-6. **`app/page.tsx`**
-   - Homepage duplicate UI removal.
-7. **`src/components/government/GovernmentHeader.tsx`**
-   - Standalone button removal.
-8. **`src/components/government/Footer.tsx`**
-   - Team DigitalX SIH 2026 attribution.
 
 ---
 
 ## Verification Performed
 
 - Verified clean compilation with `npm run build`.
-- Confirmed zero hardcoded email/username disclosures across login forms.
-- Tested authentication flows to ensure zero impact on Firebase Auth or server-side ID resolution.
+- Tested Master Data search filtering across all 5 hierarchy levels.
+- Verified automatic redirects from old geography routes to `/admin/master-data`.

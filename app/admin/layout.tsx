@@ -18,10 +18,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard' },
     { label: 'Master Data', href: '/admin/master-data' },
-    { label: 'Districts', href: '/admin/districts' },
-    { label: 'Revenue Divisions', href: '/admin/revenue-divisions' },
-    { label: 'Subdistricts', href: '/admin/subdistricts' },
-    { label: 'Villages', href: '/admin/villages' },
     { label: 'Officer Directory', href: '/admin/officers' },
     { label: 'Provision Officer', href: '/admin/officers/create' },
     { label: 'Transfer Officer', href: '/admin/officers/transfer' },

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getMasterMetadata, getStates, getDistricts, getRevenueDivisions, getSubdistricts, getVillages, getSachivalayams } from '@/services/administrativeDataService';
 import { APP_CONFIG } from '@/config/appConfig';
-import { Database, Building2, MapPin, Layers, Home } from 'lucide-react';
+import { Database, Building2, MapPin, Layers, Home, Search } from 'lucide-react';
 
 export const MasterDataBrowser: React.FC = () => {
   const metadata = getMasterMetadata();
@@ -13,11 +13,71 @@ export const MasterDataBrowser: React.FC = () => {
   const [selectedDivision, setSelectedDivision] = useState('');
   const [selectedSubdistrict, setSelectedSubdistrict] = useState('');
 
-  const districts = getDistricts(selectedState);
-  const divisions = getRevenueDivisions(selectedDistrict);
-  const subdistricts = getSubdistricts(selectedState, selectedDistrict, selectedDivision);
-  const villages = getVillages(selectedSubdistrict);
-  const sachivalayams = getSachivalayams(selectedSubdistrict);
+  // Individual Search States for each hierarchy level
+  const [searchDistrict, setSearchDistrict] = useState('');
+  const [searchDivision, setSearchDivision] = useState('');
+  const [searchSubdistrict, setSearchSubdistrict] = useState('');
+  const [searchVillage, setSearchVillage] = useState('');
+  const [searchSachivalayam, setSearchSachivalayam] = useState('');
+
+  // Raw scoped data fetches
+  const districts = useMemo(() => getDistricts(selectedState), [selectedState]);
+  const divisions = useMemo(() => getRevenueDivisions(selectedDistrict), [selectedDistrict]);
+  const subdistricts = useMemo(() => getSubdistricts(selectedState, selectedDistrict, selectedDivision), [selectedState, selectedDistrict, selectedDivision]);
+  const villages = useMemo(() => getVillages(selectedSubdistrict), [selectedSubdistrict]);
+  const sachivalayams = useMemo(() => getSachivalayams(selectedSubdistrict), [selectedSubdistrict]);
+
+  // Filtered data with case-insensitive search
+  const filteredDistricts = useMemo(() => {
+    if (!searchDistrict.trim()) return districts;
+    const q = searchDistrict.toLowerCase().trim();
+    return districts.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.district_code.includes(q) ||
+      (d.local_name && d.local_name.includes(q))
+    );
+  }, [districts, searchDistrict]);
+
+  const filteredDivisions = useMemo(() => {
+    if (!searchDivision.trim()) return divisions;
+    const q = searchDivision.toLowerCase().trim();
+    return divisions.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      r.division_code.includes(q) ||
+      (r.local_name && r.local_name.includes(q))
+    );
+  }, [divisions, searchDivision]);
+
+  const filteredSubdistricts = useMemo(() => {
+    if (!searchSubdistrict.trim()) return subdistricts;
+    const q = searchSubdistrict.toLowerCase().trim();
+    return subdistricts.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      s.subdistrict_code.includes(q) ||
+      (s.local_name && s.local_name.includes(q))
+    );
+  }, [subdistricts, searchSubdistrict]);
+
+  const filteredVillages = useMemo(() => {
+    if (!searchVillage.trim()) return villages;
+    const q = searchVillage.toLowerCase().trim();
+    return villages.filter(v =>
+      v.name.toLowerCase().includes(q) ||
+      v.village_code.includes(q) ||
+      (v.local_name && v.local_name.includes(q))
+    );
+  }, [villages, searchVillage]);
+
+  const filteredSachivalayams = useMemo(() => {
+    if (!searchSachivalayam.trim()) return sachivalayams;
+    const q = searchSachivalayam.toLowerCase().trim();
+    return sachivalayams.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      s.sachivalayam_code.includes(q) ||
+      (s.locality_name && s.locality_name.toLowerCase().includes(q)) ||
+      (s.local_name && s.local_name.includes(q))
+    );
+  }, [sachivalayams, searchSachivalayam]);
 
   return (
     <div>
@@ -44,29 +104,48 @@ export const MasterDataBrowser: React.FC = () => {
         <div className="hierarchy-column-box">
           <div className="hierarchy-box-header">
             <Building2 className="w-4 h-4" />
-            <span>DISTRICTS ({districts.length})</span>
+            <span>DISTRICTS ({filteredDistricts.length})</span>
+          </div>
+          <div className="hierarchy-search-box" style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Search style={{ width: 14, height: 14, color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search districts..."
+              value={searchDistrict}
+              onChange={(e) => setSearchDistrict(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '12px', color: '#1e293b' }}
+            />
+            {searchDistrict && (
+              <button type="button" onClick={() => setSearchDistrict('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }}>×</button>
+            )}
           </div>
           <div className="hierarchy-list">
-            {districts.map((d) => (
-              <div
-                key={d.district_code}
-                className={`hierarchy-list-item ${selectedDistrict === d.district_code ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedDistrict(d.district_code);
-                  setSelectedDivision('');
-                  setSelectedSubdistrict('');
-                }}
-              >
-                <div className="item-title-row">
-                  <strong>{d.name}</strong>
-                  <span className="display-code-badge">{d.display_code}</span>
-                </div>
-                <div className="item-sub-row">
-                  <span className="text-xs text-muted">LGD Code: {d.district_code}</span>
-                  <span className="text-xs font-bold text-navy">{d.local_name}</span>
-                </div>
+            {filteredDistricts.length === 0 ? (
+              <div className="empty-panel-state">
+                <span className="empty-state-text">No matching districts found</span>
               </div>
-            ))}
+            ) : (
+              filteredDistricts.map((d) => (
+                <div
+                  key={d.district_code}
+                  className={`hierarchy-list-item ${selectedDistrict === d.district_code ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedDistrict(d.district_code);
+                    setSelectedDivision('');
+                    setSelectedSubdistrict('');
+                  }}
+                >
+                  <div className="item-title-row">
+                    <strong>{d.name}</strong>
+                    <span className="display-code-badge">{d.display_code}</span>
+                  </div>
+                  <div className="item-sub-row">
+                    <span className="text-xs text-muted">LGD Code: {d.district_code}</span>
+                    <span className="text-xs font-bold text-navy">{d.local_name}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -74,15 +153,32 @@ export const MasterDataBrowser: React.FC = () => {
         <div className="hierarchy-column-box">
           <div className="hierarchy-box-header">
             <Layers className="w-4 h-4" />
-            <span>REVENUE DIVISIONS ({divisions.length})</span>
+            <span>REVENUE DIVISIONS ({filteredDivisions.length})</span>
+          </div>
+          <div className="hierarchy-search-box" style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Search style={{ width: 14, height: 14, color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search divisions..."
+              value={searchDivision}
+              onChange={(e) => setSearchDivision(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '12px', color: '#1e293b' }}
+            />
+            {searchDivision && (
+              <button type="button" onClick={() => setSearchDivision('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }}>×</button>
+            )}
           </div>
           <div className="hierarchy-list">
             {divisions.length === 0 ? (
               <div className="empty-panel-state">
                 <span className="empty-state-text">Select a District to view Revenue Divisions</span>
               </div>
+            ) : filteredDivisions.length === 0 ? (
+              <div className="empty-panel-state">
+                <span className="empty-state-text">No matching revenue divisions found</span>
+              </div>
             ) : (
-              divisions.map((r) => (
+              filteredDivisions.map((r) => (
                 <div
                   key={r.division_code}
                   className={`hierarchy-list-item ${selectedDivision === r.division_code ? 'active' : ''}`}
@@ -108,15 +204,32 @@ export const MasterDataBrowser: React.FC = () => {
         <div className="hierarchy-column-box">
           <div className="hierarchy-box-header">
             <Building2 className="w-4 h-4" />
-            <span>MANDALS ({subdistricts.length})</span>
+            <span>MANDALS ({filteredSubdistricts.length})</span>
+          </div>
+          <div className="hierarchy-search-box" style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Search style={{ width: 14, height: 14, color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search mandals..."
+              value={searchSubdistrict}
+              onChange={(e) => setSearchSubdistrict(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '12px', color: '#1e293b' }}
+            />
+            {searchSubdistrict && (
+              <button type="button" onClick={() => setSearchSubdistrict('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }}>×</button>
+            )}
           </div>
           <div className="hierarchy-list">
             {subdistricts.length === 0 ? (
               <div className="empty-panel-state">
                 <span className="empty-state-text">Select a Division/District to view Mandals</span>
               </div>
+            ) : filteredSubdistricts.length === 0 ? (
+              <div className="empty-panel-state">
+                <span className="empty-state-text">No matching mandals found</span>
+              </div>
             ) : (
-              subdistricts.map((s) => (
+              filteredSubdistricts.map((s) => (
                 <div
                   key={s.subdistrict_code}
                   className={`hierarchy-list-item ${selectedSubdistrict === s.subdistrict_code ? 'active' : ''}`}
@@ -140,21 +253,38 @@ export const MasterDataBrowser: React.FC = () => {
         <div className="hierarchy-column-box">
           <div className="hierarchy-box-header">
             <MapPin className="w-4 h-4" />
-            <span>VILLAGES ({villages.length})</span>
+            <span>VILLAGES ({filteredVillages.length})</span>
+          </div>
+          <div className="hierarchy-search-box" style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Search style={{ width: 14, height: 14, color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search villages..."
+              value={searchVillage}
+              onChange={(e) => setSearchVillage(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '12px', color: '#1e293b' }}
+            />
+            {searchVillage && (
+              <button type="button" onClick={() => setSearchVillage('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }}>×</button>
+            )}
           </div>
           <div className="hierarchy-list">
             {selectedSubdistrict && villages.length === 0 ? (
               <div className="empty-panel-state">
                 <span className="empty-state-text" style={{ fontSize: '11px', color: '#94a3b8' }}>
-                  No villages available in the authoritative Excel master dataset.
+                  No villages recorded under selected Mandal.
                 </span>
               </div>
             ) : villages.length === 0 ? (
               <div className="empty-panel-state">
                 <span className="empty-state-text">Select a Mandal to view Villages</span>
               </div>
+            ) : filteredVillages.length === 0 ? (
+              <div className="empty-panel-state">
+                <span className="empty-state-text">No matching villages found</span>
+              </div>
             ) : (
-              villages.map((v) => (
+              filteredVillages.map((v) => (
                 <div key={v.village_code} className="hierarchy-list-item">
                   <div className="item-title-row">
                     <strong>{v.name}</strong>
@@ -173,15 +303,32 @@ export const MasterDataBrowser: React.FC = () => {
         <div className="hierarchy-column-box">
           <div className="hierarchy-box-header">
             <Home className="w-4 h-4" />
-            <span>SACHIVALAYAMS ({sachivalayams.length})</span>
+            <span>SECRETARIATS ({filteredSachivalayams.length})</span>
+          </div>
+          <div className="hierarchy-search-box" style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Search style={{ width: 14, height: 14, color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search secretariats..."
+              value={searchSachivalayam}
+              onChange={(e) => setSearchSachivalayam(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '12px', color: '#1e293b' }}
+            />
+            {searchSachivalayam && (
+              <button type="button" onClick={() => setSearchSachivalayam('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }}>×</button>
+            )}
           </div>
           <div className="hierarchy-list">
             {sachivalayams.length === 0 ? (
               <div className="empty-panel-state">
-                <span className="empty-state-text">Select a Mandal to view Sachivalayams</span>
+                <span className="empty-state-text">Select a Mandal to view Secretariats</span>
+              </div>
+            ) : filteredSachivalayams.length === 0 ? (
+              <div className="empty-panel-state">
+                <span className="empty-state-text">No matching secretariats found</span>
               </div>
             ) : (
-              sachivalayams.map((s) => (
+              filteredSachivalayams.map((s) => (
                 <div key={s.sachivalayam_code} className="hierarchy-list-item">
                   <div className="item-title-row">
                     <strong>{s.name}</strong>
@@ -200,6 +347,7 @@ export const MasterDataBrowser: React.FC = () => {
                   </div>
                   <div className="item-sub-row">
                     <span className="text-xs text-muted">Code: {s.sachivalayam_code}</span>
+                    {s.locality_name && <span className="text-xs text-navy font-semibold">{s.locality_name}</span>}
                   </div>
                 </div>
               ))
