@@ -47,8 +47,9 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
     '✓ Document received & initialized',
     '✓ Pages extracted & order preserved',
     '✓ Server-Side OpenCV Pre-processing (Deskew, Denoise, Contrast & Diagnostics)',
-    '● Server-Side Telugu OCR Engine (harsha-desaraju/telugu-ocr-model)',
-    '○ Ready for Translation & NLP (Next Phase)',
+    '✓ Printed Telugu OCR Engine (TeluguOCRProvider)',
+    '● Server-Side Telugu Handwritten OCR Engine (TeluguHandwrittenOCRProvider & Region Router)',
+    '○ Ready for Language Processing (Next Phase)',
   ];
 
   const executePipeline = async () => {

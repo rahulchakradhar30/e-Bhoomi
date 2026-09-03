@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cloudinaryStorage } from '@/lib/storage/cloudinaryService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,8 +34,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate secure storage reference ID
+    // Generate secure Cloudinary storage reference ID
     const refId = `DOC-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const storageReference = cloudinaryStorage.createStorageReference(
+      `vro_digitization_${documentType.toLowerCase()}`,
+      refId,
+      file.name
+    );
 
     // Calculate page count estimate for PDF vs Image
     const isPdf = file.type === 'application/pdf';
@@ -42,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      storageReference: `secure://ebhoomi-records/${documentType.toLowerCase()}/${refId}/${file.name}`,
+      storageReference,
       originalFileName: file.name,
       fileType: file.type,
       fileSizeBytes: file.size,

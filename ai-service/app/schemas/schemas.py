@@ -35,12 +35,22 @@ class LineOCRResult(BaseModel):
     lineText: str
     boundingBox: Optional[dict] = None
 
+class RegionOCRResult(BaseModel):
+    regionIndex: int
+    regionType: str = "PRINTED_TEXT"
+    boundingBox: Optional[dict] = None
+    provider: str = "TeluguOCRProvider"
+    rawText: str = ""
+    normalizedText: str = ""
+    status: str = "COMPLETED"
+
 class PageOCRResult(BaseModel):
     pageNumber: int
     status: str = "COMPLETED"
     rawText: str = ""
     normalizedText: str = ""
     lines: List[LineOCRResult] = Field(default_factory=list)
+    regions: List[RegionOCRResult] = Field(default_factory=list)
     handwritingDetected: bool = False
     processingTimeMs: Optional[int] = 0
     errorMessage: Optional[str] = None
@@ -48,14 +58,16 @@ class PageOCRResult(BaseModel):
 class DocumentOCRResponse(BaseModel):
     ocrId: str
     status: str
-    provider: str = "TeluguOCR"
-    model: str = "harsha-desaraju/telugu-ocr-model"
+    provider: str = "TeluguOCR + TeluguHandwrittenOCR"
+    model: Optional[str] = "harsha-desaraju/telugu-ocr-model + CharanS247/got-ocr2-telugu-handwritten"
     language: str = "te"
     device: str = "cpu"
     pageCount: int
     pages: List[PageOCRResult]
     rawOCRText: str = ""
     normalizedOCRText: str = ""
+    handwritingDetected: bool = False
+    overallStatus: str = "READY_FOR_LANGUAGE_PROCESSING"
     processedAt: str
     processingTimeMs: Optional[int] = 0
 

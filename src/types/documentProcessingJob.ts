@@ -9,6 +9,7 @@ export type OverallProcessingStatus =
   | 'OCR_PROCESSING'
   | 'VISION_PROCESSING'
   | 'READY_FOR_AI_EXTRACTION'
+  | 'READY_FOR_LANGUAGE_PROCESSING'
   | 'NEEDS_REVIEW'
   | 'FAILED';
 

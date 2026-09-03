@@ -115,6 +115,28 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
+## Summary of Phase 1C: Telugu Handwritten OCR Integration
+
+### 1. TeluguHandwrittenOCRProvider (`CharanS247/got-ocr2-telugu-handwritten`)
+- Implemented `TeluguHandwrittenOCRProvider` extending `BaseOCRProvider` targeting candidate adapter `CharanS247/got-ocr2-telugu-handwritten` (base `stepfun-ai/GOT-OCR-2.0-hf`).
+- Server-side lazy loading, caching, and CPU/GPU auto-detection (`torch.cuda.is_available()`).
+- Preserved existing printed `TeluguOCRProvider` (Phase 1B) 100% operational.
+
+### 2. Computer Vision Handwriting Detector & Region Router
+- Created `HandwritingDetector` (`ai-service/app/ocr/handwriting_detector.py`) analyzing stroke variance and contour irregularity to classify regions into `PRINTED_TEXT`, `HANDWRITTEN_TEXT`, `MIXED_TEXT`, `TABLE`, `MAP_OR_DIAGRAM`, `STAMP`, `SIGNATURE`, `UNKNOWN_REGION`.
+- Created `OCRRegionRouter` (`ai-service/app/ocr/region_router.py`) routing `PRINTED_TEXT` → `TeluguOCRProvider` and `HANDWRITTEN_TEXT` → `TeluguHandwrittenOCRProvider`. Reconstructs reading order preserving region bounding boxes and normalized text.
+
+### 3. Cloudinary Integration & Security Controls
+- Implemented `CloudinaryStorageService` (`src/lib/storage/cloudinaryService.ts`) for signed server-side uploads.
+- `CLOUDINARY_API_SECRET` remains strictly server-side (never exposed to browser bundles).
+- Document references are stored once and reused across OpenCV preprocessing, printed OCR, and handwritten OCR without redundant re-uploads.
+
+### 4. Benchmark Script & Technical Documentation
+- Updated [`scripts/benchmark_ocr.py`](file:///r:/e-Bhoomi/scripts/benchmark_ocr.py) supporting mixed-mode CER/WER evaluation.
+- Created technical documentation [`docs/PHASE_1C_TELUGU_HANDWRITTEN_OCR.md`](file:///r:/e-Bhoomi/docs/PHASE_1C_TELUGU_HANDWRITTEN_OCR.md).
+
+---
+
 ## Verification Performed
 
 - Verified clean production build with `npm run build`.

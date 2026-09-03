@@ -49,6 +49,21 @@
 
 ---
 
+## Phase 1C: Telugu Handwritten OCR Integration
+
+### Key Changes Completed
+1. **TeluguHandwrittenOCRProvider**:
+   - Implemented `TeluguHandwrittenOCRProvider` (`CharanS247/got-ocr2-telugu-handwritten`) extending `BaseOCRProvider`.
+2. **Handwriting Detection & Region Router**:
+   - Created `HandwritingDetector` for CV stroke variance & contour analysis.
+   - Created `OCRRegionRouter` routing `PRINTED_TEXT` → `TeluguOCRProvider` and `HANDWRITTEN_TEXT` → `TeluguHandwrittenOCRProvider`.
+3. **Cloudinary Integration**:
+   - Implemented `CloudinaryStorageService` (`src/lib/storage/cloudinaryService.ts`) for signed server-side uploads.
+4. **Documentation**:
+   - Created [`docs/PHASE_1C_TELUGU_HANDWRITTEN_OCR.md`](file:///r:/e-Bhoomi/docs/PHASE_1C_TELUGU_HANDWRITTEN_OCR.md).
+
+---
+
 ## Verification & Build Validation
 - **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
 - **Next.js Production Build**: `npm run build` completed successfully.

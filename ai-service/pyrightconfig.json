@@ -1,12 +1,13 @@
 {
   "include": [
-    "ai-service"
+    "app",
+    ".."
   ],
   "extraPaths": [
-    "ai-service",
-    "ai-service/venv/Lib/site-packages"
+    ".",
+    "venv/Lib/site-packages"
   ],
-  "venvPath": "ai-service",
+  "venvPath": ".",
   "venv": "venv",
   "pythonVersion": "3.10",
   "reportMissingImports": "none",
