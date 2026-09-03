@@ -111,7 +111,7 @@ export async function appendAuditLog(
   if (!existing) return;
 
   const newEvent: AuditTimelineEvent = {
-    eventId: `AUD-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    eventId: `AUD-${Date.now()}-${((existing.auditTrail?.length || 0) + 1).toString().padStart(4, '0')}`,
     timestamp: new Date().toISOString(),
     ...event,
   };

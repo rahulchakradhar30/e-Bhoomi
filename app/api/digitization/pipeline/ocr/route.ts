@@ -4,11 +4,27 @@ import { DefaultOCRProvider } from '@/lib/digitization/ocrProvider';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { sourceFile } = body;
+    const { sourceFile, fileBase64 } = body;
 
     const ocrProvider = new DefaultOCRProvider();
-    const dummyBuffer = new ArrayBuffer(sourceFile?.fileSizeBytes || 500000);
-    const ocrResult = await ocrProvider.processDocument(dummyBuffer, sourceFile?.fileType || 'application/pdf');
+    let fileBuffer: ArrayBuffer;
+
+    if (fileBase64 && typeof fileBase64 === 'string') {
+      const binaryString = atob(fileBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      fileBuffer = bytes.buffer;
+    } else {
+      fileBuffer = new ArrayBuffer(0);
+    }
+
+    const ocrResult = await ocrProvider.processDocument(
+      fileBuffer,
+      sourceFile?.fileType || 'application/pdf',
+      sourceFile?.originalFileName
+    );
 
     return NextResponse.json({
       success: true,

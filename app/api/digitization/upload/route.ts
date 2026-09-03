@@ -35,16 +35,47 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate secure Cloudinary storage reference ID
-    const refId = `DOC-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const refId = `DOC-${Date.now()}-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
     const storageReference = cloudinaryStorage.createStorageReference(
       `vro_digitization_${documentType.toLowerCase()}`,
       refId,
       file.name
     );
 
-    // Calculate page count estimate for PDF vs Image
+    // Calculate REAL page count from file binary content
     const isPdf = file.type === 'application/pdf';
-    const estimatedPages = isPdf ? Math.max(1, Math.ceil(file.size / 180000)) : 1;
+    let actualPageCount = 1;
+
+    if (isPdf) {
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      const text = new TextDecoder('latin1').decode(bytes);
+
+      if (!text.startsWith('%PDF-')) {
+        return NextResponse.json(
+          { error: 'Corrupt or invalid PDF format. Document does not contain valid PDF header.' },
+          { status: 400 }
+        );
+      }
+
+      // 1. Try finding /Count in Pages dictionary
+      const countMatches = [...text.matchAll(/\/Count\s+(\d+)/g)];
+      if (countMatches.length > 0) {
+        // The root Pages node usually contains the maximum /Count value
+        const counts = countMatches.map((m) => parseInt(m[1], 10)).filter((n) => !isNaN(n) && n > 0);
+        if (counts.length > 0) {
+          actualPageCount = Math.max(...counts);
+        }
+      }
+
+      // 2. Fallback: Count /Type /Page instances (excluding /Pages)
+      if (actualPageCount === 1) {
+        const pageMatches = text.match(/\/Type\s*\/Page(?=[^a-zA-Z])/g);
+        if (pageMatches && pageMatches.length > 0) {
+          actualPageCount = pageMatches.length;
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -52,7 +83,7 @@ export async function POST(req: NextRequest) {
       originalFileName: file.name,
       fileType: file.type,
       fileSizeBytes: file.size,
-      pageCount: estimatedPages,
+      pageCount: actualPageCount,
       uploadedAt: new Date().toISOString(),
     });
   } catch (err: any) {

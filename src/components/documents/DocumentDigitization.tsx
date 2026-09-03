@@ -29,7 +29,7 @@ import { createDigitizationCase, getActiveDraftForOfficer, saveDigitizationDraft
 
 export const DocumentDigitization: React.FC = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(1);
-  const [caseId] = useState(() => `DIG-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [caseId] = useState(() => `DIG-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`);
 
   // Workflow states
   const [initialConsent, setInitialConsent] = useState<VROConsentRecord | undefined>();

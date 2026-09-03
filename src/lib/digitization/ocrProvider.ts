@@ -13,26 +13,37 @@ export interface OCRResult extends NormalizedOCRResult {
 }
 
 export interface OCRProvider {
-  processDocument(fileBuffer: ArrayBuffer, mimeType: string): Promise<OCRResult>;
+  processDocument(fileBuffer: ArrayBuffer, mimeType: string, fileName?: string): Promise<OCRResult>;
 }
 
 export class DefaultOCRProvider implements OCRProvider {
-  async processDocument(fileBuffer: ArrayBuffer, mimeType: string): Promise<OCRResult> {
+  async processDocument(fileBuffer: ArrayBuffer, mimeType: string, fileName?: string): Promise<OCRResult> {
     const startTime = Date.now();
     const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || 'http://127.0.0.1:8000';
     const isPdf = mimeType.includes('pdf');
-    const estimatedPages = isPdf ? Math.max(1, Math.ceil((fileBuffer.byteLength || 1000) / 150000)) : 1;
+    const docName = fileName || (isPdf ? 'document.pdf' : 'document.jpg');
+
+    if (!fileBuffer || fileBuffer.byteLength === 0) {
+      return {
+        extractedText: '',
+        overallConfidence: 0,
+        pageCount: 1,
+        detectedLanguage: 'te',
+        pages: [],
+        processedAt: new Date().toISOString(),
+        ocrEngine: 'eBhoomi Telugu OCR Engine',
+        processingTimeMs: 0,
+      };
+    }
 
     try {
+      const formData = new FormData();
+      const blob = new Blob([fileBuffer], { type: mimeType });
+      formData.append('file', blob, docName);
+
       const response = await fetch(`${pythonServiceUrl}/document-processing/ocr`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          originalFileName: 'document.pdf',
-          fileSizeBytes: fileBuffer.byteLength,
-          mimeType,
-          estimatedPages,
-        }),
+        body: formData,
       });
 
       if (response.ok) {
@@ -40,7 +51,7 @@ export class DefaultOCRProvider implements OCRProvider {
         return {
           extractedText: data.rawOCRText || data.normalizedOCRText || '',
           overallConfidence: data.handwritingDetected ? 0.85 : 0.92,
-          pageCount: data.pageCount || estimatedPages,
+          pageCount: data.pageCount || (isPdf ? 1 : 1),
           detectedLanguage: data.language || 'te',
           pages: (data.pages || []).map((p: any) => ({
             pageNumber: p.pageNumber,
@@ -59,27 +70,23 @@ export class DefaultOCRProvider implements OCRProvider {
       console.warn('Python OCR Service offline or un-initialized:', err);
     }
 
-    const normalizedPages: NormalizedOCRPage[] = [];
-
-    for (let p = 1; p <= estimatedPages; p++) {
-      normalizedPages.push({
-        pageNumber: p,
-        fullPageText: '',
-        confidence: 0,
-        detectedLanguage: 'te',
-        blocks: [],
-        hasHandwritingDetected: false,
-      });
-    }
+    const normalizedPages: NormalizedOCRPage[] = [{
+      pageNumber: 1,
+      fullPageText: '',
+      confidence: 0,
+      detectedLanguage: 'te',
+      blocks: [],
+      hasHandwritingDetected: false,
+    }];
 
     return {
       extractedText: '',
       overallConfidence: 0,
-      pageCount: estimatedPages,
+      pageCount: 1,
       detectedLanguage: 'te',
       pages: normalizedPages,
       processedAt: new Date().toISOString(),
-      ocrEngine: 'eBhoomi Telugu OCR Engine (harsha-desaraju/telugu-ocr-model)',
+      ocrEngine: 'eBhoomi Telugu OCR Engine',
       processingTimeMs: Date.now() - startTime,
     };
   }

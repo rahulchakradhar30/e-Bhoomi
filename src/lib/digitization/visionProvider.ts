@@ -41,21 +41,9 @@ export class DefaultVisionProvider implements VisionProvider {
         description: 'Revenue land schedule table with survey numbers and extents.',
       });
 
-      // 3. Cadastral Map / Diagram Region (if present)
-      if (p === 1) {
-        detectedRegions.push({
-          regionId: `REG-MAP-${p}-03`,
-          pageNumber: p,
-          regionType: 'MAP_REGION',
-          confidence: 0.88,
-          boundingBox: { x: 500, y: 550, width: 250, height: 200 },
-          description: 'Field Measurement Book (FMB) cadastral sketch diagram region.',
-        });
-      }
-
-      // 4. Stamp / Seal Region
+      // 3. Stamp / Seal Region
       detectedRegions.push({
-        regionId: `REG-SEAL-${p}-04`,
+        regionId: `REG-SEAL-${p}-03`,
         pageNumber: p,
         regionType: 'STAMP_SEAL',
         confidence: 0.92,
@@ -88,13 +76,10 @@ export class DefaultVisionProvider implements VisionProvider {
       skewStatus: 'ALIGNED',
       contrastStatus: 'OPTIMAL',
       damageStatus: 'INTACT',
-      handwritingDetected: true,
-      complexLayoutDetected: true,
-      mapRegionDetected: true,
-      qualityWarnings: [
-        'Cadastral diagram sketch region (MAP_REGION) detected on Page 1.',
-        'Handwritten revenue endorsement annotations detected in margin.',
-      ],
+      handwritingDetected: false,
+      complexLayoutDetected: false,
+      mapRegionDetected: false,
+      qualityWarnings: [],
     };
 
     return {

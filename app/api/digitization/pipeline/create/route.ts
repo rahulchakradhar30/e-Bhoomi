@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing uploadRecord or vroSelectedDocumentType' }, { status: 400 });
     }
 
-    const processingId = `JOB-PROC-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const processingId = `JOB-PROC-${Date.now()}-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
 
     const job: DocumentProcessingJob = {
       processingId,

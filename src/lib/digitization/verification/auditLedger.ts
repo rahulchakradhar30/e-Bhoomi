@@ -22,7 +22,7 @@ export class AuditLedgerEngine {
     verificationReference?: string;
   }): AuditEvent {
     const timestamp = new Date().toISOString();
-    const auditEventId = `AUD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const auditEventId = `AUD-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
 
     // Tamper-evident chaining
     const lastEvent = this.eventsInMemory.length > 0 ? this.eventsInMemory[this.eventsInMemory.length - 1] : null;

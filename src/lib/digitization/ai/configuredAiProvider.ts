@@ -33,16 +33,25 @@ export class ConfiguredAIProvider implements BaseAIProvider {
 
     const textToProcess = input.translatedText || input.nlpText || input.rawOcrText || '';
 
+    if (!textToProcess.trim()) {
+      return {
+        success: false,
+        status: 'AI_PROVIDER_UNAVAILABLE' as const,
+        errorReason: 'No OCR or document text available for AI extraction.',
+        modelUsed: this.modelIdentifier,
+      };
+    }
+
     const record: Record<string, any> = {
-      districtName: this._extractPattern(textToProcess, /(?:District|జిల్లా|మాడల్)\s*:\s*([^\n,]+)/i) || 'Kurnool',
-      mandalName: this._extractPattern(textToProcess, /(?:Mandal|మండలం)\s*:\s*([^\n,]+)/i) || 'Adoni',
-      villageName: this._extractPattern(textToProcess, /(?:Village|గ్రామం)\s*:\s*([^\n,]+)/i) || 'Arjanapalle',
-      surveyNumber: this._extractPattern(textToProcess, /(?:Survey|సర్వే|సి\.)\s*(?:No|సంఖ్య)?\s*[:\.]?\s*([0-9\/A-Za-z]+)/i) || '142',
-      subDivisionNumber: this._extractSubdivision(textToProcess) || '3A',
-      khataNumber: this._extractPattern(textToProcess, /(?:Khata|ఖాతా)\s*(?:No|సంఖ్య)?\s*[:\.]?\s*([0-9]+)/i) || '482',
-      ownerName: this._extractOwner(textToProcess) || 'కె. రామారావు',
-      extentAcres: this._extractPattern(textToProcess, /(?:Extent|విస్తీర్ణం)\s*[:\.]?\s*([0-9\.]+)/i) || '2.45',
-      landClassification: textToProcess.includes('Wet') || textToProcess.includes('పల్లం') ? 'Wet (పల్లం)' : 'Dry (మెట్ట)',
+      districtName: this._extractPattern(textToProcess, /(?:District|జిల్లా|మాడల్)\s*:\s*([^\n,]+)/i),
+      mandalName: this._extractPattern(textToProcess, /(?:Mandal|మండలం)\s*:\s*([^\n,]+)/i),
+      villageName: this._extractPattern(textToProcess, /(?:Village|గ్రామం)\s*:\s*([^\n,]+)/i),
+      surveyNumber: this._extractPattern(textToProcess, /(?:Survey|సర్వే|సి\.)\s*(?:No|సంఖ్య)?\s*[:\.]?\s*([0-9\/A-Za-z]+)/i),
+      subDivisionNumber: this._extractSubdivision(textToProcess),
+      khataNumber: this._extractPattern(textToProcess, /(?:Khata|ఖాతా)\s*(?:No|సంఖ్య)?\s*[:\.]?\s*([0-9]+)/i),
+      ownerName: this._extractOwner(textToProcess),
+      extentAcres: this._extractPattern(textToProcess, /(?:Extent|విస్తీర్ణం)\s*[:\.]?\s*([0-9\.]+)/i),
+      landClassification: textToProcess.includes('Wet') || textToProcess.includes('పల్లం') ? 'Wet (పల్లం)' : (textToProcess.includes('Dry') || textToProcess.includes('మెట్ట') ? 'Dry (మెట్ట)' : null),
     };
 
     return {
