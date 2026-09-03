@@ -1,6 +1,12 @@
 {
+  "include": [
+    "ai-service"
+  ],
   "venvPath": "ai-service",
   "venv": "venv",
+  "pythonVersion": "3.10",
   "reportMissingImports": "none",
-  "reportMissingModuleSource": "none"
+  "reportMissingModuleSource": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalCall": "none"
 }

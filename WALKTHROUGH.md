@@ -94,6 +94,27 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
+## Summary of Phase 1B: Real Telugu OCR Integration
+
+### 1. Pluggable OCR Provider Architecture (`BaseOCRProvider`)
+- Implemented `BaseOCRProvider` abstract class and `TeluguOCRProvider` targeting `harsha-desaraju/telugu-ocr-model`.
+- Architecture prevents hardcoding TeluguOCR into downstream flows; future engines (English OCR, Tesseract) plug into the same interface.
+
+### 2. Line Segmentation & Text Normalization
+- Added `LineSegmenter` using OpenCV morphological line extraction to feed text-line crops to the line-level TrOCR model while preserving reading order.
+- Created `TeluguNormalizer` for Unicode NFKC, whitespace, and line-ending normalization.
+- Preserved both `rawOCRText` and `normalizedOCRText` for evaluation and audit.
+
+### 3. Hardware Auto-Detection & Truthful State Management
+- Auto-detects GPU (`cuda`) vs CPU execution.
+- Truthful state: If model weights are missing/unloaded, returns status `OCR_MODEL_NOT_AVAILABLE` with setup guidance (no fake text generated!).
+
+### 4. Developer Benchmark Harness & Documentation
+- Created developer benchmark script [`scripts/benchmark_ocr.py`](file:///r:/e-Bhoomi/scripts/benchmark_ocr.py) for evaluating OCR performance and Character Error Rate (CER).
+- Created technical documentation [`docs/PHASE_1B_TELUGU_OCR.md`](file:///r:/e-Bhoomi/docs/PHASE_1B_TELUGU_OCR.md).
+
+---
+
 ## Verification Performed
 
 - Verified clean production build with `npm run build`.

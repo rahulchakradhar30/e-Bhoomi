@@ -32,6 +32,23 @@
 
 ---
 
+## Phase 1B: Real Telugu OCR Integration
+
+### Key Changes Completed
+1. **Pluggable OCR Provider Architecture**:
+   - Implemented `BaseOCRProvider` abstract class and `TeluguOCRProvider` targeting `harsha-desaraju/telugu-ocr-model`.
+2. **Line Segmentation & Normalization**:
+   - Added `LineSegmenter` using OpenCV morphology to crop line regions for line-level neural OCR.
+   - Added `TeluguNormalizer` for Unicode NFKC, whitespace, and line-ending cleanup.
+   - Retained both `rawOCRText` and `normalizedOCRText`.
+3. **Truthful State Management**:
+   - Auto-detects CUDA GPU vs CPU execution.
+   - Returns status `OCR_MODEL_NOT_AVAILABLE` truthfully if weights are not initialized (zero fake OCR text!).
+4. **Benchmark Script & Documentation**:
+   - Created [`scripts/benchmark_ocr.py`](file:///r:/e-Bhoomi/scripts/benchmark_ocr.py) and [`docs/PHASE_1B_TELUGU_OCR.md`](file:///r:/e-Bhoomi/docs/PHASE_1B_TELUGU_OCR.md).
+
+---
+
 ## Verification & Build Validation
 - **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
 - **Next.js Production Build**: `npm run build` completed successfully.

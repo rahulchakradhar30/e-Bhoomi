@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       ocrResult,
-      ocrStatus: 'COMPLETED',
+      ocrStatus: ocrResult.overallConfidence === 0 && !ocrResult.extractedText ? 'OCR_MODEL_NOT_AVAILABLE' : 'COMPLETED',
       updatedAt: new Date().toISOString(),
     });
   } catch (err: any) {

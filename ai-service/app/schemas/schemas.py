@@ -29,3 +29,33 @@ class DocumentPreprocessResponse(BaseModel):
     pages: List[ProcessedPageResult]
     processedAt: str
     serviceVersion: str = "eBhoomi OpenCV Preprocessing Service v1.0"
+
+class LineOCRResult(BaseModel):
+    lineIndex: int
+    lineText: str
+    boundingBox: Optional[dict] = None
+
+class PageOCRResult(BaseModel):
+    pageNumber: int
+    status: str = "COMPLETED"
+    rawText: str = ""
+    normalizedText: str = ""
+    lines: List[LineOCRResult] = Field(default_factory=list)
+    handwritingDetected: bool = False
+    processingTimeMs: Optional[int] = 0
+    errorMessage: Optional[str] = None
+
+class DocumentOCRResponse(BaseModel):
+    ocrId: str
+    status: str
+    provider: str = "TeluguOCR"
+    model: str = "harsha-desaraju/telugu-ocr-model"
+    language: str = "te"
+    device: str = "cpu"
+    pageCount: int
+    pages: List[PageOCRResult]
+    rawOCRText: str = ""
+    normalizedOCRText: str = ""
+    processedAt: str
+    processingTimeMs: Optional[int] = 0
+
