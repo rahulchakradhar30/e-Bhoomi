@@ -1,41 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GroqAIProvider } from '@/lib/digitization/ai/groqAiProvider';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { translationResult, nlpResult, ocrResult, documentType } = body;
+    const { rawOcrText, normalizedText, nlpText, translatedText, detectedLanguage, documentCategory } = body;
+
+    const groqProvider = new GroqAIProvider();
+    const isConfigured = await groqProvider.healthCheck();
+
+    if (!isConfigured) {
+      return NextResponse.json({
+        success: false,
+        status: 'AI_PROVIDER_NOT_CONFIGURED',
+        errorReason: 'GROQ_API_KEY environment variable missing or empty on server.',
+        modelUsed: groqProvider.modelIdentifier,
+      }, { status: 400 });
+    }
 
     const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || 'http://127.0.0.1:8000';
 
-    // Call Python FastAPI service for AI/NLP Structured Extraction
-    const extractRes = await fetch(`${pythonServiceUrl}/document-processing/extraction`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        translationResult,
-        nlpResult,
-        ocrResult,
-        documentType: documentType || 'UNKNOWN_OTHER',
-      }),
-    });
-
-    if (extractRes.ok) {
-      const extractData = await extractRes.json();
-      return NextResponse.json({
-        success: true,
-        extractionResult: extractData,
-        extractionStatus: extractData.status || 'AI_EXTRACTION_COMPLETED',
-        updatedAt: new Date().toISOString(),
+    try {
+      const pyRes = await fetch(`${pythonServiceUrl}/document-processing/extract-groq`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
+
+      if (pyRes.ok) {
+        const pyData = await pyRes.json();
+        return NextResponse.json(pyData);
+      }
+    } catch (err) {
+      console.warn('Python Groq Extraction Service offline, executing TypeScript GroqAIProvider fallback:', err);
     }
 
-    return NextResponse.json({
-      success: false,
-      extractionStatus: 'AI_EXTRACTION_FAILED',
-      errorMessage: 'Python AI Service extraction request failed.',
-    }, { status: 500 });
+    // TypeScript GroqAIProvider Fallback
+    const result = await groqProvider.extractStructuredRecord({
+      rawOcrText: rawOcrText || '',
+      normalizedText,
+      nlpText,
+      translatedText,
+      detectedLanguage,
+      documentCategory,
+    });
+
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error('Extraction API error:', err);
-    return NextResponse.json({ error: err.message || 'AI extraction processing error' }, { status: 500 });
+    return NextResponse.json({ error: err.message || 'Groq AI extraction error' }, { status: 500 });
   }
 }

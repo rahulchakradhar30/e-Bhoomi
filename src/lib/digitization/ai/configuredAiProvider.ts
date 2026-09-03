@@ -1,34 +1,38 @@
-import { BaseAIProvider, AIProviderConfig, AIExtractionInput } from './aiTypes';
+import { BaseAIProvider, AIExtractionInput } from './aiTypes';
+import { GroqAIProvider } from './groqAiProvider';
 
 export class ConfiguredAIProvider implements BaseAIProvider {
   public providerId = 'PROV-AI-CONFIGURED';
   public providerName = 'Server-Side Configured AI Model Provider';
   public providerType = (process.env.AI_PROVIDER as any) || 'OPENAI_COMPATIBLE';
-  public modelIdentifier = process.env.AI_MODEL || 'eBhoomi-LandRecord-NER-v7.0';
+  public modelIdentifier = process.env.GROQ_MODEL || process.env.AI_MODEL || 'llama-3.3-70b-versatile';
+
+  private groqProvider = new GroqAIProvider();
 
   public async healthCheck(): Promise<boolean> {
-    const key = process.env.AI_API_KEY;
-    const url = process.env.AI_BASE_URL;
-    return Boolean(key || url);
+    const key = process.env.GROQ_API_KEY || process.env.AI_API_KEY;
+    return Boolean(key);
   }
 
   public async extractStructuredRecord(input: AIExtractionInput) {
-    const isHealthy = await this.healthCheck();
+    const provider = process.env.AI_PROVIDER || 'groq';
 
-    // Honest handling: If server-side credentials are missing, return AI_PROVIDER_UNAVAILABLE
-    if (!isHealthy && process.env.STRICT_AI_CHECK === 'true') {
+    if (provider === 'groq' || process.env.GROQ_API_KEY) {
+      return this.groqProvider.extractStructuredRecord(input);
+    }
+
+    const isHealthy = await this.healthCheck();
+    if (!isHealthy) {
       return {
         success: false,
         status: 'AI_PROVIDER_UNAVAILABLE' as const,
-        errorReason: 'Server-side AI provider API key or Base URL unconfigured.',
+        errorReason: 'Server-side AI provider credentials (GROQ_API_KEY / AI_API_KEY) unconfigured.',
         modelUsed: this.modelIdentifier,
       };
     }
 
-    // Server-side LLM JSON Schema Extraction logic
     const textToProcess = input.translatedText || input.nlpText || input.rawOcrText || '';
 
-    // RegEx & Schema Grounding Extraction (Deterministic & Fallback Safe)
     const record: Record<string, any> = {
       districtName: this._extractPattern(textToProcess, /(?:District|జిల్లా|మాడల్)\s*:\s*([^\n,]+)/i) || 'Kurnool',
       mandalName: this._extractPattern(textToProcess, /(?:Mandal|మండలం)\s*:\s*([^\n,]+)/i) || 'Adoni',
