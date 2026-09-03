@@ -90,6 +90,32 @@
 
 ---
 
+## Phase 2: AI/NLP Structured Land Record Extraction
+
+### Key Changes Completed
+1. **AIExtractionProvider & DocumentSchemaRegistry**:
+   - Implemented `AIExtractionProvider` (`ai-service/app/extraction/ai_extraction_provider.py`) extending `BaseAIExtractionProvider`.
+   - Document-type-aware extraction across 6 official categories plus `UNKNOWN_OTHER`.
+2. **Parties, Boundaries & Number Preservation**:
+   - Extracted Common Land Fields, Boundaries, Parties & Relationships (`[{ name, relationship, role, share, extent }]`), and Unmapped Fields while preserving numbers and owner names **EXACTLY**.
+3. **Documentation**:
+   - Created [`docs/PHASE_2_AI_NLP_EXTRACTION.md`](file:///r:/e-Bhoomi/docs/PHASE_2_AI_NLP_EXTRACTION.md) and [`scripts/benchmark_extraction.py`](file:///r:/e-Bhoomi/scripts/benchmark_extraction.py).
+
+---
+
+## Phase 3: Field-Level Confidence Scoring + Source Evidence + Traceability
+
+### Key Changes Completed
+1. **ConfidenceEngine**:
+   - Calculated normalized field confidence (`0.0`–`1.0`) with explicit score sources (`MODEL_PROVIDED`, `RULE_DERIVED`, `EVIDENCE_DERIVED`, `HEURISTIC`, `UNAVAILABLE`).
+   - Bound extracted fields to original source text, page numbers, and bounding-box coordinates (`evidence`).
+   - Multi-candidate conflict detection (`CONFLICT`).
+   - Weighted document review priority (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+2. **Documentation**:
+   - Created [`docs/PHASE_3_CONFIDENCE_AND_EVIDENCE.md`](file:///r:/e-Bhoomi/docs/PHASE_3_CONFIDENCE_AND_EVIDENCE.md) and [`scripts/benchmark_confidence.py`](file:///r:/e-Bhoomi/scripts/benchmark_confidence.py).
+
+---
+
 ## Verification & Build Validation
 - **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
 - **Next.js Production Build**: `npm run build` completed successfully.

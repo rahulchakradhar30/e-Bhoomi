@@ -190,6 +190,50 @@ class DocumentExtractionResponse(BaseModel):
     extractedAt: str
     processingTimeMs: Optional[int] = 0
 
+class EvidenceItem(BaseModel):
+    pageNumber: int = 1
+    regionId: Optional[str] = None
+    boundingBox: Optional[dict] = None
+    sourceText: str = ""
+    translatedText: Optional[str] = None
+    evidenceType: str = "NLP_TEXT"
+
+class FieldConfidenceResult(BaseModel):
+    fieldName: str
+    value: Optional[str] = None
+    score: Optional[float] = None
+    scoreSource: str = "UNAVAILABLE"
+    status: str = "HIGH_CONFIDENCE"
+    reviewPriority: str = "LOW"
+    evidence: List[EvidenceItem] = Field(default_factory=list)
+    candidates: List[dict] = Field(default_factory=list)
+    explanation: Optional[str] = None
+
+class DocumentConfidenceSummary(BaseModel):
+    overallConfidenceScore: float = 0.0
+    overallReviewPriority: str = "LOW"
+    totalFieldsEvaluated: int = 0
+    highConfidenceFieldsCount: int = 0
+    lowConfidenceFieldsCount: int = 0
+    conflictFieldsCount: int = 0
+    missingEvidenceFieldsCount: int = 0
+    criticalFieldsRequiringReview: List[str] = Field(default_factory=list)
+    reviewRecommendation: str = ""
+
+class DocumentConfidenceResponse(BaseModel):
+    confidenceJobId: str
+    status: str = "CONFIDENCE_COMPLETED"
+    engineVersion: str = "v3.0-MultiSignalTraceability"
+    thresholdConfig: dict = Field(default_factory=lambda: {"highThreshold": 0.85, "mediumThreshold": 0.65})
+    documentSummary: DocumentConfidenceSummary
+    fieldsConfidence: dict = Field(default_factory=dict)
+    boundariesConfidence: dict = Field(default_factory=dict)
+    extractionId: str = ""
+    overallStatus: str = "READY_FOR_VALIDATION"
+    evaluatedAt: str
+    processingTimeMs: Optional[int] = 0
+
+
 
 
 

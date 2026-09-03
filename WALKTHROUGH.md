@@ -165,6 +165,27 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
+## Summary of Phase 2: AI/NLP Structured Land Record Extraction
+
+### 1. AIExtractionProvider & DocumentSchemaRegistry
+- Implemented `AIExtractionProvider` (`ai-service/app/extraction/ai_extraction_provider.py`) extending `BaseAIExtractionProvider`.
+- Integrated `DocumentSchemaRegistry` managing document schemas across 6 official categories (`ADANGAL`, `ROR_1B`, `MUTATION`, `PARTITION_SUCCESSION`, `PATTADAR_PASSBOOK_TITLE_DEED`, `LEGACY_REVENUE_RECORD`) and `UNKNOWN_OTHER`.
+- Extracts Common Land Fields, Boundaries, Parties & Relationships (`[{ name, relationship, role, share, extent }]`), and Unmapped Fields while preserving numbers (`142/3A`, `2.45`, `15.06.2004`) and owner names (`కె. రామారావు`) **EXACTLY**.
+- Created technical documentation [`docs/PHASE_2_AI_NLP_EXTRACTION.md`](file:///r:/e-Bhoomi/docs/PHASE_2_AI_NLP_EXTRACTION.md) and developer benchmark [`scripts/benchmark_extraction.py`](file:///r:/e-Bhoomi/scripts/benchmark_extraction.py).
+
+---
+
+## Summary of Phase 3: Field-Level Confidence Scoring + Source Evidence + Traceability
+
+### 1. ConfidenceEngine (`ai-service/app/confidence/confidence_engine.py`)
+- Calculates normalized field-level confidence scores (`0.0`–`1.0`) with explicit score sources (`MODEL_PROVIDED`, `RULE_DERIVED`, `EVIDENCE_DERIVED`, `HEURISTIC`, `UNAVAILABLE`).
+- Binds extracted fields to original source text, page numbers, and bounding-box coordinates (`evidence`).
+- Multi-candidate conflict detection: Preserves candidate arrays across pages and assigns status `CONFLICT`.
+- Weighted Document Review Priority: Aggregates critical field statuses (`ownerName`, `surveyNumber`, `extent`, `district`, `mandal`, `village`) into overall review priorities (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+- Created technical documentation [`docs/PHASE_3_CONFIDENCE_AND_EVIDENCE.md`](file:///r:/e-Bhoomi/docs/PHASE_3_CONFIDENCE_AND_EVIDENCE.md) and developer benchmark [`scripts/benchmark_confidence.py`](file:///r:/e-Bhoomi/scripts/benchmark_confidence.py).
+
+---
+
 ## Verification Performed
 
 - Verified clean production build with `npm run build`.

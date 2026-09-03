@@ -5,11 +5,12 @@ from app.api.ocr_router import router as ocr_router
 from app.api.nlp_router import router as nlp_router
 from app.api.translation_router import router as translation_router
 from app.api.extraction_router import router as extraction_router
+from app.api.confidence_router import router as confidence_router
 
 app = FastAPI(
     title="e-Bhoomi Python Document Processing AI Service",
-    description="OpenCV pre-processing, Telugu OCR, Indic NLP, IndicTrans2 translation & AI/NLP document understanding service for Intelligent Land Record Digitization & Validation (SIH26018)",
-    version="2.0.0",
+    description="OpenCV pre-processing, Telugu OCR, Indic NLP, IndicTrans2 translation, AI/NLP extraction & confidence scoring service for Intelligent Land Record Digitization & Validation (SIH26018)",
+    version="3.0.0",
 )
 
 # CORS configuration for secure Next.js API integration
@@ -26,6 +27,7 @@ app.include_router(ocr_router)
 app.include_router(nlp_router)
 app.include_router(translation_router)
 app.include_router(extraction_router)
+app.include_router(confidence_router)
 
 @app.get("/health")
 def health_check():

@@ -51,8 +51,9 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
     '✓ Telugu Handwritten OCR Engine (TeluguHandwrittenOCRProvider)',
     '✓ Server-Side Indic NLP Language Preprocessing (IndicNLPService & Glossary)',
     '✓ Server-Side Telugu ↔ English Translation (IndicTrans2Provider)',
-    '● Server-Side AI/NLP Structured Land Record Extraction (AIExtractionProvider)',
-    '○ Ready for Confidence & Validation (Future Phase)',
+    '✓ Server-Side AI/NLP Structured Land Record Extraction (AIExtractionProvider)',
+    '● Server-Side Field-Level Confidence, Evidence & Traceability (ConfidenceEngine)',
+    '○ Ready for Validation (Next Phase)',
   ];
 
   const executePipeline = async () => {
