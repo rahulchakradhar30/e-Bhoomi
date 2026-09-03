@@ -225,20 +225,11 @@ export const DocumentDigitization: React.FC = () => {
   return (
     <DigitizationWorkspaceLayout
       currentStepIndex={currentStepIndex}
-      caseId={caseId}
-      workflowStatus={uploadRecord ? 'PROCESSING' : 'DRAFT'}
-      originalFileName={uploadRecord?.originalFileName}
-      officerId="AP-545-VRO-00101"
       canGoBack={currentStepIndex > 1}
       canProceed={isCurrentStepValid}
       onPrevious={handlePrevious}
       onProceed={handleProceedNext}
       onSaveDraft={handleSaveDraft}
-      onStepClick={(targetIndex) => {
-        if (targetIndex < currentStepIndex) {
-          setCurrentStepIndex(targetIndex);
-        }
-      }}
     >
       {/* Step 1: VRO Consent */}
       {currentStepIndex === 1 && (

@@ -44,8 +44,8 @@ export const DocumentTypeStep: React.FC<DocumentTypeStepProps> = ({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       <WorkspacePanel
-        title="SUPPORTED OFFICIAL LAND RECORD CATEGORIES"
-        guidance="Select the exact document category being digitized. Your selection determines the AI extraction schema and legal checklist."
+        title="SELECT LAND RECORD DOCUMENT CATEGORY"
+        guidance="Select official document category being digitized to anchor extraction schemas and category checklist."
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 my-1">
           {SUPPORTED_DOCUMENT_TYPES.map((docType) => {

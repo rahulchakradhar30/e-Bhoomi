@@ -1,29 +1,18 @@
-# e-BHOOMI Digitization Workflow & Phase 1 Document Intelligence Walkthrough
+# e-BHOOMI Digitization Workspace & Clean Top Layout Walkthrough
 
-## Phase 1 Implementation Summary
+## Summary of Changes
 
-### 1. Core Component Additions
-- **Document Processing Job**: Created `src/types/documentProcessingJob.ts` capturing complete pre-processing, OCR, classification, vision, and schema registry outputs.
-- **Document Schema Registry**: Created `src/config/documentSchemaRegistry.ts` (v1.0) defining versioned schemas for `ADANGAL`, `ROR_1B`, `MUTATION`, `PARTITION_SUCCESSION`, `PATTADAR_PASSBOOK_TITLE_DEED`, and `LEGACY_REVENUE_RECORD` with common fields, repeatable `parties[]`, and `boundaries`.
-- **Classification Provider**: Created `src/lib/digitization/classificationProvider.ts` implementing multi-signal document classification and non-destructive VRO vs AI type mismatch detection.
-- **OCR Provider Enhancement**: Updated `src/lib/digitization/ocrProvider.ts` returning normalized OCR pages, Telugu + English text, line/block metadata, and handwriting stubs.
-- **Vision Provider**: Created `src/lib/digitization/visionProvider.ts` detecting visual regions, land schedule tables, cadastral map regions (`MAP_REGION`), and `DocumentQualityDiagnostic` metrics.
-- **Pre-processing Pipeline**: Created `src/lib/digitization/preprocessingPipeline.ts` for deskewing, image normalization, and page splitting while preserving original uploaded files.
+### 1. Completely Removed Red-Boxed Header Section
+- **Removed Top Banner & Metadata**: Removed `NEW LAND RECORD DIGITIZATION ENTRY` title, subtitle, breadcrumbs, `GOVERNMENT OF ANDHRA PRADESH • LAND RECORD DIGITIZATION WORKSPACE` header, metadata cards (Case ID, Document Status, Officer ID, Jurisdiction), `STEP X OF Y COMPLETE` indicator, and the entire `01–08` workflow/progress list from `/officer/digitization/new`.
+- **Zero Replacement Header / Zero Blank Space**: Did not add any replacement header or progress box in its place. Removed empty vertical padding and margins so the page content naturally starts at the top.
 
-### 2. Server API Routes
-- `POST /api/digitization/pipeline/create`
-- `POST /api/digitization/pipeline/preprocess`
-- `POST /api/digitization/pipeline/ocr`
-- `POST /api/digitization/pipeline/classify`
-- `POST /api/digitization/pipeline/vision`
-- `GET /api/digitization/pipeline/[id]`
-
-### 3. User Interface Integration
-- **Processing Pipeline Workspace**: Created `src/components/digitization/ProcessingPipelineWorkspace.tsx` displaying stage progress, non-destructive classification mismatch alerts, quality diagnostics, document preview, and processing summary ("Ready for AI Extraction").
-- **Processing Step Integration**: Integrated `ProcessingPipelineWorkspace` into `src/components/digitization/steps/ProcessingStep.tsx`.
+### 2. Document Category Section Positioned Directly at Top
+- The `SELECT LAND RECORD DOCUMENT CATEGORY` section is now the main visible content directly at the top of the `/officer/digitization/new` page.
+- **Preserved Category Functionality**: All 6 official document categories (`Adangal`, `RoR-1B`, `Mutation`, `Partition / Succession`, `Pattadar Passbook / Title Deed`, `Legacy Revenue Record`) remain 100% interactive, selectable, and linked to their respective extraction schemas and checklist requirements.
+- **Preserved Pipeline & Backend**: All document upload logic, OCR, AI processing, Cloudinary storage, Firebase/Firestore integration, VRO consent, field verification (min 4 photos), KYC status, and final submit locking remain completely intact.
 
 ---
 
 ## Verification & Build Validation
-- TypeScript type checking: Verified with `npx tsc --noEmit`.
-- Next.js production build: Verified with `npm run build`.
+- **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
+- **Next.js Production Build**: `npm run build` completed successfully.
