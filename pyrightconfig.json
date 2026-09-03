@@ -1,0 +1,6 @@
+{
+  "venvPath": "ai-service",
+  "venv": "venv",
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
+}
