@@ -18,6 +18,9 @@ async def process_ocr(
     documentType: Optional[str] = Form(None)
 ):
     try:
+        import io
+        import pypdf
+
         contents = await file.read()
         if not contents:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
@@ -29,6 +32,27 @@ async def process_ocr(
 
         # 2. Run Phase 1C Intelligent Region Router (Printed + Handwritten OCR)
         ocr_result = region_router.process_document_with_region_routing(pages_bgr)
+
+        # 3. If document is a digital PDF (e.g. government PDF), extract native text layers
+        is_pdf = (file.content_type and "pdf" in file.content_type.lower()) or contents.startswith(b"%PDF")
+        if is_pdf and (not ocr_result.rawOCRText or not ocr_result.rawOCRText.strip()):
+            try:
+                reader = pypdf.PdfReader(io.BytesIO(contents))
+                pdf_texts = []
+                for p_idx, page in enumerate(reader.pages, start=1):
+                    p_text = page.extract_text()
+                    if p_text and p_text.strip():
+                        pdf_texts.append(p_text.strip())
+                if pdf_texts:
+                    joined_text = "\n\n".join(pdf_texts)
+                    ocr_result.rawOCRText = joined_text
+                    ocr_result.normalizedOCRText = joined_text
+                    ocr_result.status = "COMPLETED"
+                    ocr_result.provider = "PyPDF Native Text Extractor + OCR Router"
+                    ocr_result.language = "en" if any(c.isascii() and c.isalpha() for c in joined_text) else "te"
+            except Exception as pdf_err:
+                print(f"[OCR Router] PyPDF text extraction notice: {pdf_err}")
+
         return ocr_result
     except Exception as err:
         raise HTTPException(status_code=500, detail=f"Telugu OCR Processing Failed: {str(err)}")

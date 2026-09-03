@@ -42,12 +42,14 @@ export async function POST(req: NextRequest) {
       file.name
     );
 
+    // Read real binary buffer from uploaded file
+    const buffer = await file.arrayBuffer();
+
     // Calculate REAL page count from file binary content
     const isPdf = file.type === 'application/pdf';
     let actualPageCount = 1;
 
     if (isPdf) {
-      const buffer = await file.arrayBuffer();
       const bytes = new Uint8Array(buffer);
       const text = new TextDecoder('latin1').decode(bytes);
 
@@ -76,6 +78,9 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    // Persist real file bytes in server-side storage keyed by storageReference
+    await cloudinaryStorage.storeDocument(storageReference, buffer, file.type, file.name);
 
     return NextResponse.json({
       success: true,

@@ -54,6 +54,53 @@ export class CloudinaryStorageService {
   public createStorageReference(folder: string, refId: string, fileName: string): string {
     return `cloudinary://${this.cloudName}/${folder}/${refId}/${fileName}`;
   }
+
+  /**
+   * Stores document bytes in server-side storage keyed by storageReference.
+   */
+  public async storeDocument(
+    storageReference: string,
+    buffer: ArrayBuffer,
+    mimeType: string,
+    fileName: string
+  ): Promise<void> {
+    const store = this._getServerStore();
+    store.set(storageReference, {
+      buffer,
+      mimeType,
+      fileName,
+      storedAt: Date.now(),
+    });
+  }
+
+  /**
+   * Retrieves document bytes by storageReference.
+   * Returns null if not found or expired.
+   */
+  public async retrieveDocument(
+    storageReference: string
+  ): Promise<{ buffer: ArrayBuffer; mimeType: string; fileName: string } | null> {
+    if (!storageReference) return null;
+    const store = this._getServerStore();
+    const item = store.get(storageReference);
+    if (!item) return null;
+    return {
+      buffer: item.buffer,
+      mimeType: item.mimeType,
+      fileName: item.fileName,
+    };
+  }
+
+  private _getServerStore(): Map<string, { buffer: ArrayBuffer; mimeType: string; fileName: string; storedAt: number }> {
+    const globalAny = globalThis as any;
+    if (!globalAny.__SERVER_DOCUMENT_STORE__) {
+      globalAny.__SERVER_DOCUMENT_STORE__ = new Map<
+        string,
+        { buffer: ArrayBuffer; mimeType: string; fileName: string; storedAt: number }
+      >();
+    }
+    return globalAny.__SERVER_DOCUMENT_STORE__;
+  }
 }
 
 export const cloudinaryStorage = new CloudinaryStorageService();
