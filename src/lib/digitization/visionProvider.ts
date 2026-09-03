@@ -67,8 +67,8 @@ export class DefaultVisionProvider implements VisionProvider {
       detectedTables.push({
         tableId: `TBL-SCHED-${p}`,
         pageNumber: p,
-        confidence: 0.93,
-        rowCount: 4,
+        confidence: 0.90,
+        rowCount: 0,
         columnCount: 5,
         columns: [
           { headerName: 'Khata No', columnIndex: 0 },
@@ -77,10 +77,7 @@ export class DefaultVisionProvider implements VisionProvider {
           { headerName: 'Extent (Ac.C)', columnIndex: 3 },
           { headerName: 'Classification', columnIndex: 4 },
         ],
-        rows: [
-          { rowIndex: 0, cells: ['482', 'K. Rama Rao', '142/3A', '2.45', 'Wet Land'] },
-          { rowIndex: 1, cells: ['482', 'K. Krishna Murthy', '142/3B', '1.25', 'Wet Land'] },
-        ],
+        rows: [],
       });
     }
 

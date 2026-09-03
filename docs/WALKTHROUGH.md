@@ -13,6 +13,25 @@
 
 ---
 
+## Phase 1A: Remove Demo Data & Implement OpenCV Document Pre-processing Foundation
+
+### Key Changes Completed
+1. **Removed Demo / Fake Digitization Data**:
+   - Cleaned out hardcoded Pattadar names ("K. Rama Rao", "Subba Rao"), survey numbers ("142/3A"), extents ("2.45 Acres"), fake OCR outputs, and fake AI extraction fields.
+   - VRO digitization queue and dashboard pages start with clean empty states.
+2. **Server-Side Python AI Service (`ai-service/`)**:
+   - Established Python FastAPI processing service with `DocumentPreprocessor` using OpenCV (`opencv-python-headless`).
+   - Implemented CLAHE contrast normalization, Hough line orientation/deskewing, bilateral noise reduction, and document quality metrics (blur score, skew angle, contrast score).
+   - Preserves historical document table borders and classifies cadastral map/diagram candidates (`MAP_OR_DIAGRAM`).
+   - Non-destructively separates untouched original files from processed outputs.
+3. **Next.js Integration**:
+   - Next.js API route `/api/digitization/pipeline/preprocess` acts as secure bridge to Python service.
+   - Updated processing step UI to show Phase 1A status (`✓ Document received`, `✓ Pages prepared`, `● Image pre-processing (OpenCV)`, `○ Multi-Lingual OCR (Next Phase)`, `○ AI Extraction (Next Phase)`).
+4. **Documentation**:
+   - Created [`docs/PHASE_1A_OPENCV.md`](file:///r:/e-Bhoomi/docs/PHASE_1A_OPENCV.md).
+
+---
+
 ## Verification & Build Validation
 - **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
 - **Next.js Production Build**: `npm run build` completed successfully.

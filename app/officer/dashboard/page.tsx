@@ -115,9 +115,9 @@ export default function OfficerDashboardPage() {
               {cases.slice(0, 5).map((c) => (
                 <div key={c.caseId} className="p-3 bg-white border border-slate-200 rounded-md text-xs flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-navy-900">{c.extractedData?.ownerName?.value || 'Pattadar'} ({c.documentType})</div>
+                    <div className="font-bold text-navy-900">{c.extractedData?.ownerName?.value || 'Record'} ({c.documentType})</div>
                     <div className="text-[11px] text-slate-500 font-mono">
-                      Ref: {c.caseId} • Survey #{c.extractedData?.surveyNumber?.value || '142'}
+                      Ref: {c.caseId} • Survey #{c.extractedData?.surveyNumber?.value || 'N/A'}
                     </div>
                   </div>
                   <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-navy-100 text-navy-800">

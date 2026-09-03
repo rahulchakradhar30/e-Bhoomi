@@ -65,7 +65,38 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
+## Summary of Phase 1A: Remove Demo Data & Implement OpenCV Document Pre-processing Foundation
+
+### 1. Production Demo Data Cleanup
+- Removed hardcoded fake owner names ("K. Rama Rao", "Subba Rao"), survey numbers ("142/3A"), extents ("2.45 Acres"), fake OCR outputs, and fake AI extraction results across `ocrProvider.ts`, `aiExtractionProvider.ts`, `visionProvider.ts`, `DocumentViewer.tsx`, `OfficerDashboardPage`, and `ExtractionReviewStep.tsx`.
+- Ensured VRO New Digitization workspace begins with clean empty states ("No digitization records yet.").
+- Retained administrative master data, schemas, role configurations, and test fixtures.
+
+### 2. Dedicated Server-Side Python AI Service (`ai-service/`)
+- Created Python FastAPI service in `ai-service/` containing `DocumentPreprocessor`:
+  - Input validation & multi-page PDF image rendering via `pypdf` / `Pillow`.
+  - Server-side OpenCV processing (CLAHE contrast normalization, Hough line deskewing, bilateral denoising).
+  - Document Quality Diagnostics (Laplacian blur calculation, skew angle calculation, contrast score).
+  - Cadastral Map / Diagram candidate classification (`MAP_OR_DIAGRAM`).
+  - Separation of untouched original scans from preprocessed images.
+
+### 3. Next.js API Bridge & UI Stage Updates
+- Connected `/api/digitization/pipeline/preprocess` route handler to communicate with the Python service.
+- Updated `ProcessingPipelineWorkspace.tsx` stages:
+  - `✓ Document received & initialized`
+  - `✓ Pages extracted & order preserved`
+  - `● Server-Side OpenCV Pre-processing (Deskew, Denoise, Contrast & Quality Diagnostics)`
+  - `○ Multi-Lingual OCR (Pending Next Phase)`
+  - `○ AI Structure Extraction (Pending Next Phase)`
+
+### 4. Technical Documentation
+- Created technical documentation [`docs/PHASE_1A_OPENCV.md`](file:///r:/e-Bhoomi/docs/PHASE_1A_OPENCV.md).
+
+---
+
 ## Verification Performed
 
-- Verified clean production build with `npm run build` (`77/77` static & dynamic pages generated with 0 errors).
-- Confirmed Forgot Password flow displays `"Your reset password link is sent."` with zero email or phone number disclosures.
+- Verified clean production build with `npm run build`.
+- Verified Python service modules and API routers.
+- Confirmed zero hardcoded fake digitization records appear in VRO digitization workspace.
+

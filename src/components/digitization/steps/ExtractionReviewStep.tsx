@@ -414,7 +414,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
                         <div>Relationship: {party.relationship}</div>
                         <div>Share: {party.share}</div>
                         <div>Extent: {party.extent}</div>
-                        <div>Survey: {party.surveyNumber || '142/3'}</div>
+                        <div>Survey: {party.surveyNumber || 'N/A'}</div>
                       </div>
                     </div>
                   ))}

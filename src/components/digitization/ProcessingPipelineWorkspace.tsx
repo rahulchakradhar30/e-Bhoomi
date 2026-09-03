@@ -44,11 +44,11 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
   const [showPreview, setShowPreview] = useState(false);
 
   const stages = [
-    'Initializing Processing Job & Image Pre-processing',
-    'Executing Automated Multi-Signal Document Classification',
-    'Running Advanced Multi-Lingual OCR (Telugu & English)',
-    'Executing Computer Vision, Table & Cadastral Map Region Detection',
-    'Generating Normalized Document Intelligence Package (Ready for AI Extraction)',
+    '✓ Document received & initialized',
+    '✓ Pages extracted & order preserved',
+    '● Server-Side OpenCV Pre-processing (Deskew, Denoise, Contrast & Quality Diagnostics)',
+    '○ Multi-Lingual OCR (Pending Next Phase)',
+    '○ AI Structure Extraction (Pending Next Phase)',
   ];
 
   const executePipeline = async () => {

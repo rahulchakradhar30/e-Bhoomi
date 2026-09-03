@@ -160,45 +160,15 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
               )}
             </div>
           ) : (
-            /* Styled Mock Scanned Document Output for visual comparison */
-            <div className="space-y-4 text-xs leading-relaxed text-slate-800 font-mono bg-amber-50/40 p-4 border border-amber-200/60 rounded">
-              <div className="flex justify-between border-b pb-2 font-bold text-navy-800">
-                <span>VILLAGE: KALLUR (600101)</span>
-                <span>MANDAL: KURNOOL RURAL</span>
-                <span>DISTRICT: KURNOOL</span>
+            /* Clean Document Canvas View when no direct file URL is loaded */
+            <div className="py-16 text-center space-y-3 bg-slate-50 p-6 border border-slate-200 rounded">
+              <FileText className="w-10 h-10 text-slate-400 mx-auto" />
+              <div className="text-xs font-mono font-bold text-navy-900 uppercase">
+                {originalFileName}
               </div>
-              <div className="grid grid-cols-2 gap-2 text-slate-700">
-                <div>
-                  <strong>PATTADAR NAME:</strong> K. Rama Rao
-                </div>
-                <div>
-                  <strong>FATHER/HUSBAND:</strong> Subba Rao
-                </div>
-                <div>
-                  <strong>SURVEY / SUB-DIV NO:</strong> 142/3A
-                </div>
-                <div>
-                  <strong>KHATA NO:</strong> 482
-                </div>
-                <div>
-                  <strong>EXTENT:</strong> 2.45 Acres (Ac. 2.45 Cents)
-                </div>
-                <div>
-                  <strong>LAND CLASS:</strong> Wet Land (నన్జాయి / నంజ)
-                </div>
-              </div>
-              <div className="border-t pt-2 mt-2">
-                <div className="font-bold text-navy-900 mb-1">BOUNDARIES (చతురస్ర పరిమితులు):</div>
-                <div className="grid grid-cols-2 gap-1 text-[11px]">
-                  <div>• East: Panchayat Road</div>
-                  <div>• West: Survey 141 Land</div>
-                  <div>• North: Irrigation Canal</div>
-                  <div>• South: V. Venkateswarlu Land</div>
-                </div>
-              </div>
-              <div className="text-[10px] text-slate-500 italic mt-3 text-right">
-                Digitally Preserved Physical Revenue Scan #REF-AP545-2024-8849
-              </div>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto font-sans">
+                Document loaded into secure pre-processing pipeline. Page {currentPage} of {pageCount}.
+              </p>
             </div>
           )}
         </div>
