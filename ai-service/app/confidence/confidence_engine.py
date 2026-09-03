@@ -121,7 +121,7 @@ class ConfidenceEngine:
                 "explanation": "Field is not present in document.",
             }
 
-        val_str = str(value).strip()
+        val_str = value.strip()
         if not val_str or val_str in ["null", "None"]:
             return {
                 "fieldName": field_name,
