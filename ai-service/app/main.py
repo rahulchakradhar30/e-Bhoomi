@@ -2,11 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.preprocess_router import router as preprocess_router
 from app.api.ocr_router import router as ocr_router
+from app.api.nlp_router import router as nlp_router
 
 app = FastAPI(
     title="e-Bhoomi Python Document Processing AI Service",
-    description="OpenCV document pre-processing & Telugu OCR foundation service for Intelligent Land Record Digitization & Validation (SIH26018)",
-    version="1.1.0",
+    description="OpenCV document pre-processing, Telugu OCR & Indic NLP foundation service for Intelligent Land Record Digitization & Validation (SIH26018)",
+    version="1.2.0",
 )
 
 # CORS configuration for secure Next.js API integration
@@ -20,6 +21,7 @@ app.add_middleware(
 
 app.include_router(preprocess_router)
 app.include_router(ocr_router)
+app.include_router(nlp_router)
 
 @app.get("/health")
 def health_check():

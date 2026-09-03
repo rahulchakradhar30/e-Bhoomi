@@ -71,3 +71,36 @@ class DocumentOCRResponse(BaseModel):
     processedAt: str
     processingTimeMs: Optional[int] = 0
 
+class GlossaryHit(BaseModel):
+    term: str
+    category: str
+    normalizedForm: str
+    englishReference: Optional[str] = None
+
+class PageNLPResult(BaseModel):
+    pageNumber: int
+    status: str = "COMPLETED"
+    rawOCRText: str = ""
+    normalizedOCRText: str = ""
+    nlpProcessedText: str = ""
+    sentences: List[str] = Field(default_factory=list)
+    tokensCount: int = 0
+    glossaryHits: List[GlossaryHit] = Field(default_factory=list)
+    regions: List[dict] = Field(default_factory=list)
+
+class DocumentNLPResponse(BaseModel):
+    nlpJobId: str
+    status: str = "NLP_COMPLETED"
+    provider: str = "IndicNLPService"
+    libraryVersion: str = "indic-nlp-library v0.2.0"
+    detectedLanguages: List[str] = Field(default_factory=lambda: ["te"])
+    pageCount: int
+    pages: List[PageNLPResult]
+    rawOCRText: str = ""
+    normalizedOCRText: str = ""
+    nlpProcessedText: str = ""
+    overallStatus: str = "READY_FOR_TRANSLATION"
+    processedAt: str
+    processingTimeMs: Optional[int] = 0
+
+

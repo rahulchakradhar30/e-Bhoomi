@@ -10,3 +10,4 @@ transformers>=4.30.0
 torch>=2.0.0
 huggingface_hub>=0.15.0
 scipy>=1.10.0
+indic-nlp-library>=0.2.0

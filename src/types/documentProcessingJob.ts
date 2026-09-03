@@ -10,6 +10,7 @@ export type OverallProcessingStatus =
   | 'VISION_PROCESSING'
   | 'READY_FOR_AI_EXTRACTION'
   | 'READY_FOR_LANGUAGE_PROCESSING'
+  | 'READY_FOR_TRANSLATION'
   | 'NEEDS_REVIEW'
   | 'FAILED';
 
