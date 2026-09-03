@@ -52,9 +52,26 @@ async def process_handwritten_ocr(
     except Exception as err:
         raise HTTPException(status_code=500, detail=f"Telugu Handwritten OCR Failed: {str(err)}")
 
+from app.ocr.language_detector import PythonLanguageDetector
+from app.ocr.english_ocr import PythonEnglishOCR
+
+lang_detector = PythonLanguageDetector()
+english_ocr = PythonEnglishOCR()
+
+@router.post("/ocr/detect-language")
+async def detect_language(payload: dict):
+    text = payload.get("text", "")
+    return lang_detector.detect_language(text)
+
+@router.post("/ocr/english")
+async def process_english_ocr(payload: dict):
+    text = payload.get("text", "")
+    return english_ocr.process_text(text)
+
 @router.get("/ocr/metadata")
 async def get_ocr_metadata():
     return {
         "printedProvider": printed_ocr_provider.get_provider_metadata(),
         "handwrittenProvider": handwritten_ocr_provider.get_provider_metadata(),
+        "englishProvider": english_ocr.ENGINE_VERSION,
     }

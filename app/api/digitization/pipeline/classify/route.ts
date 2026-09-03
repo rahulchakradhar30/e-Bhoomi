@@ -1,33 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DefaultClassificationProvider } from '@/lib/digitization/classificationProvider';
-import { DocumentCategoryCode } from '@/config/digitizationSchemas';
+import { LanguageDetector } from '@/lib/digitization/language/languageDetector';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { fullText, vroSelectedDocumentType, pageCount } = body;
+    const { sampleText, documentCategoryHint } = body;
 
-    const classifier = new DefaultClassificationProvider();
-    const result = await classifier.classifyDocument(
-      fullText || '',
-      vroSelectedDocumentType as DocumentCategoryCode,
-      pageCount || 1
-    );
+    const langResult = LanguageDetector.detectLanguage(sampleText || '');
 
-    const isMismatch =
-      result.predictedType !== 'UNKNOWN_OTHER' &&
-      result.predictedType !== vroSelectedDocumentType;
+    let category = documentCategoryHint || 'UNKNOWN_OTHER';
+    const text = sampleText || '';
+
+    if (text.includes('ROR') || text.includes('1B') || text.includes('1-B') || text.includes('హక్కుల పత్రం')) {
+      category = 'ROR_1B';
+    } else if (text.includes('ADANGAL') || text.includes('అడంగల్') || text.includes('పహాణీ')) {
+      category = 'ADANGAL';
+    } else if (text.includes('MUTATION') || text.includes('మ్యూటేషన్')) {
+      category = 'MUTATION';
+    } else if (text.includes('PARTITION') || text.includes('భాగ పరిష్కారం')) {
+      category = 'PARTITION_SUCCESSION';
+    }
 
     return NextResponse.json({
       success: true,
-      classificationResult: result,
-      detectedDocumentType: result.predictedType,
-      classificationMismatch: isMismatch,
-      classificationStatus: 'COMPLETED',
-      updatedAt: new Date().toISOString(),
+      classificationResult: {
+        documentCategory: category,
+        language: langResult.detectedLanguage,
+        languageConfidence: langResult.languageConfidence,
+        detectionSource: langResult.detectionSource,
+        details: langResult,
+      },
     });
   } catch (err: any) {
-    console.error('Classification API error:', err);
-    return NextResponse.json({ error: err.message || 'Classification error' }, { status: 500 });
+    console.error('Document Classification API error:', err);
+    return NextResponse.json({ error: err.message || 'Document classification error' }, { status: 500 });
   }
 }

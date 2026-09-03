@@ -44,10 +44,10 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
   const [showPreview, setShowPreview] = useState(false);
 
   const stages = [
-    '✓ Document received & initialized',
+    '✓ Document received, classified & language detected (LanguageDetector)',
     '✓ Pages extracted & order preserved',
     '✓ Server-Side OpenCV Pre-processing (Deskew, Denoise, Contrast & Diagnostics)',
-    '✓ Printed Telugu OCR Engine (TeluguOCRProvider)',
+    '✓ Unified Multilingual OCR Router (UnifiedOCRRouter: Telugu / English / Handwritten)',
     '✓ Telugu Handwritten OCR Engine (TeluguHandwrittenOCRProvider)',
     '✓ Server-Side Indic NLP Language Preprocessing (IndicNLPService & Glossary)',
     '✓ Server-Side Telugu ↔ English Translation (IndicTrans2Provider)',
