@@ -137,6 +137,34 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
+## Summary of Phase 1D: Indic NLP Integration
+
+### 1. IndicNLPService (`indic-nlp-library`)
+- Integrated official `indic-nlp-library` (v0.2.0+) for Unicode normalization, tokenization, and sentence segmentation (`ai-service/app/nlp/indic_nlp_service.py`).
+- Supports mixed-language detection (`te`, `en`, `te+en`).
+
+### 2. Strict Number & Name Preservation
+- Survey numbers (`142/3A`), extents (`2.45`), khata numbers (`482`), dates (`15.06.2004`), and personal owner names are preserved **EXACTLY** as extracted by OCR.
+
+### 3. Terminology & Custom Glossary Architecture
+- Established `LandRecordGlossary` (`ai-service/app/nlp/glossary.py`) mapping Telugu land record terms (`Adangal`, `RoR-1B`, `Pattadar`, `Khata`, `Survey`, `Extent`, `Mandal`, `District`, `Mutation`, `Partition`, `Succession`).
+- Created technical documentation [`docs/PHASE_1D_INDIC_NLP.md`](file:///r:/e-Bhoomi/docs/PHASE_1D_INDIC_NLP.md) and developer benchmark [`scripts/benchmark_nlp.py`](file:///r:/e-Bhoomi/scripts/benchmark_nlp.py).
+
+---
+
+## Summary of Phase 1E: Telugu ↔ English Language Processing Using IndicTrans2
+
+### 1. IndicTrans2Provider (`AI4Bharat/IndicTrans2`)
+- Implemented `IndicTrans2Provider` extending `BaseTranslationProvider` targeting candidate model `ai4bharat/indictrans2-indic-en-1B` (language pair: `tel_Tel` -> `eng_Latn`) with architectural readiness for `eng_Latn` -> `tel_Tel`.
+- Server-side lazy loading, caching, and CPU/GPU auto-detection (`torch.cuda.is_available()`).
+
+### 2. Traceable Four-Layer Output Architecture
+- Maintains 4 non-destructive text layers: `rawOCRText`, `normalizedOCRText`, `nlpProcessedText`, and `translatedText`.
+- Dual-language evidence chain (Telugu Source + English Translation) is preserved to feed **Phase 2 AI Structured Extraction**.
+- Created technical documentation [`docs/PHASE_1E_INDIC_TRANS2.md`](file:///r:/e-Bhoomi/docs/PHASE_1E_INDIC_TRANS2.md) and developer benchmark [`scripts/benchmark_translation.py`](file:///r:/e-Bhoomi/scripts/benchmark_translation.py).
+
+---
+
 ## Verification Performed
 
 - Verified clean production build with `npm run build`.

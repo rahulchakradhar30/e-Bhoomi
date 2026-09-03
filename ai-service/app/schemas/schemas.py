@@ -103,4 +103,37 @@ class DocumentNLPResponse(BaseModel):
     processedAt: str
     processingTimeMs: Optional[int] = 0
 
+class TranslationSegmentResult(BaseModel):
+    source: str
+    target: str
+
+class PageTranslationResult(BaseModel):
+    pageNumber: int
+    status: str = "COMPLETED"
+    rawOCRText: str = ""
+    normalizedOCRText: str = ""
+    nlpProcessedText: str = ""
+    translatedText: str = ""
+    segments: List[TranslationSegmentResult] = Field(default_factory=list)
+    regions: List[dict] = Field(default_factory=list)
+
+class DocumentTranslationResponse(BaseModel):
+    translationId: str
+    status: str = "COMPLETED"
+    provider: str = "IndicTrans2Provider"
+    model: str = "ai4bharat/indictrans2-indic-en-1B"
+    sourceLanguage: str = "te"
+    targetLanguage: str = "en"
+    device: str = "cpu"
+    pageCount: int
+    pages: List[PageTranslationResult]
+    rawOCRText: str = ""
+    normalizedOCRText: str = ""
+    nlpProcessedText: str = ""
+    translatedText: str = ""
+    overallStatus: str = "READY_FOR_AI_EXTRACTION"
+    processedAt: str
+    processingTimeMs: Optional[int] = 0
+
+
 

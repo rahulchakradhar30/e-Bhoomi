@@ -64,6 +64,32 @@
 
 ---
 
+## Phase 1D: Indic NLP Integration
+
+### Key Changes Completed
+1. **IndicNLPService**:
+   - Integrated `indic-nlp-library` (v0.2.0+) for Unicode normalization, tokenization, and sentence segmentation.
+2. **Land Record Terminology & Number Preservation**:
+   - Created `LandRecordGlossary` (`ai-service/app/nlp/glossary.py`).
+   - Strictly preserved survey numbers (`142/3A`), extents (`2.45`), khata numbers, dates, and owner names without alteration.
+3. **Documentation**:
+   - Created [`docs/PHASE_1D_INDIC_NLP.md`](file:///r:/e-Bhoomi/docs/PHASE_1D_INDIC_NLP.md) and [`scripts/benchmark_nlp.py`](file:///r:/e-Bhoomi/scripts/benchmark_nlp.py).
+
+---
+
+## Phase 1E: Telugu ↔ English Language Processing Using IndicTrans2
+
+### Key Changes Completed
+1. **IndicTrans2Provider**:
+   - Implemented `IndicTrans2Provider` (`AI4Bharat/IndicTrans2`) extending `BaseTranslationProvider` targeting `ai4bharat/indictrans2-indic-en-1B` (`tel_Tel` -> `eng_Latn`).
+2. **Traceable Four-Layer Output & Dual-Language Chain**:
+   - Retained 4 text layers: `rawOCRText`, `normalizedOCRText`, `nlpProcessedText`, and `translatedText`.
+   - Dual-language evidence chain (Telugu Source + English Translation) is preserved for Phase 2 AI extraction.
+3. **Documentation**:
+   - Created [`docs/PHASE_1E_INDIC_TRANS2.md`](file:///r:/e-Bhoomi/docs/PHASE_1E_INDIC_TRANS2.md) and [`scripts/benchmark_translation.py`](file:///r:/e-Bhoomi/scripts/benchmark_translation.py).
+
+---
+
 ## Verification & Build Validation
 - **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
 - **Next.js Production Build**: `npm run build` completed successfully.
