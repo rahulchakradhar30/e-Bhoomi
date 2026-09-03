@@ -135,5 +135,61 @@ class DocumentTranslationResponse(BaseModel):
     processedAt: str
     processingTimeMs: Optional[int] = 0
 
+class BoundaryResult(BaseModel):
+    east: Optional[str] = None
+    west: Optional[str] = None
+    north: Optional[str] = None
+    south: Optional[str] = None
+
+class PartyResult(BaseModel):
+    partyId: str
+    name: str
+    role: str = "PRIMARY_PATTADAR"
+    relationship: Optional[str] = None
+    share: Optional[str] = None
+    extent: Optional[str] = None
+
+class CommonLandRecordFields(BaseModel):
+    ownerName: Optional[str] = None
+    fatherOrHusbandName: Optional[str] = None
+    relationship: Optional[str] = None
+    surveyNumber: Optional[str] = None
+    subDivisionNumber: Optional[str] = None
+    khasraNumber: Optional[str] = None
+    khataNumber: Optional[str] = None
+    extent: Optional[str] = None
+    landClassification: Optional[str] = None
+    district: Optional[str] = None
+    revenueDivision: Optional[str] = None
+    mandal: Optional[str] = None
+    village: Optional[str] = None
+    documentDate: Optional[str] = None
+    registrationDate: Optional[str] = None
+    mutationReference: Optional[str] = None
+    registrationNumber: Optional[str] = None
+
+class DocumentExtractionResponse(BaseModel):
+    extractionId: str
+    status: str = "AI_EXTRACTION_COMPLETED"
+    provider: str = "AIExtractionProvider"
+    modelVersion: str = "eBhoomi-LandRecord-NER-v2.0"
+    promptVersion: str = "v2.1-StructuredJSON"
+    schemaVersion: str = "2.0.0"
+    documentType: str = "UNKNOWN_OTHER"
+    documentTypeName: str = "Unspecified Land Record Document"
+    aiExtractedRecord: CommonLandRecordFields
+    boundaries: BoundaryResult
+    parties: List[PartyResult] = Field(default_factory=list)
+    unmappedFields: List[dict] = Field(default_factory=list)
+    sourceReferences: List[dict] = Field(default_factory=list)
+    rawOCRText: str = ""
+    normalizedOCRText: str = ""
+    nlpProcessedText: str = ""
+    translatedText: str = ""
+    overallStatus: str = "READY_FOR_CONFIDENCE_AND_VALIDATION"
+    extractedAt: str
+    processingTimeMs: Optional[int] = 0
+
+
 
 

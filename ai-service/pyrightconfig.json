@@ -7,6 +7,15 @@
     ".",
     "venv/Lib/site-packages"
   ],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": [
+        ".",
+        "venv/Lib/site-packages"
+      ]
+    }
+  ],
   "venvPath": ".",
   "venv": "venv",
   "pythonVersion": "3.10",

@@ -1,10 +1,20 @@
 {
   "include": [
-    "ai-service"
+    "ai-service",
+    "scripts"
   ],
   "extraPaths": [
     "ai-service",
     "ai-service/venv/Lib/site-packages"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "ai-service",
+      "extraPaths": [
+        "ai-service",
+        "ai-service/venv/Lib/site-packages"
+      ]
+    }
   ],
   "venvPath": "ai-service",
   "venv": "venv",
