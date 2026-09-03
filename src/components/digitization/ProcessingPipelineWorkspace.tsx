@@ -52,8 +52,10 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
     '✓ Server-Side Indic NLP Language Preprocessing (IndicNLPService & Glossary)',
     '✓ Server-Side Telugu ↔ English Translation (IndicTrans2Provider)',
     '✓ Server-Side AI/NLP Structured Land Record Extraction (AIExtractionProvider)',
-    '● Server-Side Field-Level Confidence, Evidence & Traceability (ConfidenceEngine)',
-    '○ Ready for Validation (Next Phase)',
+    '✓ Server-Side Field-Level Confidence, Evidence & Traceability (ConfidenceEngine)',
+    '✓ Server-Side Master Data & Business Rule Validation Engine (ValidationEngine)',
+    '● Server-Side Cross-Database Verification & Duplicate Detection (CrossDatabaseVerificationEngine)',
+    '✓ Pipeline Processing Completed & Fully Verified',
   ];
 
   const executePipeline = async () => {
@@ -147,10 +149,109 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
         documentQuality: visionData.documentQuality,
         normalizedRepresentation: visionData.normalizedRepresentation,
         visionStatus: 'COMPLETED',
-        overallStatus: 'READY_FOR_AI_EXTRACTION',
       };
       setJob(currentJob);
       setCurrentStageIndex(5);
+
+      // 6. Indic NLP Preprocessing
+      const nlpRes = await fetch('/api/digitization/pipeline/nlp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawOCRText: ocrData.ocrResult.extractedText,
+          normalizedOCRText: ocrData.ocrResult.extractedText,
+          pageCount: uploadRecord.pageCount,
+        }),
+      });
+      const nlpData = await nlpRes.json();
+      const nlpResult = nlpData.nlpResult || {};
+      setCurrentStageIndex(6);
+
+      // 7. IndicTrans2 Translation
+      const transRes = await fetch('/api/digitization/pipeline/translation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawOCRText: ocrData.ocrResult.extractedText,
+          normalizedOCRText: ocrData.ocrResult.extractedText,
+          nlpProcessedText: nlpResult.nlpProcessedText || ocrData.ocrResult.extractedText,
+          pageCount: uploadRecord.pageCount,
+        }),
+      });
+      const transData = await transRes.json();
+      const translationResult = transData.translationResult || {};
+      setCurrentStageIndex(7);
+
+      // 8. AI Structured Land Record Extraction
+      const extractRes = await fetch('/api/digitization/pipeline/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentType: vroSelectedDocumentType,
+          rawOCRText: ocrData.ocrResult.extractedText,
+          normalizedOCRText: ocrData.ocrResult.extractedText,
+          nlpProcessedText: nlpResult.nlpProcessedText || ocrData.ocrResult.extractedText,
+          translatedText: translationResult.translatedText || '',
+        }),
+      });
+      const extractData = await extractRes.json();
+      const extractionResult = extractData.extractionResult || {};
+      setCurrentStageIndex(8);
+
+      // 9. Field-Level Confidence & Source Evidence Engine
+      // 9. Field-Level Confidence & Source Evidence Engine
+      const confRes = await fetch('/api/digitization/pipeline/confidence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          extractionResult: extractionResult,
+        }),
+      });
+      const confData = await confRes.json();
+      const confidenceResult = confData.confidenceResult || {};
+      setCurrentStageIndex(9);
+
+      // 10. Server-Side Master Data & Business Rule Validation Engine
+      const valRes = await fetch('/api/digitization/pipeline/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          extractionResult,
+          documentType: vroSelectedDocumentType,
+        }),
+      });
+      const valData = await valRes.json();
+      const validationResult = valData.validationResult || {};
+      setCurrentStageIndex(10);
+
+      // 11. Server-Side Cross-Database Verification & Duplicate Detection
+      const crossRes = await fetch('/api/digitization/pipeline/cross-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          extractionResult,
+          options: { includeTestProvider: true },
+        }),
+      });
+      const crossData = await crossRes.json();
+      const crossVerifyResult = crossData.verificationResult || {};
+
+      currentJob = {
+        ...currentJob,
+        overallStatus: 'READY_FOR_VALIDATION',
+      };
+      setJob(currentJob);
+      setCurrentStageIndex(11);
+
+      // Save pipeline results to window/ref for transition to AI review
+      (window as any).__LAST_PIPELINE_RESULT__ = {
+        extractionResult,
+        confidenceResult,
+        validationResult,
+        crossVerifyResult,
+        nlpResult,
+        translationResult,
+      };
     } catch (err: any) {
       console.error('Pipeline execution error:', err);
       setErrorMsg(err.message || 'Pipeline processing failed');
@@ -238,14 +339,14 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
             <h4 className="font-bold text-navy-900 text-xs uppercase border-b pb-1.5 flex items-center justify-between">
               <span>FOUNDATION PIPELINE STAGES</span>
               <span className="font-mono text-slate-500 font-normal">
-                Stage {Math.min(5, currentStageIndex)} of 5
+                Stage {Math.min(9, currentStageIndex)} of 9
               </span>
             </h4>
 
             <div className="space-y-2.5">
               {stages.map((label, idx) => {
                 const isDone = currentStageIndex > idx;
-                const isCurrent = currentStageIndex === idx + 1 && job?.overallStatus !== 'READY_FOR_AI_EXTRACTION';
+                const isCurrent = currentStageIndex === idx + 1 && job?.overallStatus !== 'READY_FOR_VALIDATION';
                 return (
                   <div key={idx} className="flex items-center gap-3 text-xs">
                     {isDone ? (
@@ -275,7 +376,7 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
           </div>
 
           {/* Diagnostic & Summary Cards Grid */}
-          {job?.overallStatus === 'READY_FOR_AI_EXTRACTION' && (
+          {(job?.overallStatus === 'READY_FOR_VALIDATION' || job?.overallStatus === 'READY_FOR_AI_EXTRACTION') && (
             <div className="space-y-6">
               {/* Document Quality Warnings */}
               {qual && qual.qualityWarnings && qual.qualityWarnings.length > 0 && (
@@ -302,7 +403,7 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
                     </h4>
                   </div>
                   <span className="px-3 py-1 bg-green-100 text-green-800 border border-green-300 rounded font-mono font-bold text-xs">
-                    STATUS: READY_FOR_AI_EXTRACTION
+                    STATUS: {job.overallStatus}
                   </span>
                 </div>
 

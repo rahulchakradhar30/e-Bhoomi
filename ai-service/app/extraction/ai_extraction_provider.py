@@ -97,25 +97,28 @@ class AIExtractionProvider(BaseAIExtractionProvider):
         khata_number = khata_match.group(1).strip() if khata_match else None
 
         # Extent
-        extent_match = re.search(r"(?:విస్తీర్ణము|Extent|Area)[:\s]+([0-9\.]+\s*(?:ఎకరాలు|Acres|Cents|guntas)?)", corpus, re.IGNORECASE)
+        extent_match = re.search(r"(?:విస్తీర్ణం|విస్తీర్ణము|Extent|Area)[:\s]+([0-9\.]+\s*(?:ఎకరాలు|Acres|Cents|guntas)?)", corpus, re.IGNORECASE)
         extent = extent_match.group(1).strip() if extent_match else None
 
         # Owner Name
-        owner_match = re.search(r"(?:పట్టాదారు పేరు|Owner Name|Pattadar|Holder)[:\s]+([\u0C00-\u0C7FA-Za-z\.\s]+)(?=\n|,|వారసత్వము|Father|$)", corpus, re.IGNORECASE)
+        owner_match = re.search(r"(?:పట్టాదారు పేరు|పట్టాదారు|Owner Name|Pattadar|Holder)[:\s]+([\u0C00-\u0C7FA-Za-z\.\s]+?)(?=\n|,|తండ్రి|భర్త|Father|Husband|సర్వే|$)", corpus, re.IGNORECASE)
         owner_name = owner_match.group(1).strip() if owner_match else None
 
         # Father or Husband Name
-        father_match = re.search(r"(?:తండ్రి\/భర్త|Father\/Husband|W\/o|S\/o|Father Name)[:\s]+([\u0C00-\u0C7FA-Za-z\.\s]+)(?=\n|,|$)", corpus, re.IGNORECASE)
+        father_match = re.search(r"(?:తండ్రి\/భర్త|తండ్రి|భర్త|Father\/Husband|W\/o|S\/o|Father Name)[:\s]+([\u0C00-\u0C7FA-Za-z\.\s]+?)(?=\n|,|సర్వే|విస్తీర్ణం|ఖాతా|$)", corpus, re.IGNORECASE)
         father_name = father_match.group(1).strip() if father_match else None
 
         # Relationship
         relationship = "S/o" if father_match and "W/o" not in corpus else ("W/o" if father_match else None)
 
         # Jurisdiction: Mandal, District, Village
-        mandal_match = re.search(r"(?:మండలం|Mandal)[:\s]+([\u0C00-\u0C7FA-Za-z\s]+)(?=\n|,|గ్రామము|District|$)", corpus, re.IGNORECASE)
+        village_match = re.search(r"(?:గ్రామం|గ్రామము|Village)[:\s]+([\u0C00-\u0C7FA-Za-z\s]+?)(?=\n|,|మండలం|Mandal|జిల్లా|$)", corpus, re.IGNORECASE)
+        village = village_match.group(1).strip() if village_match else None
+
+        mandal_match = re.search(r"(?:మండలం|Mandal)[:\s]+([\u0C00-\u0C7FA-Za-z\s]+?)(?=\n|,|గ్రామము|District|జిల్లా|$)", corpus, re.IGNORECASE)
         mandal = mandal_match.group(1).strip() if mandal_match else None
 
-        district_match = re.search(r"(?:జిల్లా|District)[:\s]+([\u0C00-\u0C7FA-Za-z\s]+)(?=\n|,|మండలం|Mandal|$)", corpus, re.IGNORECASE)
+        district_match = re.search(r"(?:జిల్లా|District)[:\s]+([\u0C00-\u0C7FA-Za-z\s]+?)(?=\n|,|మండలం|Mandal|$)", corpus, re.IGNORECASE)
         district = district_match.group(1).strip() if district_match else None
 
         village_match = re.search(r"(?:గ్రామము|Village)[:\s]+([\u0C00-\u0C7FA-Za-z\s]+)(?=\n|,|మండలం|Mandal|$)", corpus, re.IGNORECASE)

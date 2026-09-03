@@ -43,6 +43,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [editReason, setEditReason] = useState<string>('');
+  const [editReasonCode, setEditReasonCode] = useState<string>('OCR_ERROR');
   const [editError, setEditError] = useState<string | null>(null);
 
   const toggleChecklist = (id: string) => {
@@ -53,6 +54,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
     setEditingFieldId(fieldId);
     setEditValue(currentValue);
     setEditReason('');
+    setEditReasonCode('OCR_ERROR');
     setEditError(null);
   };
 
@@ -236,14 +238,34 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
 
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 block">
-                Mandatory Correction Reason:
+                Controlled Correction Reason Category:
+              </label>
+              <select
+                value={editReasonCode}
+                onChange={(e) => setEditReasonCode(e.target.value)}
+                className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800 font-mono"
+              >
+                <option value="OCR_ERROR">OCR Character Misread (OCR_ERROR)</option>
+                <option value="HANDWRITING_MISREAD">Handwriting Scan Misread (HANDWRITING_MISREAD)</option>
+                <option value="TRANSLATION_ERROR">Telugu-English Translation Shift (TRANSLATION_ERROR)</option>
+                <option value="EXTRACTION_ERROR">NLP Entity Boundary Error (EXTRACTION_ERROR)</option>
+                <option value="MASTER_DATA_MISMATCH">Master Data Hierarchy Discrepancy (MASTER_DATA_MISMATCH)</option>
+                <option value="CROSS_DATABASE_MISMATCH">Cross-Database LRMS Conflict (CROSS_DATABASE_MISMATCH)</option>
+                <option value="MANUAL_VERIFICATION">VRO Physical Scan Verification (MANUAL_VERIFICATION)</option>
+                <option value="OTHER">Other Reason (OTHER)</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 block">
+                Detailed Correction Explanation:
               </label>
               <textarea
                 value={editReason}
                 onChange={(e) => setEditReason(e.target.value)}
                 rows={2}
                 className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800"
-                placeholder="Explain why AI value was modified..."
+                placeholder="Provide specific reason for modifying original AI extracted value..."
               />
             </div>
 
@@ -358,6 +380,155 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
 
           {/* Grouped Field Cards Container */}
           <div className="space-y-4 max-h-[640px] overflow-auto pr-1">
+            {/* Phase 4 Validation Summary Panel */}
+            {(() => {
+              const valRes = (typeof window !== 'undefined' && (window as any).__LAST_VALIDATION_RESULT__) || null;
+              if (!valRes) return null;
+              const summary = valRes.summary || {};
+              const findings = valRes.findings || [];
+
+              return (
+                <WorkspacePanel title="SERVER-SIDE MASTER DATA & BUSINESS RULE VALIDATION">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between p-3 bg-navy-900 text-white rounded-md">
+                      <div>
+                        <div className="text-[10px] font-mono text-amber-300 uppercase">VALIDATION STATUS:</div>
+                        <h4 className="text-sm font-bold tracking-wide">
+                          {summary.overallValidationStatus === 'PASS' && '✅ ALL RULES PASSED'}
+                          {summary.overallValidationStatus === 'REVIEW_REQUIRED' && '⚠️ REVIEW REQUIRED'}
+                          {summary.overallValidationStatus === 'FAILED' && '❌ VALIDATION FAILED'}
+                          {summary.overallValidationStatus === 'UNVERIFIED' && '🔍 UNVERIFIED ENTITIES'}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-mono">
+                        <span className="bg-green-700 px-2 py-0.5 rounded text-white font-bold">{summary.passedCount || 0} PASS</span>
+                        <span className="bg-amber-600 px-2 py-0.5 rounded text-white font-bold">{summary.warningCount || 0} WARN</span>
+                        <span className="bg-red-700 px-2 py-0.5 rounded text-white font-bold">{summary.errorCount || 0} ERR</span>
+                        <span className="bg-purple-700 px-2 py-0.5 rounded text-white font-bold">{summary.unverifiedCount || 0} UNVERIFIED</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200 text-[11px] font-mono space-y-1 text-slate-700">
+                      <div><span className="font-bold text-navy-900">Master Data Version:</span> {valRes.masterDataVersion || '2025.1-Kurnool'}</div>
+                      <div><span className="font-bold text-navy-900">RuleSet Version:</span> {valRes.ruleSetVersion || 'v4.0.0'}</div>
+                      <div><span className="font-bold text-navy-900">Validation Engine:</span> {valRes.validationEngineVersion || 'v4.0-Deterministic'}</div>
+                    </div>
+
+                    {findings.length > 0 && (
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                        {findings.map((f: any, fIdx: number) => (
+                          <div
+                            key={fIdx}
+                            className={`p-2 rounded text-xs border flex items-start justify-between gap-2 ${
+                              f.status === 'PASS'
+                                ? 'bg-green-50 border-green-200 text-green-900'
+                                : f.status === 'WARNING' || f.status === 'UNVERIFIED'
+                                ? 'bg-amber-50 border-amber-300 text-amber-900'
+                                : 'bg-red-50 border-red-300 text-red-900'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-mono font-bold text-[10px] uppercase">
+                                [{f.ruleId}] • {f.field}: <span className="underline">{f.status}</span>
+                              </div>
+                              <p className="text-[11px] mt-0.5">{f.message}</p>
+                              {f.reason && <p className="text-[10px] text-slate-600 mt-0.5">{f.reason}</p>}
+                            </div>
+                            <span className="font-mono text-[9px] font-bold uppercase bg-white/80 px-1.5 py-0.5 rounded border">
+                              {f.severity}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </WorkspacePanel>
+              );
+            })()}
+
+            {/* Phase 5 Cross-Database Verification Panel */}
+            {(() => {
+              const crossRes = (typeof window !== 'undefined' && (window as any).__LAST_CROSS_VERIFY_RESULT__) || null;
+              if (!crossRes) return null;
+              const summary = crossRes.summary || {};
+              const providers = crossRes.providers || [];
+              const duplicates = crossRes.duplicateResults || [];
+              const conflicts = crossRes.conflictResults || [];
+
+              return (
+                <WorkspacePanel title="CROSS-DATABASE VERIFICATION, DUPLICATE & CONFLICT FINDINGS">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between p-3 bg-navy-900 text-white rounded-md">
+                      <div>
+                        <div className="text-[10px] font-mono text-amber-300 uppercase">VERIFICATION STATUS:</div>
+                        <h4 className="text-sm font-bold tracking-wide">
+                          {summary.overallVerificationStatus === 'VERIFIED_MATCH' && '✅ VERIFIED MATCH ACROSS PROVIDERS'}
+                          {summary.overallVerificationStatus === 'CONFLICT_DETECTED' && '❌ CONFLICT DETECTED'}
+                          {summary.overallVerificationStatus === 'REVIEW_REQUIRED' && '⚠️ DUPLICATE CANDIDATE REQUIRES REVIEW'}
+                          {summary.overallVerificationStatus === 'UNAVAILABLE' && '🟡 EXTERNAL PROVIDERS UNAVAILABLE'}
+                          {summary.overallVerificationStatus === 'UNVERIFIED' && '🔍 UNVERIFIED RECORD'}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-mono">
+                        <span className="bg-slate-700 px-2 py-0.5 rounded text-white font-bold">{summary.providersQueriedCount || 0} QUERIED</span>
+                        <span className="bg-green-700 px-2 py-0.5 rounded text-white font-bold">{summary.exactFieldMatchesCount || 0} MATCHES</span>
+                        <span className="bg-red-700 px-2 py-0.5 rounded text-white font-bold">{summary.conflictsCount || 0} CONFLICTS</span>
+                        <span className="bg-amber-600 px-2 py-0.5 rounded text-white font-bold">{summary.duplicatesCount || 0} DUPLICATES</span>
+                      </div>
+                    </div>
+
+                    {/* Data Providers Status Badges */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-mono">
+                      {providers.map((p: any, pIdx: number) => (
+                        <div key={pIdx} className="bg-slate-50 p-2 rounded border border-slate-200 flex items-center justify-between">
+                          <span className="font-bold text-navy-900 truncate">{p.providerName}:</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            p.status === 'CONNECTED' || p.status === 'TEST_MODE'
+                              ? 'bg-green-100 text-green-900 border border-green-300'
+                              : 'bg-amber-100 text-amber-900 border border-amber-300'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Duplicates Alert */}
+                    {duplicates.length > 0 && (
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] font-mono font-bold text-amber-800 uppercase">POTENTIAL DUPLICATE CANDIDATES ({duplicates.length}):</div>
+                        {duplicates.map((d: any, dIdx: number) => (
+                          <div key={dIdx} className="p-2.5 bg-amber-50 border-l-4 border-amber-600 rounded text-xs text-amber-900 space-y-1">
+                            <div className="font-bold font-mono text-[11px] uppercase flex justify-between">
+                              <span>[{d.duplicateCategory}] • Candidate ID: {d.candidateId}</span>
+                              <span className="bg-amber-200 px-1.5 py-0.5 rounded text-[10px]">Confidence: {d.matchConfidence}</span>
+                            </div>
+                            <p className="text-[11px]">{d.reason}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Conflicts Alert */}
+                    {conflicts.length > 0 && (
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] font-mono font-bold text-red-800 uppercase">CROSS-RECORD CONFLICTS ({conflicts.length}):</div>
+                        {conflicts.map((c: any, cIdx: number) => (
+                          <div key={cIdx} className="p-2.5 bg-red-50 border-l-4 border-red-600 rounded text-xs text-red-900 space-y-1">
+                            <div className="font-bold font-mono text-[11px] uppercase">
+                              [{c.ruleId}] • Field: {c.field}
+                            </div>
+                            <p className="text-[11px]">{c.reason}</p>
+                            <p className="text-[10px] text-slate-700 font-mono">Recommended: {c.recommendedAction}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </WorkspacePanel>
+              );
+            })()}
+
             {/* Group 1: Owner Details */}
             <WorkspacePanel title="1. OWNER & GUARDIAN DETAILS">
               <div className="space-y-2.5">

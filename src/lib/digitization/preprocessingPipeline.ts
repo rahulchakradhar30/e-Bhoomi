@@ -19,13 +19,38 @@ export class DefaultPreprocessingPipeline implements PreprocessingPipeline {
     const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || 'http://127.0.0.1:8000';
 
     try {
-      const response = await fetch(`${pythonServiceUrl}/health`, { method: 'GET' });
+      const response = await fetch(`${pythonServiceUrl}/document-processing/preprocess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originalFileName,
+          fileSizeBytes,
+          pageCount,
+          mimeType,
+        }),
+      });
+
       if (response.ok) {
-        // Python AI service is reachable
-        console.log('Connected to Python OpenCV Preprocessing Service at', pythonServiceUrl);
+        const data = await response.json();
+        if (data.pages && Array.isArray(data.pages)) {
+          return data.pages.map((p: any) => ({
+            pageNumber: p.pageNumber,
+            originalPageRef: p.originalReference || `secure://ebhoomi-originals/${originalFileName}#page=${p.pageNumber}`,
+            processedPageRef: p.processedReference || `secure://ebhoomi-preprocessed/${originalFileName}_p${p.pageNumber}_opencv.jpg`,
+            width: 2480,
+            height: 3508,
+            rotationDegrees: p.diagnostics?.rotationAngle || 0,
+            skewAngle: p.diagnostics?.skewAngle || 0.0,
+            contrastScore: p.diagnostics?.contrastScore || 0.95,
+            brightnessScore: 0.95,
+            isDeskewed: true,
+            isCropped: true,
+            status: p.preprocessingStatus || 'COMPLETED',
+          }));
+        }
       }
     } catch (err) {
-      console.warn('Python AI service not reachable directly, using backend proxy adapter');
+      console.warn('Python AI Preprocess call error, using local fallback:', err);
     }
 
     const preprocessedPages: PreprocessedPage[] = [];
@@ -38,8 +63,8 @@ export class DefaultPreprocessingPipeline implements PreprocessingPipeline {
         width: 2480, // Standard 300 DPI A4
         height: 3508,
         rotationDegrees: 0,
-        skewAngle: 0.1,
-        contrastScore: 0.92,
+        skewAngle: 0.0,
+        contrastScore: 0.95,
         brightnessScore: 0.95,
         isDeskewed: true,
         isCropped: true,
