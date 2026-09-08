@@ -53,11 +53,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let fileBuffer: ArrayBuffer | undefined = undefined;
+    let mimeType = sourceFile?.fileType || 'application/pdf';
+    let fileName = sourceFile?.originalFileName || 'document.pdf';
+
+    if (sourceFile?.storageReference) {
+      const storedDoc = await cloudinaryStorage.retrieveDocument(sourceFile.storageReference);
+      if (storedDoc) {
+        fileBuffer = storedDoc.buffer;
+        mimeType = storedDoc.mimeType || mimeType;
+        fileName = storedDoc.fileName || fileName;
+      }
+    }
+
     const llamaResult = await llamaProvider.extractTextFromPages(
       pagesToProcess,
       {
         documentType: documentType || 'ADANGAL',
-        fileName: sourceFile?.originalFileName,
+        fileName,
+        fileBuffer,
+        mimeType,
       }
     );
 

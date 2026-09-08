@@ -131,27 +131,15 @@ export class LlamaDocumentTextProvider {
   ): Promise<LlamaExtractionResult> {
     const model = this.getModel();
     const extractedPages: LlamaExtractedPage[] = [];
-    const fullTextParts: string[] = [];
+    let fullText = '';
     let overallLanguage = 'te';
 
     try {
-      for (const page of pages) {
-        const pageNum = page.pageNumber || 1;
-        const b64 = page.base64Preview || page.imageBase64 || '';
-        
-        let fileBlob: Blob;
-        let fileName = `${metadata?.fileName || 'document'}_page_${pageNum}.jpg`;
-
-        if (b64) {
-          const rawBase64 = b64.replace(/^data:image\/\w+;base64,/, '');
-          const binaryStr = Buffer.from(rawBase64, 'base64');
-          fileBlob = new Blob([binaryStr], { type: 'image/jpeg' });
-        } else if (metadata?.fileBuffer) {
-          fileBlob = new Blob([metadata.fileBuffer], { type: metadata.mimeType || 'application/pdf' });
-          fileName = metadata.fileName || 'document.pdf';
-        } else {
-          continue;
-        }
+      // Branch A: Direct Document Upload if whole fileBuffer is available (PDF/TIFF/Image)
+      if (metadata?.fileBuffer && metadata.fileBuffer.byteLength > 0) {
+        const fileName = metadata.fileName || 'document.pdf';
+        const mimeType = metadata.mimeType || 'application/pdf';
+        const fileBlob = new Blob([metadata.fileBuffer], { type: mimeType });
 
         const formData = new FormData();
         formData.append('file', fileBlob, fileName);
@@ -178,21 +166,17 @@ export class LlamaDocumentTextProvider {
             ? 'LLAMA_MODEL_UNAVAILABLE'
             : 'LLAMA_REQUEST_FAILED';
 
-          console.error(`[LLAMA] request error (${uploadRes.status}): ${errText.substring(0, 150)}`);
           return {
             success: false,
             status,
             provider: this.providerId,
             model,
             language: overallLanguage,
-            pageCount: extractedPages.length,
-            pages: extractedPages,
-            fullText: fullTextParts.join('\n\n'),
+            pageCount: 0,
+            pages: [],
+            fullText: '',
             error: `LlamaCloud API Error ${uploadRes.status}: ${errText.substring(0, 150)}`,
-            processingMetadata: {
-              failedAtPage: pageNum,
-              processingTimeMs: Date.now() - startTime,
-            },
+            processingMetadata: { processingTimeMs: Date.now() - startTime },
           };
         }
 
@@ -206,21 +190,19 @@ export class LlamaDocumentTextProvider {
             provider: this.providerId,
             model,
             language: overallLanguage,
-            pageCount: extractedPages.length,
-            pages: extractedPages,
-            fullText: fullTextParts.join('\n\n'),
+            pageCount: 0,
+            pages: [],
+            fullText: '',
             error: 'LlamaCloud did not return a valid parsing job ID.',
-            processingMetadata: {
-              processingTimeMs: Date.now() - startTime,
-            },
+            processingMetadata: { processingTimeMs: Date.now() - startTime },
           };
         }
 
-        // Poll job until complete (with 45s timeout)
-        let pageText = '';
+        // Poll job status until SUCCESS or ERROR (max 60s)
         const pollStart = Date.now();
-        while (Date.now() - pollStart < 45000) {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
+        let jobSucceeded = false;
+        while (Date.now() - pollStart < 60000) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           const jobStatusRes = await fetch(`${baseUrl}/parsing/job/${jobId}`, {
             headers: {
               'Authorization': `Bearer ${apiKey}`,
@@ -232,16 +214,7 @@ export class LlamaDocumentTextProvider {
 
           const statusJson = await jobStatusRes.json();
           if (statusJson.status === 'SUCCESS') {
-            const resultRes = await fetch(`${baseUrl}/parsing/job/${jobId}/result/markdown`, {
-              headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'User-Agent': 'e-Bhoomi-LlamaCloudClient/1.0',
-              },
-            });
-            if (resultRes.ok) {
-              const resJson = await resultRes.json();
-              pageText = resJson.markdown || resJson.text || '';
-            }
+            jobSucceeded = true;
             break;
           } else if (statusJson.status === 'ERROR') {
             console.error(`[LLAMA] Parsing job failed: ${statusJson.error_message || 'Unknown error'}`);
@@ -249,22 +222,129 @@ export class LlamaDocumentTextProvider {
           }
         }
 
-        const isEnglish = /[a-zA-Z]/.test(pageText) && !/[\u0C00-\u0C7F]/.test(pageText);
-        const pageLang = isEnglish ? 'en' : 'te';
-        if (pageLang === 'en' && overallLanguage === 'te' && extractedPages.length === 0) {
-          overallLanguage = 'en';
-        }
+        if (jobSucceeded) {
+          // Fetch markdown and structured json
+          try {
+            const jsonRes = await fetch(`${baseUrl}/parsing/job/${jobId}/result/json`, {
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'User-Agent': 'e-Bhoomi-LlamaCloudClient/1.0',
+              },
+            });
+            if (jsonRes.ok) {
+              const resJson = await jsonRes.json();
+              if (Array.isArray(resJson.pages) && resJson.pages.length > 0) {
+                resJson.pages.forEach((p: any, idx: number) => {
+                  const pText = p.md || p.text || '';
+                  const isEng = /[a-zA-Z]/.test(pText) && !/[\u0C00-\u0C7F]/.test(pText);
+                  extractedPages.push({
+                    pageNumber: p.page || idx + 1,
+                    text: pText,
+                    language: isEng ? 'en' : 'te',
+                    source: 'llama_cloud',
+                  });
+                });
+              }
+            }
+          } catch (e) {
+            console.warn('[LLAMA] Could not fetch result json, falling back to markdown', e);
+          }
 
-        extractedPages.push({
-          pageNumber: pageNum,
-          text: pageText,
-          language: pageLang,
-          source: 'llama_cloud',
-        });
-        fullTextParts.push(pageText);
+          if (extractedPages.length === 0) {
+            const mdRes = await fetch(`${baseUrl}/parsing/job/${jobId}/result/markdown`, {
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'User-Agent': 'e-Bhoomi-LlamaCloudClient/1.0',
+              },
+            });
+            if (mdRes.ok) {
+              const mdJson = await mdRes.json();
+              fullText = mdJson.markdown || mdJson.text || '';
+              const isEng = /[a-zA-Z]/.test(fullText) && !/[\u0C00-\u0C7F]/.test(fullText);
+              extractedPages.push({
+                pageNumber: 1,
+                text: fullText,
+                language: isEng ? 'en' : 'te',
+                source: 'llama_cloud',
+              });
+            }
+          } else {
+            fullText = extractedPages.map((p) => p.text).join('\n\n');
+          }
+        }
+      } else {
+        // Branch B: Process individual page images
+        for (const page of pages) {
+          const pageNum = page.pageNumber || 1;
+          const b64 = page.base64Preview || page.imageBase64 || '';
+          if (!b64) continue;
+
+          const rawBase64 = b64.replace(/^data:image\/\w+;base64,/, '');
+          const binaryStr = Buffer.from(rawBase64, 'base64');
+          const fileBlob = new Blob([binaryStr], { type: 'image/jpeg' });
+          const fileName = `${metadata?.fileName || 'document'}_page_${pageNum}.jpg`;
+
+          const formData = new FormData();
+          formData.append('file', fileBlob, fileName);
+          formData.append('tier', 'agentic');
+          formData.append('version', 'latest');
+
+          const uploadUrl = `${baseUrl}/parsing/upload`;
+          const uploadRes = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'User-Agent': 'e-Bhoomi-LlamaCloudClient/1.0',
+            },
+            body: formData,
+          });
+
+          if (!uploadRes.ok) continue;
+          const jobData = await uploadRes.json();
+          const jobId = jobData.id || jobData.job_id;
+          if (!jobId) continue;
+
+          let pageText = '';
+          const pollStart = Date.now();
+          while (Date.now() - pollStart < 45000) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            const jobStatusRes = await fetch(`${baseUrl}/parsing/job/${jobId}`, {
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'User-Agent': 'e-Bhoomi-LlamaCloudClient/1.0',
+              },
+            });
+
+            if (!jobStatusRes.ok) continue;
+            const statusJson = await jobStatusRes.json();
+            if (statusJson.status === 'SUCCESS') {
+              const resultRes = await fetch(`${baseUrl}/parsing/job/${jobId}/result/markdown`, {
+                headers: {
+                  'Authorization': `Bearer ${apiKey}`,
+                  'User-Agent': 'e-Bhoomi-LlamaCloudClient/1.0',
+                },
+              });
+              if (resultRes.ok) {
+                const resJson = await resultRes.json();
+                pageText = resJson.markdown || resJson.text || '';
+              }
+              break;
+            } else if (statusJson.status === 'ERROR') {
+              break;
+            }
+          }
+
+          const isEnglish = /[a-zA-Z]/.test(pageText) && !/[\u0C00-\u0C7F]/.test(pageText);
+          extractedPages.push({
+            pageNumber: pageNum,
+            text: pageText,
+            language: isEnglish ? 'en' : 'te',
+            source: 'llama_cloud',
+          });
+        }
+        fullText = extractedPages.map((p) => p.text).join('\n\n');
       }
 
-      const fullText = fullTextParts.join('\n\n');
       console.log(`[LLAMA] request completed`);
       console.log(`[LLAMA] text characters returned: ${fullText.length}`);
 
@@ -309,7 +389,7 @@ export class LlamaDocumentTextProvider {
         language: overallLanguage,
         pageCount: extractedPages.length,
         pages: extractedPages,
-        fullText: fullTextParts.join('\n\n'),
+        fullText: fullText || extractedPages.map((p) => p.text).join('\n\n'),
         error: `LlamaCloud Request Exception: ${err.message}`,
         processingMetadata: {
           processingTimeMs: Date.now() - startTime,
