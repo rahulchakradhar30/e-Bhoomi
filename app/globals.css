@@ -2590,4 +2590,668 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DIGITIZATION PROCESSING PIPELINE & STEPS - HIGH-END DESIGN SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Processing Step Header ────────────────────────────────────────────── */
+.digi-proc-header {
+  background: linear-gradient(135deg, #0b2545 0%, #001e3d 100%);
+  color: #ffffff;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 4px 14px rgba(11, 37, 69, 0.15);
+}
+
+.digi-proc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.digi-proc-icon-box {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.digi-proc-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.digi-proc-job-ref {
+  font-size: 0.7rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.digi-proc-main-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.digi-proc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.digi-proc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.digi-proc-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-color: #fbbf24;
+}
+
+.digi-proc-btn.gold {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.digi-proc-btn.gold:hover {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+/* ── Processing Stages Card ────────────────────────────────────────────── */
+.digi-proc-stages-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.digi-proc-stages-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.digi-proc-stages-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.digi-proc-stage-badge {
+  font-size: 0.75rem;
+  font-family: monospace;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.digi-proc-stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.digi-proc-stage-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.digi-proc-stage-row.is-done {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.digi-proc-stage-row.is-active {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+}
+
+.digi-proc-stage-row.is-pending {
+  opacity: 0.6;
+}
+
+.digi-proc-stage-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.digi-proc-stage-num.pending {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.digi-proc-stage-text {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.digi-proc-stage-row.is-done .digi-proc-stage-text {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.digi-proc-stage-row.is-active .digi-proc-stage-text {
+  color: #0b2545;
+  font-weight: 800;
+}
+
+.digi-proc-stage-row.is-pending .digi-proc-stage-text {
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ── Result Tabs & Content ─────────────────────────────────────────────── */
+.digi-proc-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin-top: 8px;
+}
+
+.digi-proc-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: -6px;
+}
+
+.digi-proc-tab-btn:hover {
+  color: #0b2545;
+}
+
+.digi-proc-tab-btn.active {
+  color: #0b2545;
+  border-bottom-color: #d97706;
+}
+
+.digi-proc-content-box {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.digi-proc-meta-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.72rem;
+  font-family: monospace;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.digi-proc-terminal-text {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 14px;
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #1e293b;
+  white-space: pre-wrap;
+}
+
+.digi-proc-data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.digi-proc-data-cell {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.digi-proc-cell-label {
+  font-size: 0.68rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #b45309;
+  text-transform: uppercase;
+}
+
+.digi-proc-cell-val {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0b2545;
+  font-family: monospace;
+}
+
+/* ── Error Box ─────────────────────────────────────────────────────────── */
+.digi-proc-error-box {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.digi-proc-error-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #991b1b;
+  text-transform: uppercase;
+}
+
+.digi-proc-error-msg {
+  font-size: 0.8rem;
+  color: #7f1d1d;
+  font-family: monospace;
+  line-height: 1.5;
+  background: #fee2e2;
+  padding: 10px 12px;
+  border-radius: 4px;
+}
+
+.digi-proc-error-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.digi-btn-retry {
+  padding: 8px 18px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #dc2626;
+  border: 1px solid #b91c1c;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.digi-btn-retry:hover {
+  background: #b91c1c;
+}
+
+.digi-btn-reupload {
+  padding: 8px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.digi-btn-reupload:hover {
+  background: #f1f5f9;
+}
+
+/* ── Document Type Selector Cards ──────────────────────────────────────── */
+.digi-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.digi-doc-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.digi-doc-card:hover {
+  border-color: #0b2545;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(11, 37, 69, 0.08);
+}
+
+.digi-doc-card.is-selected {
+  background: #f8fafc;
+  border: 2px solid #0b2545;
+  box-shadow: 0 4px 16px rgba(11, 37, 69, 0.12);
+}
+
+.digi-doc-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.digi-doc-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  color: #0b2545;
+  transition: all 0.15s ease;
+}
+
+.digi-doc-card.is-selected .digi-doc-icon-badge {
+  background: #0b2545;
+  color: #fbbf24;
+}
+
+.digi-doc-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.digi-doc-name-en {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0b2545;
+}
+
+.digi-doc-name-te {
+  font-size: 0.78rem;
+  font-family: 'Noto Sans Telugu', serif;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.digi-doc-desc {
+  font-size: 0.75rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.digi-doc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* ── Upload Drag & Drop Zone ───────────────────────────────────────────── */
+.digi-upload-banner {
+  background: #0b2545;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.digi-upload-zone {
+  border: 2px dashed #94a3b8;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.digi-upload-zone:hover {
+  border-color: #0b2545;
+  background: #f1f5f9;
+}
+
+.digi-upload-zone.has-file {
+  border-color: #0b2545;
+  border-style: solid;
+  background: #ffffff;
+}
+
+.digi-upload-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0b2545;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(11, 37, 69, 0.2);
+}
+
+.digi-upload-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+}
+
+.digi-upload-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.digi-upload-pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.digi-upload-pill {
+  font-size: 0.68rem;
+  font-family: monospace;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ── Declarations & Legal Boxes ────────────────────────────────────────── */
+.digi-decl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.digi-decl-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #0b2545;
+  border-radius: 6px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.digi-decl-card.gold-accent {
+  background: #fefce8;
+  border-left-color: #d97706;
+  border-color: #fde68a;
+}
+
+.digi-decl-card.blue-accent {
+  background: #eff6ff;
+  border-left-color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.digi-decl-text-en {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+.digi-decl-text-te {
+  font-size: 0.78rem;
+  font-family: 'Noto Sans Telugu', serif;
+  color: #475569;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* ── Field Photos Gallery ──────────────────────────────────────────────── */
+.digi-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.digi-photo-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.digi-photo-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.digi-photo-num-badge {
+  font-size: 0.7rem;
+  font-family: monospace;
+  font-weight: 800;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.digi-photo-thumb {
+  height: 90px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.digi-photo-filename {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0b2545;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.digi-photo-time {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
 

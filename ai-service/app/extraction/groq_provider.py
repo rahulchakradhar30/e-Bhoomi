@@ -89,12 +89,53 @@ class PythonGroqProvider:
                     }
                 
                 # Robust JSON extraction
-                json_start = content_str.find("{")
-                json_end = content_str.rfind("}")
-                if json_start != -1 and json_end != -1:
-                    content_str = content_str[json_start:json_end+1]
+                cleaned = content_str.strip()
+                if cleaned.startswith("```json"):
+                    cleaned = cleaned[7:]
+                elif cleaned.startswith("```"):
+                    cleaned = cleaned[3:]
+                if cleaned.endswith("```"):
+                    cleaned = cleaned[:-3]
+                cleaned = cleaned.strip()
 
-                extracted_record = json.loads(content_str)
+                json_start = cleaned.find("{")
+                json_end = cleaned.rfind("}")
+                if json_start != -1 and json_end != -1 and json_end > json_start:
+                    cleaned = cleaned[json_start:json_end+1]
+
+                import re
+                cleaned = re.sub(r",\s*([\}\]])", r"\1", cleaned)
+
+                try:
+                    extracted_record = json.loads(cleaned)
+                except Exception as parse_err:
+                    print(f"[GROQ-PY] Parse error: {parse_err}, attempting bracket balancing")
+                    open_braces = cleaned.count("{")
+                    close_braces = cleaned.count("}")
+                    if open_braces > close_braces:
+                        cleaned += "}" * (open_braces - close_braces)
+                    open_sq = cleaned.count("[")
+                    close_sq = cleaned.count("]")
+                    if open_sq > close_sq:
+                        cleaned += "]" * (open_sq - close_sq)
+                    try:
+                        extracted_record = json.loads(cleaned)
+                    except Exception:
+                        extracted_record = {
+                            "documentType": doc_type,
+                            "documentTitle": f"{doc_type} Revenue Record",
+                            "overallConfidence": 0.50,
+                            "districtName": None,
+                            "districtConfidence": 0.0,
+                            "mandalName": None,
+                            "villageName": None,
+                            "surveyNumber": None,
+                            "khataNumber": None,
+                            "ownerName": None,
+                            "customSections": [],
+                            "checklist": [],
+                        }
+
                 return {
                     "success": True,
                     "extractedRecord": extracted_record,

@@ -258,14 +258,77 @@ JSON SCHEMA TO RETURN:
         };
       }
 
-      contentStr = contentStr.trim();
-      const firstBrace = contentStr.indexOf('{');
-      const lastBrace = contentStr.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        contentStr = contentStr.slice(firstBrace, lastBrace + 1);
-      }
+      // Robust JSON extraction and repair
+      const cleanJsonString = (raw: string): string => {
+        let cleaned = raw.trim();
+        // Remove markdown backticks if wrapped
+        if (cleaned.startsWith('```json')) {
+          cleaned = cleaned.slice(7);
+        } else if (cleaned.startsWith('```')) {
+          cleaned = cleaned.slice(3);
+        }
+        if (cleaned.endsWith('```')) {
+          cleaned = cleaned.slice(0, -3);
+        }
+        cleaned = cleaned.trim();
 
-      const extractedRecord = JSON.parse(contentStr);
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+        }
+
+        // Remove trailing commas before closing braces/brackets
+        cleaned = cleaned.replace(/,\s*([\}\]])/g, '$1');
+
+        return cleaned;
+      };
+
+      const sanitizedStr = cleanJsonString(contentStr);
+      let extractedRecord: any = null;
+
+      try {
+        extractedRecord = JSON.parse(sanitizedStr);
+      } catch (firstErr) {
+        // Attempt aggressive repair if initial parse fails (e.g. unescaped newlines in strings or truncated JSON)
+        try {
+          // Replace literal newlines/tabs inside quotes
+          let repaired = sanitizedStr
+            .replace(/(?<=:\s*"[^"]*)\n([^"]*")/g, '\\n$1')
+            .replace(/,\s*([\}\]])/g, '$1');
+          
+          // If unclosed braces/brackets exist, try balancing
+          const openBraces = (repaired.match(/\{/g) || []).length;
+          const closeBraces = (repaired.match(/\}/g) || []).length;
+          if (openBraces > closeBraces) {
+            repaired += '}'.repeat(openBraces - closeBraces);
+          }
+          const openBrackets = (repaired.match(/\[/g) || []).length;
+          const closeBrackets = (repaired.match(/\]/g) || []).length;
+          if (openBrackets > closeBrackets) {
+            repaired += ']'.repeat(openBrackets - closeBrackets);
+          }
+
+          extractedRecord = JSON.parse(repaired);
+        } catch (secondErr: any) {
+          console.error('[GROQ] Failed to parse JSON even after repair attempt:', secondErr.message);
+          // Fallback minimal record to prevent complete pipeline freeze
+          extractedRecord = {
+            documentType: docCategory,
+            documentTitle: `${docCategory} Revenue Record`,
+            overallConfidence: 0.50,
+            districtName: null,
+            districtConfidence: 0.0,
+            mandalName: null,
+            villageName: null,
+            surveyNumber: null,
+            khataNumber: null,
+            ownerName: null,
+            customSections: [],
+            checklist: [],
+          };
+        }
+      }
 
       // Compute true overall confidence if not computed by model
       if (extractedRecord.overallConfidence === undefined || extractedRecord.overallConfidence === null) {

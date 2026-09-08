@@ -108,19 +108,21 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   };
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', maxWidth: '900px', margin: '0 auto' }}>
       {/* Category Banner */}
-      <div className="bg-navy-900 text-white p-3.5 rounded-md shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FileText className="w-5 h-5 text-amber-300" />
+      <div className="digi-upload-banner">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <FileText className="w-6 h-6 text-amber-300" />
           <div>
-            <span className="text-[10px] font-mono uppercase text-amber-400">Target Document Category:</span>
-            <h4 className="text-sm font-bold">
-              {docConfig.titleEn} • <span className="font-serif text-amber-300">{docConfig.titleTe}</span>
+            <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', textTransform: 'uppercase', color: '#fbbf24', display: 'block' }}>
+              Target Document Category:
+            </span>
+            <h4 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>
+              {docConfig.titleEn} • <span style={{ fontFamily: "'Noto Sans Telugu', serif", color: '#fbbf24' }}>{docConfig.titleTe}</span>
             </h4>
           </div>
         </div>
-        <span className="bg-navy-800 text-slate-200 text-xs px-2.5 py-1 rounded font-mono border border-navy-700">
+        <span style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#e2e8f0', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', fontFamily: 'monospace', border: '1px solid rgba(255,255,255,0.2)' }}>
           {docConfig.code}
         </span>
       </div>
@@ -130,48 +132,44 @@ export const UploadStep: React.FC<UploadStepProps> = ({
         guidance="Preferred format: Multi-page PDF for complete register preservation. High-resolution JPG/JPEG/PNG scans (min 300 DPI) are also supported."
       >
         {!uploadRecord ? (
-          <div className="space-y-4">
-            <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
-                selectedFile ? 'border-navy-800 bg-navy-50/40' : 'border-slate-300 bg-slate-50 hover:bg-slate-100/70'
-              }`}
-            >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className={`digi-upload-zone ${selectedFile ? 'has-file' : ''}`}>
               <input
                 type="file"
                 id="doc-file-input"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange}
-                className="hidden"
+                style={{ display: 'none' }}
               />
 
               {!selectedFile ? (
-                <label htmlFor="doc-file-input" className="cursor-pointer block space-y-2.5">
-                  <div className="w-12 h-12 bg-navy-900 text-amber-300 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                    <UploadCloud className="w-6 h-6" />
+                <label htmlFor="doc-file-input" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                  <div className="digi-upload-icon-circle">
+                    <UploadCloud className="w-7 h-7" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-navy-900 text-sm uppercase tracking-wide">
+                    <h4 className="digi-upload-title">
                       Click to Select or Drag & Drop Physical Scan File
                     </h4>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="digi-upload-sub">
                       PDF Preferred (Preserves multi-page revenue record order) • Max Size: 25MB
                     </p>
-                    <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-slate-600 font-mono">
-                      <span className="bg-slate-200 px-2 py-0.5 rounded">PDF</span>
-                      <span className="bg-slate-200 px-2 py-0.5 rounded">JPG</span>
-                      <span className="bg-slate-200 px-2 py-0.5 rounded">JPEG</span>
-                      <span className="bg-slate-200 px-2 py-0.5 rounded">PNG</span>
+                    <div className="digi-upload-pills" style={{ justifyContent: 'center' }}>
+                      <span className="digi-upload-pill">PDF</span>
+                      <span className="digi-upload-pill">JPG</span>
+                      <span className="digi-upload-pill">JPEG</span>
+                      <span className="digi-upload-pill">PNG</span>
                     </div>
                   </div>
                 </label>
               ) : (
-                <div className="space-y-3 max-w-md mx-auto">
-                  <div className="flex items-center justify-between p-3 bg-white border border-navy-800/40 rounded-md">
-                    <div className="flex items-center gap-3 truncate">
-                      <FileText className="w-6 h-6 text-navy-800 flex-shrink-0" />
-                      <div className="text-left truncate">
-                        <p className="font-bold text-navy-900 text-xs truncate">{selectedFile.name}</p>
-                        <p className="text-[10px] text-slate-500 font-mono">
+                <div style={{ width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                      <FileText className="w-6 h-6 text-navy-900" style={{ flexShrink: 0 }} />
+                      <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                        <p style={{ fontWeight: 800, fontSize: '0.8rem', color: '#0b2545', margin: 0, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{selectedFile.name}</p>
+                        <p style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace', margin: 0 }}>
                           {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • {selectedFile.type || 'Document'}
                         </p>
                       </div>
@@ -179,7 +177,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                     <button
                       type="button"
                       onClick={handleRemove}
-                      className="p-1 hover:bg-slate-100 text-red-600 rounded ml-2"
+                      style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px' }}
                       title="Remove file"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -187,14 +185,13 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                   </div>
 
                   {uploading && (
-                    <div className="space-y-1">
-                      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '9999px', height: '8px', overflow: 'hidden' }}>
                         <div
-                          className="bg-navy-900 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
+                          style={{ background: '#0b2545', height: '8px', borderRadius: '9999px', width: `${uploadProgress}%`, transition: 'width 0.3s ease' }}
                         />
                       </div>
-                      <p className="text-[10px] font-mono text-navy-900 font-bold text-right">
+                      <p style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#0b2545', fontWeight: 800, textAlign: 'right', margin: 0 }}>
                         Encrypting & Uploading: {uploadProgress}%
                       </p>
                     </div>
@@ -204,7 +201,8 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                     <button
                       type="button"
                       onClick={handleUploadSubmit}
-                      className="w-full py-2 bg-navy-900 hover:bg-navy-800 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-md shadow-md flex items-center justify-center gap-2"
+                      className="digi-btn-proceed"
+                      style={{ justifyContent: 'center', width: '100%' }}
                     >
                       <FileUp className="w-4 h-4" />
                       <span>Upload & Process Document</span>
@@ -215,53 +213,56 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-red-50 border-l-4 border-red-600 rounded text-xs text-red-800 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{errorMsg}</span>
+              <div className="digi-proc-error-box">
+                <div className="digi-proc-error-title">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Upload Error</span>
+                </div>
+                <p className="digi-proc-error-msg">{errorMsg}</p>
               </div>
             )}
           </div>
         ) : (
           /* Upload Success Box */
-          <div className="bg-amber-50/70 border border-amber-300 p-4 rounded-md space-y-3">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6 text-green-700 flex-shrink-0" />
+          <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <CheckCircle2 className="w-6 h-6 text-green-700" style={{ flexShrink: 0 }} />
               <div>
-                <h4 className="font-bold text-navy-900 text-xs uppercase">
+                <h4 style={{ fontSize: '0.82rem', fontWeight: 800, color: '#14532d', textTransform: 'uppercase', margin: 0 }}>
                   DOCUMENT SECURELY ATTACHED & VALIDATED
                 </h4>
-                <p className="text-xs text-slate-600">
+                <p style={{ fontSize: '0.75rem', color: '#166534', margin: '2px 0 0 0' }}>
                   Original paper record scan stored with cryptographic metadata reference.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded border border-slate-200 text-xs font-mono">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #bbf7d0', fontSize: '0.75rem', fontFamily: 'monospace' }}>
               <div>
-                <span className="text-slate-400 block text-[10px]">FILE NAME:</span>
-                <span className="font-bold text-navy-900 truncate block">{uploadRecord.originalFileName}</span>
+                <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>FILE NAME:</span>
+                <span style={{ fontWeight: 800, color: '#0b2545', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{uploadRecord.originalFileName}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">PAGE COUNT:</span>
-                <span className="font-bold text-navy-900">{uploadRecord.pageCount} Page(s)</span>
+                <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>PAGE COUNT:</span>
+                <span style={{ fontWeight: 800, color: '#0b2545' }}>{uploadRecord.pageCount} Page(s)</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">FILE SIZE:</span>
-                <span className="font-bold text-navy-900">
+                <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>FILE SIZE:</span>
+                <span style={{ fontWeight: 800, color: '#0b2545' }}>
                   {(uploadRecord.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
             </div>
 
-            <div className="pt-1 flex justify-between items-center text-xs">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', paddingTop: '4px' }}>
               <button
                 type="button"
                 onClick={handleRemove}
-                className="text-red-700 font-semibold underline hover:text-red-900"
+                style={{ color: '#dc2626', fontWeight: 700, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 Re-upload Different Document
               </button>
-              <span className="font-mono text-slate-500 font-semibold">Ready for Processing</span>
+              <span style={{ fontFamily: 'monospace', color: '#166534', fontWeight: 800 }}>Ready for Processing</span>
             </div>
           </div>
         )}

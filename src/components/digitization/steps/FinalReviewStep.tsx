@@ -60,22 +60,22 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
   const verifiedChecklistCount = docConfig.checklistFields.filter((f) => checklist[f.id]).length;
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', maxWidth: '1050px', margin: '0 auto' }}>
       <WorkspacePanel
         title="FINAL SUMMARY & LEGAL CONFIRMATION"
         guidance="Review complete digitized record summary before executing permanent legal digitization lock."
       >
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Top Summary Banner */}
-          <div className="bg-navy-900 text-white p-4 rounded-md shadow-sm flex flex-wrap items-center justify-between gap-3">
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-mono uppercase text-amber-400">
+          <div className="digi-proc-header">
+            <div className="digi-proc-title-group">
+              <span className="digi-proc-job-ref">
                 FINAL DIGITIZATION RECORD SUMMARY
               </span>
-              <h3 className="text-lg font-bold">
+              <h3 className="digi-proc-main-title" style={{ fontSize: '1.1rem' }}>
                 {structuredData.ownerName?.value || 'Pattadar'} • Survey #{structuredData.surveyNumber?.value || '142'}
               </h3>
-              <p className="text-xs text-slate-300">
+              <p style={{ fontSize: '0.75rem', color: '#cbd5e1', margin: 0 }}>
                 {docConfig.titleEn} ({docConfig.titleTe}) • Village: {structuredData.villageName?.value || 'Kallur'}, Mandal: {structuredData.mandalName?.value || 'Kurnool Rural'}
               </p>
             </div>
@@ -83,7 +83,7 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
             <button
               type="button"
               onClick={() => setShowDocModal(!showDocModal)}
-              className="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-amber-300 text-xs font-bold rounded border border-navy-600 flex items-center gap-1.5"
+              className="digi-proc-btn gold"
             >
               <FileText className="w-4 h-4" />
               <span>{showDocModal ? 'Hide Original Scan' : 'View Original Scan'}</span>
@@ -91,100 +91,106 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
           </div>
 
           {showDocModal && (
-            <div className="border border-navy-800 rounded-md p-2 bg-slate-100">
+            <div style={{ border: '1px solid #0b2545', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
               <DocumentViewer originalFileName={uploadRecord.originalFileName} pageCount={uploadRecord.pageCount} />
             </div>
           )}
 
           {/* Structured Summary Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
             {/* Box 1: Land Details */}
-            <div className="bg-white p-3.5 rounded-md border border-slate-300 space-y-2.5">
-              <h4 className="font-bold text-navy-900 text-xs uppercase border-b pb-1 flex items-center gap-1.5">
+            <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <CheckCircle2 className="w-4 h-4 text-green-700" />
-                <span>Primary Land Ownership & Extent</span>
-              </h4>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0b2545', textTransform: 'uppercase', margin: 0 }}>
+                  Primary Land Ownership & Extent
+                </h4>
+              </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">PATTADAR NAME:</span>
-                  <span className="font-bold text-navy-900">{structuredData.ownerName?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>PATTADAR NAME:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.ownerName?.value}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">FATHER / HUSBAND:</span>
-                  <span className="font-bold text-navy-900">{structuredData.fatherOrHusbandName?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>FATHER / HUSBAND:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.fatherOrHusbandName?.value}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">SURVEY / SUB-DIV NO:</span>
-                  <span className="font-bold text-navy-900">
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>SURVEY / SUB-DIV NO:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>
                     {structuredData.surveyNumber?.value}/{structuredData.subDivisionNumber?.value}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">KHATA NO:</span>
-                  <span className="font-bold text-navy-900">{structuredData.khataNumber?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>KHATA NO:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.khataNumber?.value}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">EXTENT:</span>
-                  <span className="font-bold text-navy-900">{structuredData.extentAcres?.value} Acres</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>EXTENT:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.extentAcres?.value} Acres</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">CLASSIFICATION:</span>
-                  <span className="font-bold text-navy-900">{structuredData.landClassification?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>CLASSIFICATION:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.landClassification?.value}</span>
                 </div>
               </div>
             </div>
 
             {/* Box 2: Boundaries & Checklist */}
-            <div className="bg-white p-3.5 rounded-md border border-slate-300 space-y-2.5">
-              <h4 className="font-bold text-navy-900 text-xs uppercase border-b pb-1 flex items-center gap-1.5">
+            <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <ShieldCheck className="w-4 h-4 text-navy-900" />
-                <span>Four Side Boundaries & Checklist</span>
-              </h4>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0b2545', textTransform: 'uppercase', margin: 0 }}>
+                  Four Side Boundaries & Checklist
+                </h4>
+              </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">EAST BOUNDARY:</span>
-                  <span className="font-bold text-navy-900">{structuredData.boundaries?.east?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>EAST BOUNDARY:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.boundaries?.east?.value}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">WEST BOUNDARY:</span>
-                  <span className="font-bold text-navy-900">{structuredData.boundaries?.west?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>WEST BOUNDARY:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.boundaries?.west?.value}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">NORTH BOUNDARY:</span>
-                  <span className="font-bold text-navy-900">{structuredData.boundaries?.north?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>NORTH BOUNDARY:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.boundaries?.north?.value}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">SOUTH BOUNDARY:</span>
-                  <span className="font-bold text-navy-900">{structuredData.boundaries?.south?.value}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>SOUTH BOUNDARY:</span>
+                  <span style={{ fontWeight: 800, color: '#0b2545' }}>{structuredData.boundaries?.south?.value}</span>
                 </div>
               </div>
 
-              <div className="pt-1 border-t flex items-center justify-between text-xs font-mono">
+              <div style={{ paddingTop: '8px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', fontFamily: 'monospace' }}>
                 <span>Category Checklist:</span>
-                <span className="font-bold text-green-700">
+                <span style={{ fontWeight: 800, color: '#166534' }}>
                   {verifiedChecklistCount} of {totalRequiredChecklist} Checklist Fields Verified
                 </span>
               </div>
             </div>
 
             {/* Box 3: VRO Corrections */}
-            <div className="bg-white p-3.5 rounded-md border border-slate-300 space-y-2">
-              <h4 className="font-bold text-navy-900 text-xs uppercase border-b pb-1 flex items-center gap-1.5">
+            <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <Info className="w-4 h-4 text-amber-700" />
-                <span>VRO Field Corrections Audit ({corrections.length})</span>
-              </h4>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0b2545', textTransform: 'uppercase', margin: 0 }}>
+                  VRO Field Corrections Audit ({corrections.length})
+                </h4>
+              </div>
 
               {corrections.length === 0 ? (
-                <p className="text-xs text-slate-500 italic">No AI values required manual modification.</p>
+                <p style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>No AI values required manual modification.</p>
               ) : (
-                <div className="space-y-1 text-xs font-mono max-h-28 overflow-auto">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', fontFamily: 'monospace', maxHeight: '120px', overflowY: 'auto' }}>
                   {corrections.map((c, idx) => (
-                    <div key={idx} className="p-1.5 bg-amber-50 rounded border border-amber-200">
-                      <span className="font-bold text-navy-900">{c.fieldId}:</span>{' '}
-                      <span className="line-through text-slate-400">{c.originalAIValue}</span> →{' '}
-                      <span className="font-bold text-green-800">{c.correctedValue}</span>
+                    <div key={idx} style={{ padding: '6px 10px', background: '#fefce8', borderRadius: '4px', border: '1px solid #fde047' }}>
+                      <span style={{ fontWeight: 800, color: '#0b2545' }}>{c.fieldId}:</span>{' '}
+                      <span style={{ textDecoration: 'line-through', color: '#94a3b8' }}>{c.originalAIValue}</span> →{' '}
+                      <span style={{ fontWeight: 800, color: '#166534' }}>{c.correctedValue}</span>
                     </div>
                   ))}
                 </div>
@@ -192,23 +198,25 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
             </div>
 
             {/* Box 4: Field Photos & KYC Status */}
-            <div className="bg-white p-3.5 rounded-md border border-slate-300 space-y-2">
-              <h4 className="font-bold text-navy-900 text-xs uppercase border-b pb-1 flex items-center gap-1.5">
+            <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <Camera className="w-4 h-4 text-navy-900" />
-                <span>Field Photos & KYC Status</span>
-              </h4>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0b2545', textTransform: 'uppercase', margin: 0 }}>
+                  Field Photos & KYC Status
+                </h4>
+              </div>
 
-              <div className="space-y-1.5 text-xs font-mono">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Inspection Photos:</span>
-                  <span className="font-bold text-green-700">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>Inspection Photos:</span>
+                  <span style={{ fontWeight: 800, color: '#166534' }}>
                     {fieldVerification?.photos?.length || 0} Photos Verified (Min 4 satisfied)
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">KYC Gateway Status:</span>
-                  <span className="font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded text-[10px]">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>KYC Gateway Status:</span>
+                  <span style={{ fontWeight: 800, color: '#92400e', background: '#fef3c7', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem' }}>
                     {kycRecord?.status || 'UNAVAILABLE'}
                   </span>
                 </div>
@@ -217,46 +225,46 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
           </div>
 
           {/* Final Legal Declaration & Lock Checkboxes */}
-          <div className="p-4 bg-amber-50/90 border-2 border-amber-400 rounded-md space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-navy-900 text-amber-300 rounded">
+          <div style={{ background: '#fefce8', border: '2px solid #fde047', borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ padding: '8px', background: '#0b2545', color: '#fbbf24', borderRadius: '6px', display: 'flex' }}>
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-navy-900 text-xs uppercase">
+                <h4 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#854d0e', textTransform: 'uppercase', margin: 0 }}>
                   FINAL OFFICERS CONSENT & PERMANENT DIGITIZATION LOCK DECLARATION
                 </h4>
-                <p className="text-[11px] text-slate-700">
+                <p style={{ fontSize: '0.75rem', color: '#713f12', margin: '2px 0 0 0' }}>
                   Read and accept final official consent before submitting digitized land record.
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-navy-950 font-serif leading-relaxed bg-white p-3 rounded border border-amber-300">
+            <p style={{ fontSize: '0.8rem', fontFamily: "'Noto Sans Telugu', serif", lineHeight: 1.6, background: '#ffffff', padding: '12px 14px', borderRadius: '6px', border: '1px solid #fef08a', color: '#1e293b', margin: 0 }}>
               "I confirm that I have reviewed the original document, AI-extracted information, corrections, field verification, and other required information and I am responsible for the information submitted for digitization."
             </p>
 
-            <div className="space-y-2 pt-1">
-              <label className="flex items-start gap-2.5 p-2.5 bg-white rounded border border-slate-300 cursor-pointer">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={chkConfirmFinal}
                   onChange={(e) => setChkConfirmFinal(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 text-navy-900 rounded border-slate-400 focus:ring-navy-800"
+                  style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: '#0b2545' }}
                 />
-                <span className="text-xs font-bold text-navy-900">
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0b2545' }}>
                   I confirm and accept official responsibility for this land record digitization.
                 </span>
               </label>
 
-              <label className="flex items-start gap-2.5 p-2.5 bg-white rounded border border-slate-300 cursor-pointer">
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={chkLockUnderstand}
                   onChange={(e) => setChkLockUnderstand(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 text-navy-900 rounded border-slate-400 focus:ring-navy-800"
+                  style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: '#0b2545' }}
                 />
-                <span className="text-xs font-bold text-navy-900">
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0b2545' }}>
                   I understand that after final submission, I cannot directly edit the finalized digitization record.
                 </span>
               </label>

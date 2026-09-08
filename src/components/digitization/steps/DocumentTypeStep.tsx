@@ -42,57 +42,53 @@ export const DocumentTypeStep: React.FC<DocumentTypeStepProps> = ({
   };
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
       <WorkspacePanel
         title="SELECT LAND RECORD DOCUMENT CATEGORY"
         guidance="Select official document category being digitized to anchor extraction schemas and category checklist."
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 my-1">
+        <div className="digi-doc-grid">
           {SUPPORTED_DOCUMENT_TYPES.map((docType) => {
             const isSelected = currentSelection === docType.code;
             return (
               <div
                 key={docType.code}
                 onClick={() => handleSelect(docType.code)}
-                className={`p-4 rounded-md border cursor-pointer transition-all relative flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-navy-50/80 border-navy-900 ring-2 ring-navy-800/30 shadow-md'
-                    : 'bg-white border-slate-300 hover:border-slate-400 hover:bg-slate-50'
-                }`}
+                className={`digi-doc-card ${isSelected ? 'is-selected' : ''}`}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 text-navy-950 bg-amber-300 rounded-full p-0.5 shadow-xs">
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', color: '#0b2545', background: '#fbbf24', borderRadius: '50%', padding: '2px', display: 'flex' }}>
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                 )}
 
                 <div>
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <div className={`p-2 rounded-md ${isSelected ? 'bg-navy-900 text-amber-300' : 'bg-slate-100 text-navy-800'}`}>
+                  <div className="digi-doc-card-top">
+                    <div className="digi-doc-icon-badge">
                       {getIcon(docType.iconName)}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-navy-900 text-sm leading-tight">
+                    <div className="digi-doc-titles">
+                      <h4 className="digi-doc-name-en">
                         {docType.titleEn}
                       </h4>
-                      <p className="text-[11px] font-serif font-bold text-amber-800">
+                      <p className="digi-doc-name-te">
                         {docType.titleTe}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-600 font-medium mb-1">
+                  <p style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600, marginTop: '8px', marginBottom: '4px' }}>
                     {docType.subtitleEn}
                   </p>
 
-                  <p className="text-[11px] text-slate-500 leading-relaxed mt-2 border-t border-slate-200/80 pt-2">
+                  <p className="digi-doc-desc">
                     {docType.description}
                   </p>
                 </div>
 
-                <div className="mt-3 pt-2 text-[10px] font-semibold text-navy-900 flex items-center justify-between border-t border-slate-100">
+                <div className="digi-doc-footer">
                   <span>{docType.checklistFields.length} Required Fields</span>
-                  <span className="font-mono text-slate-400 uppercase">{docType.code}</span>
+                  <span>{docType.code}</span>
                 </div>
               </div>
             );

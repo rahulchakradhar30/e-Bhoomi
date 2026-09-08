@@ -266,88 +266,86 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
   const groqRecord = job?.groqResult?.extractedRecord;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <WorkspacePanel
         title="DOCUMENT PROCESSING & INTELLIGENCE PIPELINE (AUTHORITATIVE FLOW)"
         guidance="OpenCV Preprocessing → Llama API Text Extraction → Groq Structured Extraction → Validation → Checklist."
       >
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Header Progress & Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-navy-900 text-white p-4 rounded-md shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-navy-800 text-amber-300 rounded-md border border-navy-700">
+          <div className="digi-proc-header">
+            <div className="digi-proc-header-left">
+              <div className="digi-proc-icon-box">
                 <Cpu className="w-6 h-6 animate-pulse" />
               </div>
-              <div>
-                <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider">
+              <div className="digi-proc-title-group">
+                <span className="digi-proc-job-ref">
                   PIPELINE JOB REF: {job?.processingId || 'INITIALIZING'}
                 </span>
-                <h3 className="text-base font-bold uppercase">
+                <h3 className="digi-proc-main-title">
                   OPENCV + LLAMA + GROQ PIPELINE ENGINE
                 </h3>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="digi-proc-header-actions">
               <button
                 type="button"
                 onClick={() => setShowPreview(!showPreview)}
-                className="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-amber-300 text-xs font-bold rounded border border-navy-600 flex items-center gap-1.5"
+                className="digi-proc-btn gold"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <Eye className="w-4 h-4" />
                 <span>{showPreview ? 'Hide Document Preview' : 'Preview Original Scan'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={executePipeline}
-                className="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-slate-200 text-xs font-bold rounded border border-navy-600 flex items-center gap-1.5"
+                className="digi-proc-btn"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-4 h-4" />
                 <span>Restart Pipeline</span>
               </button>
             </div>
           </div>
 
           {showPreview && (
-            <div className="border border-navy-800 rounded-md p-2 bg-slate-100">
+            <div style={{ border: '1px solid #0b2545', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
               <DocumentViewer originalFileName={uploadRecord.originalFileName} pageCount={uploadRecord.pageCount} />
             </div>
           )}
 
           {/* Authoritative Pipeline Stage Progress Box */}
-          <div className="bg-white p-5 rounded-md border border-slate-300 space-y-3 shadow-sm">
-            <h4 className="font-bold text-navy-900 text-xs uppercase border-b pb-1.5 flex items-center justify-between">
-              <span>AUTHORITATIVE PROCESSING PIPELINE STAGES</span>
-              <span className="font-mono text-slate-500 font-normal">
+          <div className="digi-proc-stages-card">
+            <div className="digi-proc-stages-header">
+              <span className="digi-proc-stages-title">AUTHORITATIVE PROCESSING PIPELINE STAGES</span>
+              <span className="digi-proc-stage-badge">
                 Stage {Math.min(8, currentStageIndex + 1)} of 8
               </span>
-            </h4>
+            </div>
 
-            <div className="space-y-2.5">
+            <div className="digi-proc-stages-list">
               {stages.map((label, idx) => {
                 const isDone = currentStageIndex > idx;
                 const isCurrent = currentStageIndex === idx && job?.overallStatus !== 'READY_FOR_VALIDATION';
+                const isPending = !isDone && !isCurrent;
                 return (
-                  <div key={idx} className="flex items-center gap-3 text-xs">
+                  <div
+                    key={idx}
+                    className={`digi-proc-stage-row ${
+                      isDone ? 'is-done' : isCurrent ? 'is-active' : 'is-pending'
+                    }`}
+                  >
                     {isDone ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
                     ) : isCurrent ? (
-                      <div className="w-4 h-4 rounded-full border-2 border-navy-800 border-t-transparent animate-spin flex-shrink-0" />
+                      <div className="w-5 h-5 rounded-full border-2 border-navy-800 border-t-transparent animate-spin flex-shrink-0" />
                     ) : (
-                      <div className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-mono flex items-center justify-center flex-shrink-0">
+                      <div className="digi-proc-stage-num pending">
                         {idx + 1}
                       </div>
                     )}
-                    <span
-                      className={`${
-                        isDone
-                          ? 'text-slate-700 font-medium'
-                          : isCurrent
-                          ? 'text-navy-900 font-bold'
-                          : 'text-slate-400'
-                      }`}
-                    >
+                    <span className="digi-proc-stage-text">
                       {label}
                     </span>
                   </div>
@@ -358,17 +356,13 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
 
           {/* Results Display */}
           {job?.overallStatus === 'READY_FOR_VALIDATION' && (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Tab Selector */}
-              <div className="flex border-b border-slate-200 gap-2">
+              <div className="digi-proc-tabs">
                 <button
                   type="button"
                   onClick={() => setActiveTextTab('extracted')}
-                  className={`pb-2 px-3 text-xs font-bold uppercase transition-colors flex items-center gap-1.5 border-b-2 ${
-                    activeTextTab === 'extracted'
-                      ? 'border-navy-900 text-navy-900'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  }`}
+                  className={`digi-proc-tab-btn ${activeTextTab === 'extracted' ? 'active' : ''}`}
                 >
                   <FileText className="w-4 h-4" />
                   <span>Llama Extracted Text</span>
@@ -377,11 +371,7 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
                 <button
                   type="button"
                   onClick={() => setActiveTextTab('structured')}
-                  className={`pb-2 px-3 text-xs font-bold uppercase transition-colors flex items-center gap-1.5 border-b-2 ${
-                    activeTextTab === 'structured'
-                      ? 'border-navy-900 text-navy-900'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  }`}
+                  className={`digi-proc-tab-btn ${activeTextTab === 'structured' ? 'active' : ''}`}
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Groq Structured Record</span>
@@ -390,14 +380,14 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
 
               {/* Llama Extracted Text View */}
               {activeTextTab === 'extracted' && (
-                <div className="bg-slate-50 border border-slate-300 p-4 rounded-md space-y-3 font-mono text-xs">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 border-b pb-2">
+                <div className="digi-proc-content-box">
+                  <div className="digi-proc-meta-strip">
                     <span>PROVIDER: {llamaResult?.provider || 'Llama Document Text Provider'}</span>
                     <span>MODEL: {llamaResult?.model || 'Llama Multimodal'}</span>
                     <span>PAGES: {llamaResult?.pages?.length || uploadRecord.pageCount}</span>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto bg-white p-3 rounded border border-slate-200 whitespace-pre-wrap leading-relaxed text-slate-800">
+                  <div className="digi-proc-terminal-text">
                     {llamaResult?.fullText || 'No text extracted.'}
                   </div>
                 </div>
@@ -405,48 +395,48 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
 
               {/* Groq Structured Record View */}
               {activeTextTab === 'structured' && (
-                <div className="bg-slate-50 border border-slate-300 p-4 rounded-md space-y-3 font-mono text-xs">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 border-b pb-2">
+                <div className="digi-proc-content-box">
+                  <div className="digi-proc-meta-strip">
                     <span>PROVIDER: Groq Cloud AI</span>
                     <span>SCHEMA: e-Bhoomi Land Record v2.0</span>
-                    <span className="text-green-700 font-bold">STATUS: Extracted</span>
+                    <span style={{ color: '#166534', fontWeight: 800 }}>STATUS: Extracted</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    <div className="bg-white p-2.5 rounded border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">PATTADAR / OWNER:</span>
-                      <span className="font-bold text-navy-900">{groqRecord?.ownerName || 'null'}</span>
+                  <div className="digi-proc-data-grid">
+                    <div className="digi-proc-data-cell">
+                      <span className="digi-proc-cell-label">PATTADAR / OWNER:</span>
+                      <span className="digi-proc-cell-val">{groqRecord?.ownerName || 'null'}</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">SURVEY NUMBER:</span>
-                      <span className="font-bold text-navy-900">{groqRecord?.surveyNumber || 'null'}</span>
+                    <div className="digi-proc-data-cell">
+                      <span className="digi-proc-cell-label">SURVEY NUMBER:</span>
+                      <span className="digi-proc-cell-val">{groqRecord?.surveyNumber || 'null'}</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">KHATA NUMBER:</span>
-                      <span className="font-bold text-navy-900">{groqRecord?.khataNumber || 'null'}</span>
+                    <div className="digi-proc-data-cell">
+                      <span className="digi-proc-cell-label">KHATA NUMBER:</span>
+                      <span className="digi-proc-cell-val">{groqRecord?.khataNumber || 'null'}</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">EXTENT (ACRES):</span>
-                      <span className="font-bold text-navy-900">{groqRecord?.extentAcres || 'null'}</span>
+                    <div className="digi-proc-data-cell">
+                      <span className="digi-proc-cell-label">EXTENT (ACRES):</span>
+                      <span className="digi-proc-cell-val">{groqRecord?.extentAcres || 'null'}</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">VILLAGE / MANDAL:</span>
-                      <span className="font-bold text-navy-900">{groqRecord?.villageName || 'null'} / {groqRecord?.mandalName || 'null'}</span>
+                    <div className="digi-proc-data-cell">
+                      <span className="digi-proc-cell-label">VILLAGE / MANDAL:</span>
+                      <span className="digi-proc-cell-val">{groqRecord?.villageName || 'null'} / {groqRecord?.mandalName || 'null'}</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">LAND CLASSIFICATION:</span>
-                      <span className="font-bold text-navy-900">{groqRecord?.landClassification || 'null'}</span>
+                    <div className="digi-proc-data-cell">
+                      <span className="digi-proc-cell-label">LAND CLASSIFICATION:</span>
+                      <span className="digi-proc-cell-val">{groqRecord?.landClassification || 'null'}</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Final Proceed Action Button */}
-              <div className="pt-3 border-t flex justify-end">
+              <div style={{ paddingTop: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   onClick={() => norm && onPipelineCompleted(norm)}
-                  className="px-6 py-2.5 bg-navy-900 hover:bg-navy-800 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-md shadow-md flex items-center gap-2"
+                  className="digi-btn-proceed"
                 >
                   <span>Proceed to Officer Verification & Review</span>
                   <ArrowRight className="w-4 h-4" />
@@ -456,24 +446,24 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
           )}
 
           {errorMsg && (
-            <div className="p-4 bg-red-50 border-l-4 border-red-600 rounded text-xs text-red-800 space-y-2">
-              <div className="flex items-center gap-2 font-bold">
-                <AlertTriangle className="w-4 h-4" />
+            <div className="digi-proc-error-box">
+              <div className="digi-proc-error-title">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
                 <span>Processing Pipeline Error</span>
               </div>
-              <p>{errorMsg}</p>
-              <div className="flex items-center gap-2 pt-2">
+              <p className="digi-proc-error-msg">{errorMsg}</p>
+              <div className="digi-proc-error-actions">
                 <button
                   type="button"
                   onClick={executePipeline}
-                  className="px-4 py-1.5 bg-red-700 hover:bg-red-800 text-white font-bold text-xs rounded"
+                  className="digi-btn-retry"
                 >
                   Retry Pipeline Processing
                 </button>
                 <button
                   type="button"
                   onClick={onRetryUpload}
-                  className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded"
+                  className="digi-btn-reupload"
                 >
                   Re-upload Document
                 </button>
