@@ -32,11 +32,11 @@ export default function OfficerDashboardPage() {
     fetchCases();
   }, [officerProfile]);
 
-  const totalSubmitted = cases.length;
+  const totalSubmitted = cases.filter((c) => c.workflowStatus !== 'DRAFT').length;
   const aiProcessed = cases.filter((c) => c.workflowStatus !== 'DRAFT').length;
   const pendingReview = cases.filter((c) => c.workflowStatus === 'PENDING_HIGHER_REVIEW' || c.workflowStatus === 'PENDING_VRO_REVIEW').length;
   const fieldVerificationCount = cases.filter((c) => c.fieldVerification?.photos?.length).length;
-  const approvedCount = cases.filter((c) => c.workflowStatus === 'DIGITIZED').length;
+  const approvedCount = cases.filter((c) => c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED').length;
 
   return (
     <div>

@@ -11,10 +11,11 @@ export default function OfficerLayout({ children }: { children: React.ReactNode 
     { label: 'New Digitization', href: '/officer/digitization/new' },
     { label: 'AI Review Queue', href: '/officer/digitization/review' },
     { label: 'My Records', href: '/officer/records' },
+    { label: 'Digitization History', href: '/officer/history' },
     { label: 'Pending Review', href: '/officer/review' },
     { label: 'Field Verification', href: '/officer/field-verification' },
     { label: 'Corrections', href: '/officer/corrections' },
-    { label: 'Submitted Records', href: '/officer/submitted' }
+    { label: 'Submitted Records', href: '/officer/submitted' },
   ];
 
   return (

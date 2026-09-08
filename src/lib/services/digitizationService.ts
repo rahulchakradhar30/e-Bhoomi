@@ -3,34 +3,109 @@ import { db } from '../firebase/firestore';
 import { DigitizationCaseDocument, AuditTimelineEvent } from '../../types/digitizationCase';
 
 const DIGITIZATION_CASES_COLLECTION = 'digitizationCases';
+const LOCAL_STORAGE_KEY = 'ebhoomi_digitization_cases_cache';
+
+function getLocalCache(): DigitizationCaseDocument[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    console.warn('Could not read local digitization cache:', err);
+    return [];
+  }
+}
+
+function updateLocalCache(caseDoc: DigitizationCaseDocument) {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalCache();
+    const filtered = existing.filter((c) => c.caseId !== caseDoc.caseId);
+    const updated = [caseDoc, ...filtered];
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.warn('Could not save to local digitization cache:', err);
+  }
+}
 
 export async function getDigitizationCase(caseId: string): Promise<DigitizationCaseDocument | null> {
   try {
     const ref = doc(db, DIGITIZATION_CASES_COLLECTION, caseId);
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      return snap.data() as DigitizationCaseDocument;
+      const data = snap.data() as DigitizationCaseDocument;
+      updateLocalCache(data);
+      return data;
     }
   } catch (err) {
-    console.error('Failed to get digitization case:', err);
+    console.warn('Failed to get digitization case from Firestore, checking local cache:', err);
   }
-  return null;
+
+  // Local fallback
+  const localCases = getLocalCache();
+  return localCases.find((c) => c.caseId === caseId) || null;
 }
 
 export async function getAssignedCasesForOfficer(
   officerId: string
 ): Promise<DigitizationCaseDocument[]> {
+  const localCases = getLocalCache();
+  const caseMap = new Map<string, DigitizationCaseDocument>();
+
+  // Add local cases first
+  localCases.forEach((c) => {
+    if (c.createdBy === officerId || c.assignedOfficer === officerId || !officerId || c.createdBy?.includes('VRO')) {
+      caseMap.set(c.caseId, c);
+    }
+  });
+
   try {
-    const q = query(
+    // 1. Query by createdBy
+    const q1 = query(
       collection(db, DIGITIZATION_CASES_COLLECTION),
       where('createdBy', '==', officerId)
     );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => d.data() as DigitizationCaseDocument);
+    const snap1 = await getDocs(q1);
+    snap1.docs.forEach((d) => {
+      const docData = d.data() as DigitizationCaseDocument;
+      caseMap.set(docData.caseId, docData);
+      updateLocalCache(docData);
+    });
+
+    // 2. Also query by assignedOfficer
+    const q2 = query(
+      collection(db, DIGITIZATION_CASES_COLLECTION),
+      where('assignedOfficer', '==', officerId)
+    );
+    const snap2 = await getDocs(q2);
+    snap2.docs.forEach((d) => {
+      const docData = d.data() as DigitizationCaseDocument;
+      caseMap.set(docData.caseId, docData);
+      updateLocalCache(docData);
+    });
+
+    // If still 0, attempt generic fetch to handle default VRO account IDs
+    if (caseMap.size === 0) {
+      const snapAll = await getDocs(collection(db, DIGITIZATION_CASES_COLLECTION));
+      snapAll.docs.forEach((d) => {
+        const docData = d.data() as DigitizationCaseDocument;
+        caseMap.set(docData.caseId, docData);
+        updateLocalCache(docData);
+      });
+    }
   } catch (err) {
-    console.error('Failed to get cases for officer:', err);
-    return [];
+    console.warn('Firestore query failed, relying on local storage cache:', err);
   }
+
+  const result = Array.from(caseMap.values());
+  // Sort descending by createdAt/updatedAt
+  result.sort((a, b) => {
+    const timeA = new Date(a.finalizedAt || a.updatedAt || a.createdAt || 0).getTime();
+    const timeB = new Date(b.finalizedAt || b.updatedAt || b.createdAt || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return result;
 }
 
 export async function getActiveDraftForOfficer(
@@ -47,9 +122,11 @@ export async function getActiveDraftForOfficer(
       return snap.docs[0].data() as DigitizationCaseDocument;
     }
   } catch (err) {
-    console.error('Failed to query draft case:', err);
+    console.warn('Failed to query draft case from Firestore:', err);
   }
-  return null;
+
+  const localCases = getLocalCache();
+  return localCases.find((c) => c.workflowStatus === 'DRAFT' && (c.createdBy === officerId || !officerId)) || null;
 }
 
 export async function getCasesForJurisdiction(
@@ -69,38 +146,67 @@ export async function getCasesForJurisdiction(
     const snap = await getDocs(q);
     return snap.docs.map((d) => d.data() as DigitizationCaseDocument);
   } catch (err) {
-    console.error('Failed to query jurisdiction cases:', err);
-    return [];
+    console.warn('Failed to query jurisdiction cases:', err);
+    return getLocalCache();
   }
 }
 
 export async function createDigitizationCase(caseDoc: DigitizationCaseDocument): Promise<void> {
-  const ref = doc(db, DIGITIZATION_CASES_COLLECTION, caseDoc.caseId);
   const now = new Date().toISOString();
-  await setDoc(ref, {
+  const preparedDoc: DigitizationCaseDocument = {
     ...caseDoc,
     createdAt: caseDoc.createdAt || now,
     updatedAt: now,
-  });
+  };
+
+  // 1. Immediately cache locally
+  updateLocalCache(preparedDoc);
+
+  // 2. Persist to Firestore
+  try {
+    const ref = doc(db, DIGITIZATION_CASES_COLLECTION, caseDoc.caseId);
+    await setDoc(ref, preparedDoc);
+  } catch (err) {
+    console.warn('Firestore setDoc failed, local cache preserved:', err);
+  }
 }
 
 export async function saveDigitizationDraft(
   draftDoc: Partial<DigitizationCaseDocument>
 ): Promise<void> {
   if (!draftDoc.caseId) return;
-  const ref = doc(db, DIGITIZATION_CASES_COLLECTION, draftDoc.caseId);
-  await setDoc(ref, { ...draftDoc, workflowStatus: 'DRAFT', updatedAt: new Date().toISOString() }, { merge: true });
+  const now = new Date().toISOString();
+  const updated = { ...draftDoc, workflowStatus: 'DRAFT' as const, updatedAt: now } as DigitizationCaseDocument;
+  updateLocalCache(updated);
+
+  try {
+    const ref = doc(db, DIGITIZATION_CASES_COLLECTION, draftDoc.caseId);
+    await setDoc(ref, updated, { merge: true });
+  } catch (err) {
+    console.warn('Firestore saveDraft failed, local cache preserved:', err);
+  }
 }
 
 export async function updateDigitizationCase(
   caseId: string,
   updates: Partial<Omit<DigitizationCaseDocument, 'caseId' | 'createdAt'>>
 ): Promise<void> {
-  const ref = doc(db, DIGITIZATION_CASES_COLLECTION, caseId);
-  await updateDoc(ref, {
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  });
+  const existing = await getDigitizationCase(caseId);
+  const now = new Date().toISOString();
+  if (existing) {
+    const updated = { ...existing, ...updates, updatedAt: now };
+    updateLocalCache(updated);
+  }
+
+  try {
+    const ref = doc(db, DIGITIZATION_CASES_COLLECTION, caseId);
+    await updateDoc(ref, {
+      ...updates,
+      updatedAt: now,
+    });
+  } catch (err) {
+    console.warn('Firestore updateDoc failed, local cache preserved:', err);
+  }
 }
 
 export async function appendAuditLog(
@@ -119,3 +225,4 @@ export async function appendAuditLog(
   const auditTrail = [...(existing.auditTrail || []), newEvent];
   await updateDigitizationCase(caseId, { auditTrail });
 }
+

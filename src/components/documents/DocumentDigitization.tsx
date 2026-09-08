@@ -26,8 +26,12 @@ import {
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
 import { createDigitizationCase, getActiveDraftForOfficer, saveDigitizationDraft } from '@/lib/services/digitizationService';
+import { useCurrentUser } from '@/context/AuthContext';
 
 export const DocumentDigitization: React.FC = () => {
+  const { officerProfile } = useCurrentUser();
+  const officerId = officerProfile?.officerId || 'AP-545-VRO-00101';
+
   const [currentStepIndex, setCurrentStepIndex] = useState(1);
   const [caseId] = useState(() => `DIG-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`);
 
@@ -56,7 +60,7 @@ export const DocumentDigitization: React.FC = () => {
   useEffect(() => {
     const checkDraft = async () => {
       try {
-        const draft = await getActiveDraftForOfficer('AP-545-VRO-00101');
+        const draft = await getActiveDraftForOfficer(officerId);
         if (draft) {
           if (draft.initialConsent) setInitialConsent(draft.initialConsent);
           if (draft.documentType) setDocumentType(draft.documentType);
@@ -72,7 +76,7 @@ export const DocumentDigitization: React.FC = () => {
       }
     };
     checkDraft();
-  }, []);
+  }, [officerId]);
 
   // Update step validity state depending on step
   useEffect(() => {
@@ -109,8 +113,8 @@ export const DocumentDigitization: React.FC = () => {
   const handleSaveDraft = async () => {
     const draftDoc: Partial<DigitizationCaseDocument> = {
       caseId,
-      createdBy: 'AP-545-VRO-00101',
-      assignedOfficer: 'AP-545-VRO-00101',
+      createdBy: officerId,
+      assignedOfficer: officerId,
       documentType,
       workflowStatus: 'DRAFT',
       initialConsent,
@@ -139,7 +143,7 @@ export const DocumentDigitization: React.FC = () => {
         finalConsent || {
           finalConsentAccepted: true,
           finalAcceptedAt: new Date().toISOString(),
-          finalAcceptedBy: 'AP-545-VRO-00101',
+          finalAcceptedBy: officerId,
           declarationText: 'I confirm that I have reviewed the record and accept responsibility.',
         }
       );
@@ -163,8 +167,8 @@ export const DocumentDigitization: React.FC = () => {
 
     const caseDoc: DigitizationCaseDocument = {
       caseId,
-      createdBy: 'AP-545-VRO-00101',
-      assignedOfficer: 'AP-545-VRO-00101',
+      createdBy: officerId,
+      assignedOfficer: officerId,
       sourceDocumentId: uploadRecord?.storageReference || `REF-${caseId}`,
       documentType,
       workflowStatus: finalWorkflowStatus,
