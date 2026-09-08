@@ -1876,3 +1876,718 @@ h1, h2, h3, h4, h5, h6 {
   .stepper-line { flex: 1; height: 2px; min-width: 8px; margin: 0 0.2rem; display: block; }
 }
 
+/* ==========================================================================
+   E-BHOOMI DIGITIZATION WORKSPACE — COMPLETE ULTRA-PREMIUM DESIGN SYSTEM
+   ========================================================================== */
+
+.digi-workspace-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Stepper Navigation ─────────────────────────────────────────────────── */
+.digi-stepper-container {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(11, 37, 69, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.digi-step-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.digi-step-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-family: monospace;
+  transition: all 0.2s ease;
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.digi-step-node.is-active .digi-step-bubble {
+  background: #0b2545;
+  color: #fbbf24;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+}
+
+.digi-step-node.is-completed .digi-step-bubble {
+  background: #0f6b3d;
+  color: #ffffff;
+  border-color: #0f6b3d;
+}
+
+.digi-step-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.digi-step-sublabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+.digi-step-mainlabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.digi-step-node.is-active .digi-step-mainlabel {
+  color: #0b2545;
+  font-weight: 800;
+}
+
+.digi-step-divider {
+  flex: 1;
+  min-width: 16px;
+  height: 2px;
+  background: #e2e8f0;
+}
+
+.digi-step-divider.is-completed {
+  background: #0f6b3d;
+}
+
+/* ── Jurisdiction Alert Banner ─────────────────────────────────────────── */
+.digi-alert-banner {
+  background: #fef2f2;
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+}
+
+.digi-alert-icon-box {
+  background: #dc2626;
+  color: #ffffff;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.digi-alert-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.digi-alert-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #991b1b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.digi-alert-desc {
+  font-size: 0.82rem;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+/* ── Top Header Banner ─────────────────────────────────────────────────── */
+.digi-header-banner {
+  background: linear-gradient(135deg, #0b2545 0%, #133a68 100%);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(11, 37, 69, 0.15);
+  border: 1px solid #1e3a5f;
+}
+
+.digi-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.digi-header-icon-box {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+}
+
+.digi-header-title-en {
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+.digi-header-title-te {
+  font-size: 0.85rem;
+  color: #fde047;
+  font-family: 'Noto Sans Telugu', serif;
+  margin-top: 2px;
+}
+
+.digi-view-toggle-group {
+  display: flex;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.digi-view-btn {
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.digi-view-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.digi-view-btn.is-active {
+  background: #ffffff;
+  color: #0b2545;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* ── Workspace Dual Pane Grid ──────────────────────────────────────────── */
+.digi-workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.digi-left-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 16px;
+}
+
+.digi-right-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Document Viewer Card ──────────────────────────────────────────────── */
+.digi-viewer-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.digi-viewer-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.digi-viewer-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.digi-viewer-pages {
+  font-size: 0.75rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ── Checklist Card & Progress ─────────────────────────────────────────── */
+.digi-checklist-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.digi-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.digi-progress-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.digi-progress-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.digi-progress-count {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.digi-progress-pct {
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-family: monospace;
+  background: #f1f5f9;
+  color: #0b2545;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.digi-checklist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.digi-checklist-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.digi-checklist-row:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.digi-checklist-row.is-checked {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.digi-check-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+/* ── Category Panels & Field Cards ─────────────────────────────────────── */
+.digi-panel {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.digi-panel-header {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 12px 18px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #d97706;
+}
+
+.digi-panel-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #ffffff;
+}
+
+.digi-field-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.digi-field-card:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.digi-field-card.is-verified {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.digi-field-card.is-corrected {
+  background: #fefce8;
+  border-color: #fde047;
+}
+
+.digi-field-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.digi-field-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.digi-field-label-en {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0b2545;
+}
+
+.digi-field-label-te {
+  font-size: 0.75rem;
+  color: #b45309;
+  font-family: 'Noto Sans Telugu', serif;
+  font-weight: 600;
+}
+
+.digi-field-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.digi-field-val-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: monospace;
+  margin-left: 24px;
+}
+
+.digi-field-val-null {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.digi-evidence-box {
+  margin-left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.digi-evidence-text {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #334155;
+  font-style: italic;
+}
+
+/* ── Confidence Badges ─────────────────────────────────────────────────── */
+.digi-conf-pill {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  font-family: monospace;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+}
+
+.digi-conf-high {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.digi-conf-med {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.digi-conf-low {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.digi-conf-null {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+/* ── Inline VRO Correction Box ─────────────────────────────────────────── */
+.digi-edit-box {
+  margin-left: 24px;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.digi-edit-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #854d0e;
+  text-transform: uppercase;
+}
+
+.digi-edit-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.digi-edit-input,
+.digi-edit-select,
+.digi-edit-textarea {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.digi-edit-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.digi-btn-cancel {
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  color: #475569;
+  cursor: pointer;
+}
+
+.digi-btn-save {
+  padding: 5px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #0b2545;
+  border: 1px solid #0b2545;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+/* ── Bottom Sticky Action Bar ──────────────────────────────────────────── */
+.digi-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  border-top: 2px solid #0b2545;
+  box-shadow: 0 -4px 20px rgba(11, 37, 69, 0.1);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+}
+
+.digi-action-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.digi-action-step-text {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+  font-family: monospace;
+}
+
+.digi-action-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.digi-btn-prev {
+  padding: 9px 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0b2545;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.digi-btn-prev:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.digi-btn-draft {
+  padding: 9px 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.digi-btn-draft:hover {
+  background: #e2e8f0;
+}
+
+.digi-btn-proceed {
+  padding: 10px 24px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  background: #0b2545;
+  border: 1px solid #002244;
+  border-radius: 6px;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(11, 37, 69, 0.25);
+  transition: all 0.15s ease;
+}
+
+.digi-btn-proceed:hover:not(:disabled) {
+  background: #002244;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(11, 37, 69, 0.35);
+}
+
+.digi-btn-proceed:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  border-color: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .digi-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+  .digi-action-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+

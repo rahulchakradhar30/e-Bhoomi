@@ -9,6 +9,8 @@ import {
   StructuredLandRecordData,
   ExtractedField,
   PartyShare,
+  DynamicCustomSection,
+  DynamicCustomSectionField,
 } from '@/config/digitizationSchemas';
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
@@ -21,6 +23,11 @@ import {
   Info,
   AlertCircle,
   FileCheck,
+  Building,
+  MapPin,
+  Check,
+  Layers,
+  Compass,
 } from 'lucide-react';
 
 interface ExtractionReviewStepProps {
@@ -55,26 +62,23 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const [corrections, setCorrections] = useState<FieldCorrectionAudit[]>(initialCorrections);
   const [checklist, setChecklist] = useState<VerificationChecklistState>(initialChecklist);
 
-  // Editing state for fields
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [editReason, setEditReason] = useState<string>('');
   const [editReasonCode, setEditReasonCode] = useState<string>('OCR_ERROR');
   const [editError, setEditError] = useState<string | null>(null);
 
-  // Check jurisdiction
   const valRes = (typeof window !== 'undefined' && (window as any).__LAST_VALIDATION_RESULT__) || null;
-  const extractedDistrict = data.districtName?.value || '';
+  const rawDistrict = (data.districtName?.value || '').trim();
+  const isExplicitMismatch =
+    rawDistrict.length > 2 &&
+    !['kurnool', '511', '545', 'unknown', 'not extracted', 'n/a', ''].includes(rawDistrict.toLowerCase()) &&
+    !rawDistrict.toLowerCase().includes('kurnool');
+
   const isJurisdictionBlocked = Boolean(
     valRes?.findings?.some(
-      (f: any) =>
-        f.ruleId === 'JURISDICTION-DIST-001' ||
-        (f.field === 'districtName' && (f.severity === 'CRITICAL' || f.status === 'ERROR'))
-    ) ||
-      (extractedDistrict &&
-        !extractedDistrict.toLowerCase().includes('kurnool') &&
-        !extractedDistrict.includes('511') &&
-        !extractedDistrict.includes('545'))
+      (f: any) => f.ruleId === 'JURISDICTION-DIST-001' && f.severity === 'CRITICAL'
+    ) || isExplicitMismatch
   );
 
   useEffect(() => {
@@ -109,7 +113,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
 
     const auditEntry: FieldCorrectionAudit = {
       fieldId,
-      originalAIValue: originalVal,
+      originalAIValue: originalVal || '',
       correctedValue: editValue.trim(),
       correctionReason: editReason.trim(),
       correctedByOfficerId: 'AP-545-VRO-00101',
@@ -136,18 +140,13 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
       else if (fieldId === 'mandalName') nextData.mandalName = { ...nextData.mandalName, value: newVal };
       else if (fieldId === 'revenueDivision') nextData.revenueDivision = { ...nextData.revenueDivision, value: newVal };
       else if (fieldId === 'districtName') nextData.districtName = { ...nextData.districtName, value: newVal };
+      else if (fieldId === 'documentDate') nextData.documentDate = { ...nextData.documentDate, value: newVal };
+      else if (fieldId === 'registrationRef') nextData.registrationRef = nextData.registrationRef ? { ...nextData.registrationRef, value: newVal } : { fieldId: 'registrationRef', labelEn: 'Registration Ref', labelTe: 'రిజిస్ట్రేషన్ సంఖ్య', value: newVal, confidence: 0.9 };
+      else if (fieldId === 'mutationRef') nextData.mutationRef = nextData.mutationRef ? { ...nextData.mutationRef, value: newVal } : { fieldId: 'mutationRef', labelEn: 'Mutation Ref', labelTe: 'మ్యూటేషన్ నడపడి', value: newVal, confidence: 0.9 };
       else if (fieldId === 'boundaryEast') nextData.boundaries.east = { ...nextData.boundaries.east, value: newVal };
       else if (fieldId === 'boundaryWest') nextData.boundaries.west = { ...nextData.boundaries.west, value: newVal };
       else if (fieldId === 'boundaryNorth') nextData.boundaries.north = { ...nextData.boundaries.north, value: newVal };
       else if (fieldId === 'boundarySouth') nextData.boundaries.south = { ...nextData.boundaries.south, value: newVal };
-
-      // Also update within dynamic custom sections if present
-      if (nextData.customSections && nextData.customSections.length > 0) {
-        nextData.customSections = nextData.customSections.map((sec) => ({
-          ...sec,
-          fields: sec.fields.map((f) => (f.fieldId === fieldId ? { ...f, value: newVal } : f)),
-        }));
-      }
 
       return nextData;
     });
@@ -159,181 +158,27 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
 
     if (score <= 0) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
-          0% (NOT EXTRACTED / NULL)
+        <span className="digi-conf-pill digi-conf-null">
+          0% (NOT EXTRACTED)
         </span>
       );
     } else if (pct >= 85) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-300">
+        <span className="digi-conf-pill digi-conf-high">
           {pct}% HIGH CONFIDENCE
         </span>
       );
     } else if (pct >= 60) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+        <span className="digi-conf-pill digi-conf-med">
           {pct}% MEDIUM CONFIDENCE
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-300 animate-pulse">
+      <span className="digi-conf-pill digi-conf-low">
         {pct}% LOW CONFIDENCE
       </span>
-    );
-  };
-
-  const renderGenericFieldCard = (
-    fieldId: string,
-    labelEn: string,
-    labelTe: string | undefined,
-    currentValue: string,
-    confidence?: number,
-    evidence?: { sourcePage: number; sourceText: string } | string
-  ) => {
-    const isVerified = !!checklist[fieldId];
-    const correction = corrections.find((c) => c.fieldId === fieldId);
-    const isEditing = editingFieldId === fieldId;
-
-    const evidenceObj =
-      typeof evidence === 'string'
-        ? { sourcePage: 1, sourceText: evidence }
-        : evidence;
-
-    return (
-      <div
-        key={fieldId}
-        className={`p-3 rounded-md border transition-all ${
-          correction
-            ? 'bg-amber-50/70 border-amber-300'
-            : isVerified
-            ? 'bg-green-50/40 border-slate-300'
-            : 'bg-white border-slate-300 hover:border-slate-400'
-        }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id={`chk-${fieldId}`}
-              checked={isVerified}
-              onChange={() => toggleChecklist(fieldId)}
-              className="w-4 h-4 text-navy-900 rounded border-slate-300 focus:ring-navy-800 cursor-pointer"
-            />
-            <label htmlFor={`chk-${fieldId}`} className="cursor-pointer font-bold text-navy-900 text-xs">
-              {labelEn}
-              {labelTe && (
-                <span className="font-serif font-bold text-amber-800 ml-1 text-[11px]">
-                  ({labelTe})
-                </span>
-              )}
-            </label>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            {getConfidenceBadge(confidence)}
-            {!isEditing && (
-              <button
-                type="button"
-                onClick={() => startEditField(fieldId, currentValue)}
-                className="px-2 py-0.5 hover:bg-slate-100 text-navy-800 rounded text-[11px] font-semibold border border-slate-300 flex items-center gap-1"
-                title="Correct AI Value"
-              >
-                <Edit3 className="w-3 h-3 text-navy-700" />
-                <span>Edit</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {!isEditing ? (
-          <div className="space-y-1 pl-6">
-            <div className="text-xs font-semibold text-slate-900 bg-white p-2 rounded border border-slate-200">
-              {currentValue ? (
-                <span>{currentValue}</span>
-              ) : (
-                <span className="text-slate-400 italic">Not Extracted / Null</span>
-              )}
-            </div>
-
-            {evidenceObj && evidenceObj.sourceText && (
-              <div className="flex items-center gap-1 text-[11px] text-slate-500 font-mono">
-                <CornerDownRight className="w-3 h-3 text-slate-400" />
-                <span>Source (Page {evidenceObj.sourcePage || 1}):</span>
-                <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 italic">
-                  "{evidenceObj.sourceText}"
-                </span>
-              </div>
-            )}
-
-            {correction && (
-              <div className="mt-1.5 p-2 bg-amber-100/70 border border-amber-300 rounded text-xs space-y-0.5 font-mono">
-                <div className="font-bold text-amber-900 flex items-center gap-1 text-[11px]">
-                  <Info className="w-3 h-3 text-amber-800" />
-                  <span>VRO Correction Recorded:</span>
-                </div>
-                <div className="text-[11px]">
-                  AI: <span className="line-through text-slate-500">{correction.originalAIValue || 'null'}</span> →{' '}
-                  <span className="font-bold text-navy-900">{correction.correctedValue}</span>
-                </div>
-                <div className="text-[11px] text-slate-700 font-serif italic">
-                  Reason: "{correction.correctionReason}"
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="mt-2 pl-6 p-2.5 bg-amber-50 rounded border border-amber-400 space-y-2.5">
-            <div className="font-bold text-navy-900 text-xs">VRO CORRECTION MODE</div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 block">Corrected Value:</label>
-              <input
-                type="text"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800 font-mono"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 block">Controlled Correction Reason:</label>
-              <select
-                value={editReasonCode}
-                onChange={(e) => setEditReasonCode(e.target.value)}
-                className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800 font-mono"
-              >
-                <option value="OCR_ERROR">OCR Error</option>
-                <option value="MANUAL_VERIFICATION">Manual Verification</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 block">Explanation:</label>
-              <textarea
-                value={editReason}
-                onChange={(e) => setEditReason(e.target.value)}
-                rows={2}
-                className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800"
-              />
-            </div>
-            {editError && <p className="text-[11px] font-bold text-red-700 bg-red-100 p-1 rounded">{editError}</p>}
-            <div className="flex items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-900 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => saveCorrection(fieldId, currentValue)}
-                className="px-3 py-1 bg-navy-900 text-white rounded text-xs font-bold hover:bg-navy-800 shadow-xs"
-              >
-                Save Correction
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     );
   };
 
@@ -344,13 +189,155 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
     customLabelTe?: string
   ) => {
     if (!fieldObj) return null;
-    return renderGenericFieldCard(
-      fieldId,
-      customLabelEn || fieldObj.labelEn,
-      customLabelTe || fieldObj.labelTe,
-      fieldObj.value,
-      fieldObj.confidence,
-      fieldObj.evidence
+
+    const isVerified = !!checklist[fieldId];
+    const correction = corrections.find((c) => c.fieldId === fieldId);
+    const isEditing = editingFieldId === fieldId;
+    const val = fieldObj.value;
+
+    return (
+      <div
+        key={fieldId}
+        className={`digi-field-card ${isVerified ? 'is-verified' : ''} ${correction ? 'is-corrected' : ''}`}
+      >
+        <div className="digi-field-top">
+          <div className="digi-field-label-group">
+            <input
+              type="checkbox"
+              id={`chk-${fieldId}`}
+              checked={isVerified}
+              onChange={() => toggleChecklist(fieldId)}
+              style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#0b2545' }}
+            />
+            <label htmlFor={`chk-${fieldId}`} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="digi-field-label-en">{customLabelEn || fieldObj.labelEn}</span>
+              {(customLabelTe || fieldObj.labelTe) && (
+                <span className="digi-field-label-te">
+                  ({customLabelTe || fieldObj.labelTe})
+                </span>
+              )}
+            </label>
+          </div>
+
+          <div className="digi-field-actions">
+            {getConfidenceBadge(fieldObj.confidence)}
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={() => startEditField(fieldId, val)}
+                className="digi-btn-edit"
+                title="Correct AI Extracted Value"
+              >
+                <Edit3 style={{ width: 12, height: 12 }} />
+                <span>Edit</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {!isEditing ? (
+          <div>
+            <div className="digi-field-val-box">
+              {val ? (
+                <span>{val}</span>
+              ) : (
+                <span className="digi-field-val-null">Not Extracted / Null</span>
+              )}
+            </div>
+
+            {fieldObj.evidence && fieldObj.evidence.sourceText && (
+              <div className="digi-evidence-box">
+                <CornerDownRight style={{ width: 12, height: 12, color: '#94a3b8' }} />
+                <span>Source (Page {fieldObj.evidence.sourcePage || 1}):</span>
+                <span className="digi-evidence-text">
+                  "{fieldObj.evidence.sourceText}"
+                </span>
+              </div>
+            )}
+
+            {correction && (
+              <div style={{
+                marginLeft: 24,
+                marginTop: 6,
+                padding: '6px 10px',
+                background: '#fef3c7',
+                border: '1px solid #fde68a',
+                borderRadius: 4,
+                fontSize: '0.72rem',
+                fontFamily: 'monospace',
+                color: '#92400e'
+              }}>
+                <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Info style={{ width: 12, height: 12 }} /> VRO Correction Recorded:
+                </div>
+                <div>
+                  AI: <span style={{ textDecoration: 'line-through', color: '#64748b' }}>{correction.originalAIValue || 'null'}</span> →{' '}
+                  <strong style={{ color: '#0b2545' }}>{correction.correctedValue}</strong>
+                </div>
+                <div style={{ fontStyle: 'italic' }}>Reason: "{correction.correctionReason}"</div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="digi-edit-box">
+            <div className="digi-edit-title">VRO Field Correction Mode</div>
+
+            <div>
+              <label className="digi-edit-label">Corrected Value:</label>
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="digi-edit-input"
+                style={{ fontFamily: 'monospace' }}
+              />
+            </div>
+
+            <div>
+              <label className="digi-edit-label">Correction Category:</label>
+              <select
+                value={editReasonCode}
+                onChange={(e) => setEditReasonCode(e.target.value)}
+                className="digi-edit-select"
+              >
+                <option value="OCR_ERROR">OCR Character Misread (OCR_ERROR)</option>
+                <option value="HANDWRITING_MISREAD">Handwriting Scan Misread (HANDWRITING_MISREAD)</option>
+                <option value="TRANSLATION_ERROR">Telugu-English Translation Shift (TRANSLATION_ERROR)</option>
+                <option value="EXTRACTION_ERROR">NLP Entity Boundary Error (EXTRACTION_ERROR)</option>
+                <option value="MASTER_DATA_MISMATCH">Master Data Hierarchy Discrepancy (MASTER_DATA_MISMATCH)</option>
+                <option value="MANUAL_VERIFICATION">VRO Physical Scan Verification (MANUAL_VERIFICATION)</option>
+                <option value="OTHER">Other Reason (OTHER)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="digi-edit-label">Explanation:</label>
+              <textarea
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                rows={2}
+                className="digi-edit-textarea"
+                placeholder="State official reason for correction..."
+              />
+            </div>
+
+            {editError && (
+              <p style={{ fontSize: '0.72rem', color: '#b91c1c', fontWeight: 700, margin: 0 }}>
+                {editError}
+              </p>
+            )}
+
+            <div className="digi-edit-buttons">
+              <button type="button" onClick={cancelEdit} className="digi-btn-cancel">
+                Cancel
+              </button>
+              <button type="button" onClick={() => saveCorrection(fieldId, val)} className="digi-btn-save">
+                Save Correction
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -371,107 +358,217 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const displayDocTitleEn = data.documentTitle || docConfig.titleEn;
   const displayDocTitleTe = data.documentTitleTe || docConfig.titleTe;
 
-  const hasGroqCustomSections = data.customSections && data.customSections.length > 0;
-
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {isJurisdictionBlocked && (
-        <div className="bg-red-50 border-2 border-red-600 p-4 rounded-md shadow-sm text-red-950 flex items-start gap-3">
-          <AlertCircle className="w-10 h-10 text-red-600 flex-shrink-0" />
-          <div>
-            <h4 className="text-sm font-bold text-red-900 uppercase">JURISDICTION MISMATCH</h4>
-            <p className="text-xs">Document indicates district: {extractedDistrict || 'Unknown'}. Kurnool District authorization required.</p>
+        <div className="digi-alert-banner">
+          <div className="digi-alert-icon-box">
+            <AlertCircle style={{ width: 24, height: 24 }} />
+          </div>
+          <div className="digi-alert-content">
+            <h4 className="digi-alert-title">
+              JURISDICTION MISMATCH — CROSS-DISTRICT DIGITIZATION RESTRICTED
+            </h4>
+            <p className="digi-alert-desc">
+              The uploaded document indicates district: <strong>{rawDistrict || 'Non-Kurnool Out-of-District'}</strong>.
+              As a Village Revenue Officer authorized exclusively for <strong>Kurnool District</strong>, you cannot
+              submit land records outside your assigned jurisdiction under the AP Land Revenue Act.
+            </p>
           </div>
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between bg-white border border-slate-300 p-2.5 rounded-md shadow-xs gap-2">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-navy-900" />
+      <div className="digi-header-banner">
+        <div className="digi-header-left">
+          <div className="digi-header-icon-box">
+            <ShieldCheck style={{ width: 24, height: 24 }} />
+          </div>
           <div>
-            <span className="font-bold text-navy-900 text-xs uppercase block">CUSTOM DIGITIZATION WORKSPACE • {displayDocTitleEn}</span>
-            <span className="font-serif text-[11px] text-amber-800">{displayDocTitleTe}</span>
+            <h3 className="digi-header-title-en">
+              CUSTOM DIGITIZATION WORKSPACE • {displayDocTitleEn}
+            </h3>
+            <p className="digi-header-title-te">{displayDocTitleTe}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded border text-xs">
-          <button type="button" onClick={() => setActiveTab('split')} className={`px-3 py-1 rounded font-bold ${activeTab === 'split' ? 'bg-navy-900 text-white' : ''}`}>Split View</button>
-          <button type="button" onClick={() => setActiveTab('document')} className="px-3 py-1 rounded md:hidden">Scan</button>
-          <button type="button" onClick={() => setActiveTab('fields')} className="px-3 py-1 rounded md:hidden">Fields</button>
+        <div className="digi-view-toggle-group">
+          <button
+            type="button"
+            onClick={() => setActiveTab('split')}
+            className={`digi-view-btn ${activeTab === 'split' ? 'is-active' : ''}`}
+          >
+            Split View (Desktop)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('document')}
+            className={`digi-view-btn ${activeTab === 'document' ? 'is-active' : ''}`}
+          >
+            Scan Preview
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('fields')}
+            className={`digi-view-btn ${activeTab === 'fields' ? 'is-active' : ''}`}
+          >
+            Extracted Fields
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div className={`md:col-span-6 ${activeTab === 'fields' ? 'hidden md:block' : 'block'}`}>
-          <div className="bg-white p-3 border border-slate-300 rounded-md shadow-sm sticky top-4">
-            <h4 className="font-bold text-navy-900 text-xs mb-2">ORIGINAL REVENUE SCAN</h4>
-            <DocumentViewer originalFileName={uploadRecord.originalFileName} pageCount={uploadRecord.pageCount} />
+      <div className="digi-workspace-grid">
+        <div className="digi-left-pane" style={{ display: activeTab === 'fields' ? 'none' : 'flex' }}>
+          <div className="digi-viewer-card">
+            <div className="digi-viewer-header">
+              <span className="digi-viewer-title">ORIGINAL REVENUE SCAN PREVIEW</span>
+              <span className="digi-viewer-pages">{uploadRecord.pageCount} Page(s)</span>
+            </div>
+            <div style={{ padding: 12 }}>
+              <DocumentViewer
+                originalFileName={uploadRecord.originalFileName}
+                pageCount={uploadRecord.pageCount}
+              />
+            </div>
           </div>
         </div>
 
-        <div className={`md:col-span-6 space-y-3.5 ${activeTab === 'document' ? 'hidden md:block' : 'block'}`}>
-          <div className="bg-navy-50 border border-navy-200 p-3 rounded-md flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckSquare className="w-4 h-4 text-navy-900" />
-              <div>
-                <span className="font-bold text-navy-900 text-xs uppercase">PROGRESS ({verifiedChecklistCount}/{totalRequiredChecklist})</span>
+        <div className="digi-right-pane" style={{ display: activeTab === 'document' ? 'none' : 'flex' }}>
+          <div className="digi-checklist-card">
+            <div className="digi-progress-header">
+              <div className="digi-progress-left">
+                <FileCheck style={{ width: 20, height: 20, color: '#0b2545' }} />
+                <div>
+                  <div className="digi-progress-title">
+                    DOCUMENT VERIFICATION CHECKLIST ({verifiedChecklistCount}/{totalRequiredChecklist})
+                  </div>
+                  <div className="digi-progress-count">
+                    {verifiedChecklistCount >= totalRequiredChecklist
+                      ? 'All mandatory document checklist items verified by VRO'
+                      : `${totalRequiredChecklist - verifiedChecklistCount} verification items pending approval`}
+                  </div>
+                </div>
               </div>
+              <span className="digi-progress-pct">
+                {Math.round((verifiedChecklistCount / Math.max(1, totalRequiredChecklist)) * 100)}%
+              </span>
             </div>
-            <span className="font-mono font-bold text-xs bg-white px-2 py-1 rounded border">{Math.round((verifiedChecklistCount / Math.max(1, totalRequiredChecklist)) * 100)}%</span>
+
+            <div className="digi-checklist-list">
+              {activeChecklistItems.map((item) => {
+                const isChecked = !!checklist[item.id];
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => toggleChecklist(item.id)}
+                    className={`digi-checklist-row ${isChecked ? 'is-checked' : ''}`}
+                  >
+                    <label className="digi-check-label" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleChecklist(item.id)}
+                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#0b2545' }}
+                      />
+                      <span>
+                        <strong>{item.labelEn}</strong>
+                        {item.labelTe && (
+                          <span style={{ color: '#b45309', fontFamily: 'serif', marginLeft: 6, fontSize: '0.75rem' }}>
+                            ({item.labelTe})
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <div>{getConfidenceBadge(item.confidence)}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="bg-white p-3 rounded-md border border-slate-300 space-y-2">
-            <div className="text-[11px] font-bold text-navy-900 uppercase flex items-center gap-1.5">
-              <FileCheck className="w-3.5 h-3.5" />
-              <span>Document Type Checklist:</span>
-            </div>
-            <div className="space-y-1.5">
-              {activeChecklistItems.map((item) => (
-                <div key={item.id} className={`flex items-start justify-between p-2 rounded border text-xs ${checklist[item.id] ? 'bg-green-50' : 'bg-slate-50'}`}>
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" checked={!!checklist[item.id]} onChange={() => toggleChecklist(item.id)} className="w-4 h-4 cursor-pointer" />
-                    <label className="font-bold">{item.labelEn}</label>
+          <WorkspacePanel
+            title={
+              documentType === 'ROR_1B'
+                ? '1. ROR KHATA & PATTADAR IDENTIFIERS'
+                : documentType === 'MUTATION'
+                ? '1. MUTATION PROCEEDING & NEW OWNER (TRANSFEREE)'
+                : documentType === 'PASSBOOK'
+                ? '1. PATTADAR PASSBOOK & OWNER DETAILS'
+                : documentType === 'PARTITION'
+                ? '1. ANCESTRAL PATTADAR & PROCEEDING RECORD'
+                : '1. POSSESSION & CULTIVATOR DETAILS'
+            }
+          >
+            {renderFieldCard('ownerName', data.ownerName, documentType === 'MUTATION' ? 'New Pattadar (Transferee)' : 'Pattadar / Owner Name', 'పట్టాదారు పేరు')}
+            {renderFieldCard('fatherOrHusbandName', data.fatherOrHusbandName, 'Father / Husband Name', 'తండ్రి / భర్త పేరు')}
+            {documentType === 'ROR_1B' && renderFieldCard('khataNumber', data.khataNumber, 'Khata Number', 'ఖాతా నంబరు')}
+            {documentType === 'MUTATION' && renderFieldCard('mutationRef', data.mutationRef, 'Mutation Proceeding Ref', 'మ్యూటేషన్ నడపడి సంఖ్య')}
+            {documentType === 'PASSBOOK' && renderFieldCard('registrationRef', data.registrationRef, 'Passbook / Title Deed No', 'పాస్‌బుక్ నంబరు')}
+          </WorkspacePanel>
+
+          <WorkspacePanel
+            title={
+              documentType === 'ROR_1B'
+                ? '2. ROR SURVEY PARCEL SCHEDULE'
+                : documentType === 'MUTATION'
+                ? '2. MUTATED SURVEY PARCEL & EXTENT'
+                : documentType === 'PASSBOOK'
+                ? '2. PASSBOOK LAND SCHEDULE'
+                : '2. LAND PARCEL & EXTENT IDENTIFICATION'
+            }
+          >
+            {renderFieldCard('surveyNumber', data.surveyNumber, 'Survey Number', 'సర్వే నంబరు')}
+            {renderFieldCard('subDivisionNumber', data.subDivisionNumber, 'Sub-Division Number', 'సబ్‌డివిజన్ నంబరు')}
+            {documentType !== 'ROR_1B' && renderFieldCard('khataNumber', data.khataNumber, 'Khata Number', 'ఖాతా నంబరు')}
+            {renderFieldCard('extentAcres', data.extentAcres, 'Extent (Acres.Cents)', 'విస్తీర్ణం (ఎకరాలు.సెంట్లు)')}
+            {renderFieldCard('landClassification', data.landClassification, 'Land Classification / Nature', 'భూమి వర్గీకరణ')}
+          </WorkspacePanel>
+
+          <WorkspacePanel title="3. ADMINISTRATIVE JURISDICTION & RECORD DATE">
+            {renderFieldCard('villageName', data.villageName, 'Village Name', 'గ్రామం పేరు')}
+            {renderFieldCard('mandalName', data.mandalName, 'Mandal Name', 'మండలం పేరు')}
+            {renderFieldCard('revenueDivision', data.revenueDivision, 'Revenue Division', 'రెవెన్యూ డివిజన్')}
+            {renderFieldCard('districtName', data.districtName, 'District Name', 'జిల్లా పేరు')}
+            {renderFieldCard('documentDate', data.documentDate, 'Record / Proceeding Date', 'రికార్డు / ప్రొసీడింగ్ తేదీ')}
+          </WorkspacePanel>
+
+          {(documentType === 'ADANGAL' ||
+            documentType === 'PASSBOOK' ||
+            documentType === 'PARTITION' ||
+            data.boundaries.east?.value ||
+            data.boundaries.north?.value) && (
+            <WorkspacePanel title="4. FOUR SIDE LAND BOUNDARIES (చతురస్ర పరిమితులు)">
+              {renderFieldCard('boundaryEast', data.boundaries.east, 'East Boundary', 'తూర్పు సరిహద్దు')}
+              {renderFieldCard('boundaryWest', data.boundaries.west, 'West Boundary', 'పశ్చిమ సరిహద్దు')}
+              {renderFieldCard('boundaryNorth', data.boundaries.north, 'North Boundary', 'ఉత్తర సరిహద్దు')}
+              {renderFieldCard('boundarySouth', data.boundaries.south, 'South Boundary', 'దక్షిణ సరిహద్దు')}
+            </WorkspacePanel>
+          )}
+
+          {data.parties && data.parties.value && data.parties.value.length > 0 && (
+            <WorkspacePanel title={`5. PARTITION & INHERITANCE SHARES (${data.parties.value.length} HEIR PARTIES)`}>
+              {data.parties.value.map((party: PartyShare, pIdx: number) => (
+                <div
+                  key={pIdx}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 6,
+                    padding: '10px 14px',
+                    fontSize: '0.8rem',
+                    fontFamily: 'monospace'
+                  }}
+                >
+                  <div style={{ fontWeight: 800, color: '#0b2545', marginBottom: 4 }}>{party.name}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, color: '#475569', fontSize: '0.75rem' }}>
+                    <div>Relationship: {party.relationship}</div>
+                    <div>Share: {party.share}</div>
+                    <div>Extent: {party.extent}</div>
+                    <div>Survey: {party.surveyNumber || 'N/A'}</div>
                   </div>
-                  {getConfidenceBadge(item.confidence)}
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="space-y-4 max-h-[640px] overflow-auto pr-1">
-            {hasGroqCustomSections ? (
-              data.customSections!.map((section, sIdx) => (
-                <WorkspacePanel key={section.sectionId || sIdx} title={`${sIdx + 1}. ${section.sectionTitle.toUpperCase()}`}>
-                  <div className="space-y-2.5">
-                    {section.fields.map((field) =>
-                      renderGenericFieldCard(field.fieldId, field.labelEn, field.labelTe, field.value, field.confidence, field.evidence)
-                    )}
-                  </div>
-                </WorkspacePanel>
-              ))
-            ) : (
-              <>
-                <WorkspacePanel title="1. OWNER & IDENTITY">
-                  <div className="space-y-2.5">
-                    {renderFieldCard('ownerName', data.ownerName)}
-                    {renderFieldCard('fatherOrHusbandName', data.fatherOrHusbandName)}
-                  </div>
-                </WorkspacePanel>
-                <WorkspacePanel title="2. LAND IDENTIFICATION">
-                  <div className="space-y-2.5">
-                    {renderFieldCard('surveyNumber', data.surveyNumber)}
-                    {renderFieldCard('extentAcres', data.extentAcres)}
-                  </div>
-                </WorkspacePanel>
-                <WorkspacePanel title="3. ADMINISTRATIVE JURISDICTION">
-                  <div className="space-y-2.5">
-                    {renderFieldCard('villageName', data.villageName)}
-                    {renderFieldCard('districtName', data.districtName)}
-                  </div>
-                </WorkspacePanel>
-              </>
-            )}
-          </div>
+            </WorkspacePanel>
+          )}
         </div>
       </div>
     </div>

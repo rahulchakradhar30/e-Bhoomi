@@ -13,13 +13,24 @@ export const WorkspacePanel: React.FC<WorkspacePanelProps> = ({
   title,
   guidance,
   className = '',
-  children
+  children,
 }) => {
   return (
-    <div className={`workspace-panel ${className}`}>
-      {title && <h2 className="panel-title-text">{title}</h2>}
-      {guidance && <p className="panel-guidance-text">{guidance}</p>}
-      {children}
+    <div className={`digi-panel ${className}`}>
+      {title && (
+        <div className="digi-panel-header">
+          <span>{title}</span>
+        </div>
+      )}
+      <div className="digi-panel-body">
+        {guidance && (
+          <p style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic', marginBottom: '4px' }}>
+            {guidance}
+          </p>
+        )}
+        {children}
+      </div>
     </div>
   );
 };
+
