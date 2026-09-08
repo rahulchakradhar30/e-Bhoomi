@@ -245,7 +245,7 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
                   className="mt-0.5 w-4 h-4 text-navy-900 rounded border-slate-400 focus:ring-navy-800"
                 />
                 <span className="text-xs font-bold text-navy-900">
-                  [✓] I confirm and accept official responsibility for this land record digitization.
+                  I confirm and accept official responsibility for this land record digitization.
                 </span>
               </label>
 
@@ -257,7 +257,7 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
                   className="mt-0.5 w-4 h-4 text-navy-900 rounded border-slate-400 focus:ring-navy-800"
                 />
                 <span className="text-xs font-bold text-navy-900">
-                  [✓] I understand that after final submission, I cannot directly edit the finalized digitization record.
+                  I understand that after final submission, I cannot directly edit the finalized digitization record.
                 </span>
               </label>
             </div>

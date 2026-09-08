@@ -44,7 +44,7 @@ export function getMailTransporter(): Transporter | null {
       error: 'GMAIL_USER or GMAIL_APP_PASSWORD environment variable is not set.'
     };
     console.warn(
-      '[e-Bhoomi Mailer] ⚠️  GMAIL_USER / GMAIL_APP_PASSWORD not configured. ' +
+      '[e-Bhoomi Mailer] [WARNING] GMAIL_USER / GMAIL_APP_PASSWORD not configured. ' +
       'Credential emails will be logged to server console only (mock mode).'
     );
     return null;

@@ -52,7 +52,7 @@ export function officerAccountCreatedTemplate(data: OfficerAccountCreatedData): 
           <tr>
             <td style="background:linear-gradient(135deg,#1e3a5f 0%,#0f6b3d 100%);padding:28px 32px;">
               <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.5px;">
-                🏛 e-Bhoomi — National Land Records Portal
+                e-Bhoomi — National Land Records Portal
               </h1>
               <p style="margin:6px 0 0;color:#a7f3d0;font-size:13px;">
                 Department of Land Resources, Ministry of Rural Development
@@ -110,7 +110,7 @@ export function officerAccountCreatedTemplate(data: OfficerAccountCreatedData): 
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border:1px solid #fee2e2;border-left:4px solid #b91c1c;border-radius:6px;margin-bottom:24px;">
                 <tr>
                   <td style="padding:16px;">
-                    <p style="margin:0;color:#991b1b;font-size:13px;font-weight:700;">⚠ MANDATORY SECURITY ACTION</p>
+                    <p style="margin:0;color:#991b1b;font-size:13px;font-weight:700;">MANDATORY SECURITY ACTION</p>
                     <p style="margin:6px 0 0;color:#7f1d1d;font-size:13px;line-height:1.5;">
                       You <strong>must change your temporary password immediately</strong> after your first successful login.
                       Access to operational revenue workspace features will be restricted until this step is completed.
@@ -154,7 +154,7 @@ export function officerTransferredTemplate(data: OfficerTransferredData): { subj
   <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;max-width:600px;margin:0 auto;">
     <tr>
       <td style="background:linear-gradient(135deg,#1e3a5f,#0f6b3d);padding:24px 32px;">
-        <h1 style="margin:0;color:#ffffff;font-size:18px;">🔄 Jurisdiction Transfer — e-Bhoomi</h1>
+        <h1 style="margin:0;color:#ffffff;font-size:18px;">Jurisdiction Transfer — e-Bhoomi</h1>
       </td>
     </tr>
     <tr>
@@ -192,7 +192,7 @@ export function accountSuspendedTemplate(data: AccountSuspendedData): { subject:
   <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #fee2e2;max-width:600px;margin:0 auto;">
     <tr>
       <td style="background:#b91c1c;padding:24px 32px;">
-        <h1 style="margin:0;color:#ffffff;font-size:18px;">⚠ Account Suspended — e-Bhoomi</h1>
+        <h1 style="margin:0;color:#ffffff;font-size:18px;">Account Suspended — e-Bhoomi</h1>
       </td>
     </tr>
     <tr>
@@ -226,7 +226,7 @@ export function adminOtpTemplate(data: AdminOtpData): { subject: string; html: s
   <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;max-width:600px;margin:0 auto;overflow:hidden;">
     <tr>
       <td style="background:linear-gradient(135deg,#1e3a5f 0%,#0f6b3d 100%);padding:28px 32px;">
-        <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">🔐 e-Bhoomi Admin Console</h1>
+        <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">e-Bhoomi Admin Console</h1>
         <p style="margin:6px 0 0;color:#a7f3d0;font-size:13px;">Two-Factor Authentication Code</p>
       </td>
     </tr>
@@ -253,7 +253,7 @@ export function adminOtpTemplate(data: AdminOtpData): { subject: string; html: s
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border:1px solid #fee2e2;border-left:4px solid #b91c1c;border-radius:6px;margin-bottom:24px;">
           <tr>
             <td style="padding:14px 16px;">
-              <p style="margin:0;color:#991b1b;font-size:13px;font-weight:700;">⚠ Security Notice</p>
+              <p style="margin:0;color:#991b1b;font-size:13px;font-weight:700;">Security Notice</p>
               <p style="margin:6px 0 0;color:#7f1d1d;font-size:13px;line-height:1.5;">
                 If you did not initiate this login, your credentials may be compromised.
                 <strong>Do not share this code with anyone.</strong>

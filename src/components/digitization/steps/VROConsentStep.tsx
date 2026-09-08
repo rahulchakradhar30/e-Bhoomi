@@ -169,7 +169,7 @@ export const VROConsentStep: React.FC<VROConsentStepProps> = ({
             />
             <div className="text-xs">
               <span className="font-bold text-navy-900 block">
-                [✓] Physical Verification Confirmation
+                Physical Verification Confirmation
               </span>
               <span className="text-slate-700">
                 I confirm that I have physically inspected and verified the physical paper document prior to uploading into e-BHOOMI.
@@ -194,7 +194,7 @@ export const VROConsentStep: React.FC<VROConsentStepProps> = ({
             />
             <div className="text-xs">
               <span className="font-bold text-navy-900 block">
-                [✓] Assistive AI & Human Verification Duty
+                Assistive AI & Human Verification Duty
               </span>
               <span className="text-slate-700">
                 I understand that AI-extracted information must be meticulously reviewed, checked against the original document, and corrected by me.
@@ -219,7 +219,7 @@ export const VROConsentStep: React.FC<VROConsentStepProps> = ({
             />
             <div className="text-xs">
               <span className="font-bold text-navy-900 block">
-                [✓] Official Responsibility Acceptance
+                Official Responsibility Acceptance
               </span>
               <span className="text-slate-700">
                 I accept full official responsibility for the authenticity of the physical record and the data I approve for final digitization.

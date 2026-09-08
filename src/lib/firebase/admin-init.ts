@@ -25,7 +25,7 @@ export const getFirebaseAdminApp = (): admin.app.App => {
 
   // If credentials are missing, create a placeholder app to avoid build-time errors during Next.js static pre-rendering
   if (!projectId || !clientEmail || !privateKey) {
-    console.warn('⚠️ FIREBASE_ADMIN_* environment variables are missing. Initializing fallback/emulator/placeholder app.');
+    console.warn('[Firebase Admin] FIREBASE_ADMIN_* environment variables are missing. Initializing fallback/emulator/placeholder app.');
     
     // In emulator mode:
     if (process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST) {

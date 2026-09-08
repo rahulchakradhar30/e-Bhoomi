@@ -198,7 +198,7 @@ export async function sendTestEmail(
   const subject = 'e-Bhoomi — SMTP Connectivity Test';
   const html = `
     <div style="font-family:sans-serif;padding:20px;max-width:500px;">
-      <h2 style="color:#0f6b3d;">✅ e-Bhoomi Email Service — Test Successful</h2>
+      <h2 style="color:#0f6b3d;">e-Bhoomi Email Service — Test Successful</h2>
       <p>This is a controlled test email confirming that the Gmail SMTP transport
       is correctly configured for the e-Bhoomi administration system.</p>
       <p style="color:#64748b;font-size:12px;">No credentials or secrets are included in this message.</p>

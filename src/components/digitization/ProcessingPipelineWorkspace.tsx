@@ -43,14 +43,14 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
   const [activeTextTab, setActiveTextTab] = useState<'extracted' | 'structured' | 'checklist'>('extracted');
 
   const stages = [
-    '✓ Document Upload & Storage Reference Verified (Original Scan Preserved)',
-    '✓ Server-Side OpenCV Preprocessing (Deskew, Denoise, CLAHE & Diagnostics)',
-    '✓ Llama API Multimodal Document Text Extraction (Telugu & English)',
-    '✓ Extracted Document Text Return & Page Traceability',
-    '✓ Groq AI Structured Land-Record Extraction (JSON Schema Constrained)',
-    '✓ Deterministic Validation Engine (Master Data & Business Rules)',
-    '✓ Final Verification Checklist Generation & Evidence Compilation',
-    '✓ Ready for Officer Review & Human Verification',
+    'Document Upload & Storage Reference Verified (Original Scan Preserved)',
+    'Server-Side OpenCV Preprocessing (Deskew, Denoise, CLAHE & Diagnostics)',
+    'Llama API Multimodal Document Text Extraction (Telugu & English)',
+    'Extracted Document Text Return & Page Traceability',
+    'Groq AI Structured Land-Record Extraction (JSON Schema Constrained)',
+    'Deterministic Validation Engine (Master Data & Business Rules)',
+    'Final Verification Checklist Generation & Evidence Compilation',
+    'Ready for Officer Review & Human Verification',
   ];
 
   const executePipeline = async () => {

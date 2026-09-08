@@ -5,7 +5,7 @@ import { auth } from '@/lib/firebase/auth';
 import { getStates, getDistricts, getSubdistricts, getSachivalayams } from '@/services/administrativeDataService';
 import { APP_CONFIG } from '@/config/appConfig';
 import { UserRole } from '@/types';
-import { UserPlus, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Mail } from 'lucide-react';
+import { UserPlus, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Mail, AlertTriangle } from 'lucide-react';
 
 interface ProvisionResult {
   success: boolean;
@@ -125,7 +125,7 @@ export const OfficerCreateForm: React.FC = () => {
                 <Mail className="w-3.5 h-3.5" />
                 {result.emailDelivered
                   ? <span>Credentials email dispatched to officer's mailbox.</span>
-                  : <span style={{ color: '#b45309' }}>⚠ Email delivery failed: {result.emailError}. Credentials are set — use <strong>Resend Credentials</strong> from the officer profile.</span>
+                  : <span style={{ color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: 4 }}><AlertTriangle className="w-3.5 h-3.5" style={{ color: '#b45309', flexShrink: 0 }} /> Email delivery failed: {result.emailError}. Credentials are set — use <strong>Resend Credentials</strong> from the officer profile.</span>
                 }
               </div>
             </div>
