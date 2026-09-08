@@ -84,10 +84,10 @@ class PythonGroqProvider:
             "model": model,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
+                {"role": "user", "content": user_prompt + "\n\nOutput only valid JSON."},
             ],
             "temperature": 0.1,
-            "max_tokens": 1024,
+            "max_tokens": 4096,
         }).encode("utf-8")
 
         headers = {
