@@ -31,6 +31,8 @@ export interface PreprocessedPage {
   isDeskewed: boolean;
   isCropped: boolean;
   status: PipelineStageStatus;
+  base64Preview?: string;
+  diagnostics?: any;
 }
 
 export interface ClassificationSignal {
@@ -185,6 +187,8 @@ export interface DocumentProcessingJob {
   preprocessedPages: PreprocessedPage[];
   classificationResult?: ClassificationResult;
   ocrResult?: NormalizedOCRResult;
+  llamaResult?: any;
+  groqResult?: any;
   visionResult?: ComputerVisionResult;
   documentQuality?: DocumentQualityDiagnostic;
   normalizedRepresentation?: NormalizedDocumentRepresentation;
@@ -192,6 +196,8 @@ export interface DocumentProcessingJob {
   preprocessingStatus: PipelineStageStatus;
   classificationStatus: PipelineStageStatus;
   ocrStatus: PipelineStageStatus;
+  llamaStatus?: PipelineStageStatus;
+  groqStatus?: PipelineStageStatus;
   visionStatus: PipelineStageStatus;
   overallStatus: OverallProcessingStatus;
 

@@ -1,0 +1,9 @@
+# Pyrefly Configuration for ai-service
+[tool.pyrefly]
+project-roots = ["."]
+exclude = [
+    "**/__pyrefly_virtual__/**",
+    "**/inmemory/**",
+    "**/.venv/**",
+    "**/venv/**"
+]

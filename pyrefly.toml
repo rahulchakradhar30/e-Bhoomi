@@ -1,0 +1,10 @@
+# Pyrefly Configuration for e-Bhoomi
+[tool.pyrefly]
+project-roots = ["ai-service"]
+exclude = [
+    "**/__pyrefly_virtual__/**",
+    "**/inmemory/**",
+    "**/.venv/**",
+    "**/node_modules/**",
+    "**/.next/**"
+]

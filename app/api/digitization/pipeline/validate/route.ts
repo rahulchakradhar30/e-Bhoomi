@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
       documentType || 'ADANGAL'
     );
 
+    console.log(`[VALIDATION] validation completed (status: ${validationResult.status})`);
+
     return NextResponse.json({
       success: true,
       validationResult,

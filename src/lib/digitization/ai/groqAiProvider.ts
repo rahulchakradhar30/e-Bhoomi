@@ -25,19 +25,61 @@ export class GroqAIProvider implements BaseAIProvider {
       };
     }
 
-    const textToProcess = input.translatedText || input.nlpText || input.rawOcrText || '';
+    const textToProcess =
+      input.llamaExtractedText ||
+      input.extractedText ||
+      input.translatedText ||
+      input.nlpText ||
+      input.rawOcrText ||
+      '';
+
+    if (!textToProcess || !textToProcess.trim()) {
+      return {
+        success: true,
+        extractedRecord: {
+          districtName: null,
+          revenueDivision: null,
+          mandalName: null,
+          villageName: null,
+          surveyNumber: null,
+          subDivisionNumber: null,
+          khataNumber: null,
+          ownerName: null,
+          fatherOrHusbandName: null,
+          relationship: null,
+          extentAcres: null,
+          landClassification: null,
+          documentDate: null,
+          registrationNumber: null,
+          mutationReference: null,
+          boundaries: {
+            east: null,
+            west: null,
+            north: null,
+            south: null,
+          },
+        },
+        status: 'SUCCESS' as const,
+        modelUsed: this.modelIdentifier,
+        rawMetadata: {
+          promptVersion: this.promptVersion,
+          note: 'Empty extracted text provided; structured record initialized with all null fields without hallucination.',
+        },
+      };
+    }
 
     const systemPrompt = `You are an expert Indian Land Record Data Extraction AI for e-Bhoomi (SIH26018).
-Extract land record attributes from the provided OCR/NLP document text.
+Extract land record attributes from the provided Llama-extracted document text.
 STRICT RULES:
 1. Extract ONLY facts supported by the provided text.
-2. DO NOT invent missing names, survey numbers, khata numbers, or extent values.
+2. DO NOT invent missing names, survey numbers, khata numbers, boundaries, or extent values.
 3. If a field is not mentioned or missing, return null.
 4. Output MUST be valid JSON conforming strictly to the requested schema.
 
 JSON SCHEMA:
 {
   "districtName": "string or null",
+  "revenueDivision": "string or null",
   "mandalName": "string or null",
   "villageName": "string or null",
   "surveyNumber": "string or null",
@@ -50,7 +92,13 @@ JSON SCHEMA:
   "landClassification": "string or null",
   "documentDate": "string or null",
   "registrationNumber": "string or null",
-  "mutationReference": "string or null"
+  "mutationReference": "string or null",
+  "boundaries": {
+    "east": "string or null",
+    "west": "string or null",
+    "north": "string or null",
+    "south": "string or null"
+  }
 }`;
 
     const userPrompt = `Document Category: ${input.documentCategory || 'LAND_RECORD'}\nDetected Language: ${input.detectedLanguage || 'TELUGU/ENGLISH'}\n\nDocument Text:\n${textToProcess}`;

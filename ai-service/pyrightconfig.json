@@ -1,7 +1,14 @@
 {
   "include": [
-    "app",
-    ".."
+    "app"
+  ],
+  "exclude": [
+    "**/__pyrefly_virtual__/**",
+    "**/inmemory/**",
+    "**/node_modules",
+    "**/__pycache__",
+    "venv",
+    ".venv"
   ],
   "extraPaths": [
     ".",

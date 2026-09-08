@@ -10,7 +10,9 @@ export interface AIProviderConfig {
 }
 
 export interface AIExtractionInput {
-  rawOcrText: string;
+  llamaExtractedText?: string;
+  extractedText?: string;
+  rawOcrText?: string;
   normalizedText?: string;
   nlpText?: string;
   translatedText?: string;

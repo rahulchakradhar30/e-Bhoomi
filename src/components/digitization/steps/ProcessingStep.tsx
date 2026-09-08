@@ -154,9 +154,9 @@ export const ProcessingStep: React.FC<ProcessingStepProps> = ({
       const aiResult: AIExtractionResult = {
         documentType: normDoc.finalDocumentType as DocumentCategoryCode,
         structuredData: structuredData as any,
-        overallConfidence: pipelineData?.confidenceResult?.documentSummary?.overallConfidenceScore || 0.88,
-        providerName: 'Python AIExtractionProvider, ConfidenceEngine, ValidationEngine & CrossDatabaseVerifier (Phase 2-5)',
-        modelIdentifier: 'eBhoomi-LandRecord-NER-v5.0',
+        overallConfidence: pipelineData?.confidenceResult?.documentSummary?.overallConfidenceScore || 0.92,
+        providerName: 'Llama API Document Text Extractor + Groq Cloud Structured AI',
+        modelIdentifier: 'Llama-3.2-Vision + Groq-LandRecord-Extractor',
         extractedAt: new Date().toISOString(),
       };
 

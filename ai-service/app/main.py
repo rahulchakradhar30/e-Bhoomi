@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.preprocess_router import router as preprocess_router
+from app.api.llama_router import router as llama_router
 from app.api.ocr_router import router as ocr_router
 from app.api.nlp_router import router as nlp_router
 from app.api.translation_router import router as translation_router
@@ -12,8 +13,8 @@ from app.api.verification_router import router as verification_router
 
 app = FastAPI(
     title="e-Bhoomi Python Document Processing AI Service",
-    description="OpenCV pre-processing, Telugu OCR, Indic NLP, IndicTrans2 translation, AI/NLP extraction, confidence scoring, validation, cross-database verification & audit ledger service for Intelligent Land Record Digitization & Validation (SIH26018)",
-    version="6.0.0",
+    description="OpenCV pre-processing, Llama API text extraction, Groq AI extraction, validation, cross-database verification & audit ledger service for Intelligent Land Record Digitization & Validation (SIH26018)",
+    version="7.0.0",
 )
 
 # CORS configuration for secure Next.js API integration
@@ -26,14 +27,15 @@ app.add_middleware(
 )
 
 app.include_router(preprocess_router)
+app.include_router(llama_router)
+app.include_router(extraction_router)
+app.include_router(validation_router)
+app.include_router(confidence_router)
+app.include_router(integrations_router)
+app.include_router(verification_router)
 app.include_router(ocr_router)
 app.include_router(nlp_router)
 app.include_router(translation_router)
-app.include_router(extraction_router)
-app.include_router(confidence_router)
-app.include_router(validation_router)
-app.include_router(integrations_router)
-app.include_router(verification_router)
 
 @app.get("/health")
 def health_check():

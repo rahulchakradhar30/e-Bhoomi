@@ -1,7 +1,15 @@
 {
   "include": [
-    "ai-service",
-    "scripts"
+    "ai-service/app"
+  ],
+  "exclude": [
+    "**/__pyrefly_virtual__/**",
+    "**/inmemory/**",
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv",
+    ".next",
+    "dist"
   ],
   "extraPaths": [
     "ai-service",

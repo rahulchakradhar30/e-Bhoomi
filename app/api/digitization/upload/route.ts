@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log(`[UPLOAD] document received (name: ${file.name}, type: ${file.type}, size: ${file.size} bytes)`);
+
     // Generate secure Cloudinary storage reference ID
     const refId = `DOC-${Date.now()}-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
     const storageReference = cloudinaryStorage.createStorageReference(
@@ -41,6 +43,7 @@ export async function POST(req: NextRequest) {
       refId,
       file.name
     );
+    console.log(`[STORAGE] storageReference resolved`);
 
     // Read real binary buffer from uploaded file
     const buffer = await file.arrayBuffer();

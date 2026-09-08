@@ -35,18 +35,27 @@ class PythonGroqProvider:
         base_url = os.environ.get("GROQ_API_BASE_URL", "https://api.groq.com/openai/v1")
         url = f"{base_url}/chat/completions"
 
-        text_to_process = payload.get("translatedText") or payload.get("nlpText") or payload.get("rawOcrText") or ""
+        text_to_process = (
+            payload.get("llamaExtractedText")
+            or payload.get("extractedText")
+            or payload.get("fullText")
+            or payload.get("translatedText")
+            or payload.get("nlpText")
+            or payload.get("rawOcrText")
+            or ""
+        )
 
         system_prompt = (
             "You are an expert Indian Land Record Data Extraction AI for e-Bhoomi (SIH26018).\n"
-            "Extract land record attributes from the provided OCR/NLP document text.\n"
+            "Extract structured land record attributes from the provided Llama-extracted document text.\n"
             "STRICT RULES:\n"
-            "1. Extract ONLY facts supported by the provided text.\n"
-            "2. DO NOT invent missing names, survey numbers, khata numbers, or extent values.\n"
-            "3. If a field is missing, return null.\n"
+            "1. Extract ONLY facts explicitly supported by the provided text.\n"
+            "2. DO NOT invent or hallucinate missing names, survey numbers, khata numbers, boundaries, or extent values.\n"
+            "3. If a field cannot be supported by the extracted text, return null.\n"
             "4. Output MUST be valid JSON conforming strictly to schema:\n"
             "{\n"
             '  "districtName": "string or null",\n'
+            '  "revenueDivision": "string or null",\n'
             '  "mandalName": "string or null",\n'
             '  "villageName": "string or null",\n'
             '  "surveyNumber": "string or null",\n'
@@ -59,11 +68,17 @@ class PythonGroqProvider:
             '  "landClassification": "string or null",\n'
             '  "documentDate": "string or null",\n'
             '  "registrationNumber": "string or null",\n'
-            '  "mutationReference": "string or null"\n'
+            '  "mutationReference": "string or null",\n'
+            '  "boundaries": {\n'
+            '    "east": "string or null",\n'
+            '    "west": "string or null",\n'
+            '    "north": "string or null",\n'
+            '    "south": "string or null"\n'
+            '  }\n'
             "}"
         )
 
-        user_prompt = f"Document Category: {payload.get('documentCategory', 'LAND_RECORD')}\nDocument Text:\n{text_to_process}"
+        user_prompt = f"Document Category: {payload.get('documentCategory') or payload.get('documentType') or 'LAND_RECORD'}\nExtracted Document Text:\n{text_to_process}"
 
         req_body = json.dumps({
             "model": model,

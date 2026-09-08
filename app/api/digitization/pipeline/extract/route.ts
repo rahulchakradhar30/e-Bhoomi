@@ -4,7 +4,17 @@ import { GroqAIProvider } from '@/lib/digitization/ai/groqAiProvider';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { rawOcrText, normalizedText, nlpText, translatedText, detectedLanguage, documentCategory } = body;
+    const {
+      llamaExtractedText,
+      extractedText,
+      rawOcrText,
+      normalizedText,
+      nlpText,
+      translatedText,
+      detectedLanguage,
+      documentCategory,
+      documentType,
+    } = body;
 
     const groqProvider = new GroqAIProvider();
     const isConfigured = await groqProvider.healthCheck();
@@ -35,16 +45,21 @@ export async function POST(req: NextRequest) {
       console.warn('Python Groq Extraction Service offline, executing TypeScript GroqAIProvider fallback:', err);
     }
 
+    console.log(`[GROQ] request started (model: ${groqProvider.modelIdentifier})`);
+
     // TypeScript GroqAIProvider Fallback
     const result = await groqProvider.extractStructuredRecord({
-      rawOcrText: rawOcrText || '',
+      llamaExtractedText: llamaExtractedText || extractedText || rawOcrText || '',
+      extractedText: extractedText || llamaExtractedText || rawOcrText || '',
+      rawOcrText: rawOcrText || llamaExtractedText || '',
       normalizedText,
       nlpText,
       translatedText,
       detectedLanguage,
-      documentCategory,
+      documentCategory: documentCategory || documentType,
     });
 
+    console.log(`[GROQ] structured extraction completed (status: ${result.status})`);
     return NextResponse.json(result);
   } catch (err: any) {
     console.error('Extraction API error:', err);
