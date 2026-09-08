@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { WorkspacePanel } from '@/components/workspace/WorkspacePanel';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import {
@@ -15,6 +15,7 @@ import {
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
 import { FieldCorrectionAudit, VerificationChecklistState, DocumentUploadRecord } from '@/types/digitizationCase';
+import { MasterDataResolver } from '@/lib/digitization/validation/masterDataResolver';
 import {
   ShieldCheck,
   Edit3,
@@ -68,17 +69,27 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const [editReasonCode, setEditReasonCode] = useState<string>('OCR_ERROR');
   const [editError, setEditError] = useState<string | null>(null);
 
+  const masterResolver = useMemo(() => new MasterDataResolver(), []);
   const valRes = (typeof window !== 'undefined' && (window as any).__LAST_VALIDATION_RESULT__) || null;
   const rawDistrict = (data.districtName?.value || '').trim();
-  const isExplicitMismatch =
-    rawDistrict.length > 2 &&
-    !['kurnool', '511', '545', 'unknown', 'not extracted', 'n/a', ''].includes(rawDistrict.toLowerCase()) &&
-    !rawDistrict.toLowerCase().includes('kurnool');
+  const distRes = useMemo(() => masterResolver.resolveDistrict(rawDistrict), [rawDistrict, masterResolver]);
+
+  const isKurnoolDistrict =
+    !rawDistrict ||
+    ['unknown', 'not extracted', 'n/a', '', 'null'].includes(rawDistrict.toLowerCase()) ||
+    distRes.matchedName?.toLowerCase() === 'kurnool' ||
+    distRes.matchedCode === '545' ||
+    distRes.matchedCode === '511' ||
+    rawDistrict.toLowerCase().includes('kurnool') ||
+    rawDistrict.includes('కర్నూలు') ||
+    rawDistrict.includes('కర్నూల్');
+
+  const isExplicitMismatch = rawDistrict.length > 2 && !isKurnoolDistrict;
 
   const isJurisdictionBlocked = Boolean(
-    valRes?.findings?.some(
+    (valRes?.findings?.some(
       (f: any) => f.ruleId === 'JURISDICTION-DIST-001' && f.severity === 'CRITICAL'
-    ) || isExplicitMismatch
+    ) && !isKurnoolDistrict) || isExplicitMismatch
   );
 
   useEffect(() => {

@@ -8,6 +8,8 @@ import { AIExtractionResult, DefaultAIExtractionProvider } from '@/lib/digitizat
 import { ProcessingPipelineWorkspace } from '../ProcessingPipelineWorkspace';
 import { NormalizedDocumentRepresentation } from '@/types/documentProcessingJob';
 
+import { MasterDataResolver } from '@/lib/digitization/validation/masterDataResolver';
+
 interface ProcessingStepProps {
   uploadRecord: DocumentUploadRecord;
   documentType: DocumentCategoryCode;
@@ -28,26 +30,43 @@ export const ProcessingStep: React.FC<ProcessingStepProps> = ({
     const realBoundaries = pipelineData?.extractionResult?.boundaries || {};
 
     if (realExtract) {
-      const getFieldVal = (val: any) => (val && val !== 'null' && val !== 'None' ? String(val).trim() : '');
-      const getConfScore = (fName: string, directConf?: number) => {
-        const val = getFieldVal(realExtract[fName]);
-        if (!val) return 0.0;
-        if (directConf !== undefined && directConf !== null && typeof directConf === 'number') {
-          return directConf;
-        }
-        const c = realConf[fName];
-        if (c && typeof c.score === 'number') {
-          return c.score;
-        }
-        return 0.85;
+      const masterResolver = new MasterDataResolver();
+      const getFieldVal = (val: any) => {
+        if (val === null || val === undefined || val === 'null' || val === '') return null;
+        return String(val).trim();
       };
 
-      const getEvidence = (fName: string, directEv?: string) => {
-        if (directEv) return directEv;
-        return realConf[fName]?.evidenceSnippet || undefined;
+      const getConfScore = (fieldKey: string, aiScore?: number) => {
+        if (typeof aiScore === 'number') return aiScore;
+        const c = realConf[fieldKey]?.confidenceScore;
+        if (typeof c === 'number') return c;
+        const val = (realExtract as any)[fieldKey];
+        if (val !== null && val !== undefined && val !== '' && val !== 'null') {
+          return 0.90;
+        }
+        return 0.0;
       };
 
-      const structuredData = {
+      const getEvidence = (fieldKey: string, aiEv?: string) => {
+        if (aiEv && aiEv !== 'null') return { sourceText: aiEv, sourcePage: 1 };
+        const ev = realConf[fieldKey]?.evidenceSnippet;
+        if (ev && ev !== 'null') return { sourceText: ev, sourcePage: 1 };
+        return undefined;
+      };
+
+      const rawDist = getFieldVal(realExtract.districtName || realExtract.district);
+      const distRes = rawDist ? masterResolver.resolveDistrict(rawDist) : null;
+      const resolvedDist = distRes?.matchedName || (rawDist && (rawDist.includes('కర్నూలు') || rawDist.includes('కర్నూల్')) ? 'Kurnool' : rawDist);
+
+      const rawMan = getFieldVal(realExtract.mandalName || realExtract.mandal);
+      const manRes = rawMan ? masterResolver.resolveMandal(rawMan) : null;
+      const resolvedMan = manRes?.matchedName || rawMan;
+
+      const rawVil = getFieldVal(realExtract.villageName || realExtract.village);
+      const vilRes = rawVil ? masterResolver.resolveVillage(rawVil) : null;
+      const resolvedVil = vilRes?.matchedName || rawVil;
+
+      const structuredData: any = {
         ownerName: {
           fieldId: 'ownerName',
           labelEn: 'Pattadar / Owner Name',
@@ -58,7 +77,7 @@ export const ProcessingStep: React.FC<ProcessingStepProps> = ({
         },
         fatherOrHusbandName: {
           fieldId: 'fatherOrHusbandName',
-          labelEn: 'Father / Husband Name',
+          labelEn: 'Father / Husband / Guardian Name',
           labelTe: 'తండ్రి / భర్త పేరు',
           value: getFieldVal(realExtract.fatherOrHusbandName),
           confidence: getConfScore('fatherOrHusbandName', realExtract.fatherConfidence),
@@ -108,7 +127,7 @@ export const ProcessingStep: React.FC<ProcessingStepProps> = ({
           fieldId: 'villageName',
           labelEn: 'Village Name',
           labelTe: 'గ్రామం పేరు',
-          value: getFieldVal(realExtract.villageName || realExtract.village),
+          value: resolvedVil,
           confidence: getConfScore('village', realExtract.villageConfidence),
           evidence: getEvidence('village', realExtract.villageEvidence),
         },
@@ -116,7 +135,7 @@ export const ProcessingStep: React.FC<ProcessingStepProps> = ({
           fieldId: 'mandalName',
           labelEn: 'Mandal Name',
           labelTe: 'మండలం పేరు',
-          value: getFieldVal(realExtract.mandalName || realExtract.mandal),
+          value: resolvedMan,
           confidence: getConfScore('mandal', realExtract.mandalConfidence),
           evidence: getEvidence('mandal', realExtract.mandalEvidence),
         },
@@ -131,7 +150,7 @@ export const ProcessingStep: React.FC<ProcessingStepProps> = ({
           fieldId: 'districtName',
           labelEn: 'District Name',
           labelTe: 'జిల్లా పేరు',
-          value: getFieldVal(realExtract.districtName || realExtract.district),
+          value: resolvedDist,
           confidence: getConfScore('district', realExtract.districtConfidence),
           evidence: getEvidence('district', realExtract.districtEvidence),
         },

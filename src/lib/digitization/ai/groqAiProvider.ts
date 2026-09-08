@@ -99,8 +99,12 @@ STRICT EXTRACTION & CONFIDENCE RULES:
 2. If a field is not present in the text, set value to null and confidence to 0.0.
 3. For present fields, calculate confidence between 0.50 and 0.99 based on OCR clarity, completeness, and contextual certainty.
 4. overallConfidence MUST be the true mathematical average of the present fields' confidence scores (or 0.0 if nothing was extracted). Never return a fake hardcoded 0.85.
-5. Provide the exact text snippet as 'evidence' for each extracted field where available.
-6. Generate customSections and checklist tailored specifically to the document type:
+5. Provide the exact text snippet as 'evidence' for each extracted field where available (keep original Telugu snippet in evidence).
+6. LANGUAGE & TRANSLATION REQUIREMENT:
+   - All extracted field VALUES (districtName, mandalName, villageName, ownerName, fatherOrHusbandName, landClassification, boundaries, customSections fields, etc.) MUST be returned in standard ENGLISH (translate or transliterate if original is Telugu, e.g., 'కర్నూలు' -> 'Kurnool', 'ఎస్. రమేష్' -> 'S. Ramesh', 'పట్టా భూమి' -> 'Patta Land / Dry Land', 'ఉల్చాల' -> 'Ulchala', 'కర్నూలు రూరల్' -> 'Kurnool Rural').
+   - For documentTitle and section/checklist titles, provide both English and Telugu in the designated fields (e.g. documentTitle in English, documentTitleTe in Telugu).
+   - In 'evidence' fields (e.g. districtEvidence, ownerEvidence), preserve the exact original raw text snippet from the document scan (Telugu or English).
+7. Generate customSections and checklist tailored specifically to the document type:
    - For ADANGAL: Include Possession & Cultivator Details, Crop/Tenancy Details, Land Parcel & Boundaries.
    - For ROR_1B: Include Khata Number, Pattadar & Guardian, Survey Schedule, Tax Assessment.
    - For PASSBOOK: Include Passbook/Title Deed Number, Pattadar Schedule, Issuing Authority & Signature.

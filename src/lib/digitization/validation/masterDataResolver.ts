@@ -12,11 +12,34 @@ export interface ResolutionResult {
 export class MasterDataResolver {
   public static MASTER_DATA_VERSION = '2025.1-Kurnool';
 
-  // Kurnool District Administrative Hierarchy
+  // All 26 Andhra Pradesh Districts Administrative Master Data
   private districts: MasterDataEntity[] = [
-    { id: 'DIST-545', code: '545', nameEn: 'Kurnool', nameTe: 'కర్నూలు', type: 'DISTRICT', aliases: ['కర్నూల్', 'Kurnool District'] },
-    { id: 'DIST-546', code: '546', nameEn: 'Nandyal', nameTe: 'నంద్యాల', type: 'DISTRICT', aliases: ['Nandyala'] },
-    { id: 'DIST-547', code: '547', nameEn: 'Anantapur', nameTe: 'అనంతపురం', type: 'DISTRICT', aliases: ['Anantapuramu'] },
+    { id: 'DIST-545', code: '545', nameEn: 'Kurnool', nameTe: 'కర్నూలు', type: 'DISTRICT', aliases: ['కర్నూల్', 'Kurnool District', '511'] },
+    { id: 'DIST-546', code: '546', nameEn: 'Nandyal', nameTe: 'నంద్యాల', type: 'DISTRICT', aliases: ['నంద్యాల్', 'Nandyala', '753'] },
+    { id: 'DIST-547', code: '547', nameEn: 'Anantapur', nameTe: 'అనంతపురం', type: 'DISTRICT', aliases: ['అనంతపూర్', 'Anantapuramu', '502'] },
+    { id: 'DIST-548', code: '548', nameEn: 'Sri Sathya Sai', nameTe: 'శ్రీ సత్యసాయి', type: 'DISTRICT', aliases: ['సత్యసాయి', 'Puttaparthi'] },
+    { id: 'DIST-504', code: '504', nameEn: 'YSR Kadapa', nameTe: 'వైఎస్ఆర్ కడప', type: 'DISTRICT', aliases: ['కడప', 'Kadapa', 'Cuddapah'] },
+    { id: 'DIST-754', code: '754', nameEn: 'Annamayya', nameTe: 'అన్నమయ్య', type: 'DISTRICT', aliases: ['Rayachoti', 'రాయచోటి'] },
+    { id: 'DIST-503', code: '503', nameEn: 'Chittoor', nameTe: 'చిత్తూరు', type: 'DISTRICT', aliases: ['చిత్తూర్', 'Chittoor District'] },
+    { id: 'DIST-755', code: '755', nameEn: 'Tirupati', nameTe: 'తిరుపతి', type: 'DISTRICT', aliases: ['Sri Balaji'] },
+    { id: 'DIST-515', code: '515', nameEn: 'SPSR Nellore', nameTe: 'శ్రీ పొట్టి శ్రీరాములు నెల్లూరు', type: 'DISTRICT', aliases: ['నెల్లూరు', 'Nellore'] },
+    { id: 'DIST-517', code: '517', nameEn: 'Prakasam', nameTe: 'ప్రకాశం', type: 'DISTRICT', aliases: ['ఒంగోలు', 'Ongole'] },
+    { id: 'DIST-756', code: '756', nameEn: 'Bapatla', nameTe: 'బాపట్ల', type: 'DISTRICT', aliases: ['Bapatla District'] },
+    { id: 'DIST-757', code: '757', nameEn: 'Palnadu', nameTe: 'పల్నాడు', type: 'DISTRICT', aliases: ['Narasaraopet', 'నరసరావుపేట'] },
+    { id: 'DIST-506', code: '506', nameEn: 'Guntur', nameTe: 'గుంటూరు', type: 'DISTRICT', aliases: ['గుంటూర్', 'Guntur District'] },
+    { id: 'DIST-510', code: '510', nameEn: 'Krishna', nameTe: 'కృష్ణా', type: 'DISTRICT', aliases: ['మచిలీపట్నం', 'Machilipatnam'] },
+    { id: 'DIST-758', code: '758', nameEn: 'NTR', nameTe: 'ఎన్టీఆర్', type: 'DISTRICT', aliases: ['విజయవాడ', 'Vijayawada'] },
+    { id: 'DIST-523', code: '523', nameEn: 'West Godavari', nameTe: 'పశ్చిమ గోదావరి', type: 'DISTRICT', aliases: ['భీమవరం', 'Bhimavaram'] },
+    { id: 'DIST-759', code: '759', nameEn: 'Eluru', nameTe: 'ఏలూరు', type: 'DISTRICT', aliases: ['Eluru District'] },
+    { id: 'DIST-505', code: '505', nameEn: 'East Godavari', nameTe: 'తూర్పు గోదావరి', type: 'DISTRICT', aliases: ['రాజమండ్రి', 'Rajahmundry'] },
+    { id: 'DIST-760', code: '760', nameEn: 'Kakinada', nameTe: 'కాకినాడ', type: 'DISTRICT', aliases: ['Kakinada District'] },
+    { id: 'DIST-761', code: '761', nameEn: 'Dr. B.R. Ambedkar Konaseema', nameTe: 'కోనసీమ', type: 'DISTRICT', aliases: ['అమలాపురం', 'Amalapuram'] },
+    { id: 'DIST-520', code: '520', nameEn: 'Visakhapatnam', nameTe: 'విశాఖపట్నం', type: 'DISTRICT', aliases: ['వైజాగ్', 'Vizag'] },
+    { id: 'DIST-762', code: '762', nameEn: 'Anakapalli', nameTe: 'అనకాపల్లి', type: 'DISTRICT', aliases: ['Anakapalle'] },
+    { id: 'DIST-763', code: '763', nameEn: 'Alluri Sitharama Raju', nameTe: 'అల్లూరి సీతారామరాజు', type: 'DISTRICT', aliases: ['పాడేరు', 'Paderu'] },
+    { id: 'DIST-521', code: '521', nameEn: 'Vizianagaram', nameTe: 'విజయనగరం', type: 'DISTRICT', aliases: ['విజయనగర్'] },
+    { id: 'DIST-764', code: '764', nameEn: 'Parvathipuram Manyam', nameTe: 'పార్వతీపురం మన్యం', type: 'DISTRICT', aliases: ['పార్వతీపురం'] },
+    { id: 'DIST-519', code: '519', nameEn: 'Srikakulam', nameTe: 'శ్రీకాకుళం', type: 'DISTRICT', aliases: ['శ్రీకాకుళం జిల్లా'] },
   ];
 
   private revenueDivisions: MasterDataEntity[] = [
