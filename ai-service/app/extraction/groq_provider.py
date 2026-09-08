@@ -45,40 +45,19 @@ class PythonGroqProvider:
             or ""
         )
 
+        doc_type = (payload.get("documentCategory") or payload.get("documentType") or "ADANGAL").upper()
+
         system_prompt = (
-            "You are an expert Indian Land Record Data Extraction AI for e-Bhoomi (SIH26018).\n"
-            "Extract structured land record attributes from the provided Llama-extracted document text.\n"
+            f"You are an expert Indian Land Record Data Extraction AI for e-Bhoomi (SIH26018, Andhra Pradesh Revenue Department).\n"
+            f"Extract structured land record attributes and compute realistic confidence scores based on OCR text.\n"
+            f"DOCUMENT TYPE: {doc_type}\n\n"
             "STRICT RULES:\n"
-            "1. Extract ONLY facts explicitly supported by the provided text.\n"
-            "2. DO NOT invent or hallucinate missing names, survey numbers, khata numbers, boundaries, or extent values.\n"
-            "3. If a field cannot be supported by the extracted text, return null.\n"
-            "4. Output MUST be valid JSON conforming strictly to schema:\n"
-            "{\n"
-            '  "districtName": "string or null",\n'
-            '  "revenueDivision": "string or null",\n'
-            '  "mandalName": "string or null",\n'
-            '  "villageName": "string or null",\n'
-            '  "surveyNumber": "string or null",\n'
-            '  "subDivisionNumber": "string or null",\n'
-            '  "khataNumber": "string or null",\n'
-            '  "ownerName": "string or null",\n'
-            '  "fatherOrHusbandName": "string or null",\n'
-            '  "relationship": "string or null",\n'
-            '  "extentAcres": "string or null",\n'
-            '  "landClassification": "string or null",\n'
-            '  "documentDate": "string or null",\n'
-            '  "registrationNumber": "string or null",\n'
-            '  "mutationReference": "string or null",\n'
-            '  "boundaries": {\n'
-            '    "east": "string or null",\n'
-            '    "west": "string or null",\n'
-            '    "north": "string or null",\n'
-            '    "south": "string or null"\n'
-            '  }\n'
-            "}"
+            "1. Extract ONLY facts supported by the text. If a field is missing, return null with confidence 0.0.\n"
+            "2. overallConfidence MUST be the real average of the extracted fields (or 0.0 if nothing extracted). Never return fake hardcoded confidence.\n"
+            "3. Output MUST be valid JSON with fields: documentType, documentTitle, documentTitleTe, overallConfidence, districtName, districtConfidence, districtEvidence, mandalName, mandalConfidence, mandalEvidence, villageName, villageConfidence, villageEvidence, surveyNumber, surveyConfidence, surveyEvidence, subDivisionNumber, subDivisionConfidence, khataNumber, khataConfidence, ownerName, ownerConfidence, ownerEvidence, fatherOrHusbandName, fatherConfidence, extentAcres, extentConfidence, landClassification, classificationConfidence, documentDate, boundaries, customSections, checklist."
         )
 
-        user_prompt = f"Document Category: {payload.get('documentCategory') or payload.get('documentType') or 'LAND_RECORD'}\nExtracted Document Text:\n{text_to_process}"
+        user_prompt = f"Target Document Category: {doc_type}\nExtracted Document Text:\n{text_to_process}\n\nExtract and return the customized JSON object according to the schema."
 
         req_body = json.dumps({
             "model": model,

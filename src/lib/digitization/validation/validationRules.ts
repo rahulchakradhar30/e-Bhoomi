@@ -24,6 +24,33 @@ export class ValidationRulesEvaluator {
       };
     }
 
+    const activeWorkingDistrict = 'Kurnool';
+    const isWorkingDistrict = res.matchedName && (
+      res.matchedName.toLowerCase() === activeWorkingDistrict.toLowerCase() ||
+      res.matchedCode === '511' ||
+      res.matchedCode === '545'
+    );
+
+    if (res.matchedName && !isWorkingDistrict) {
+      return {
+        resolution: res,
+        finding: {
+          findingId: `FND-${Date.now()}-JURISDICTION-MISMATCH`,
+          ruleId: 'JURISDICTION-DIST-001',
+          severity: 'CRITICAL',
+          status: 'ERROR',
+          field: 'districtName',
+          message: `JURISDICTION VIOLATION: Document belongs to ${res.matchedName} District, but officer is authorized for ${activeWorkingDistrict} District only.`,
+          reason: `Cross-district digitization is strictly prohibited under AP Land Revenue Rules. The officer cannot digitize or upload records outside their assigned jurisdiction (${activeWorkingDistrict}).`,
+          extractedValue: districtVal,
+          matchedMasterValue: res.matchedName,
+          matchedMasterId: res.matchedId,
+          matchLevel: res.matchLevel,
+          suggestedAction: `Digitization blocked. Forward this physical document to the concerned ${res.matchedName} District Collectorate.`,
+        },
+      };
+    }
+
     if (res.matchLevel === 'EXACT' || res.matchLevel === 'NORMALIZED_EXACT') {
       return {
         resolution: res,
@@ -33,7 +60,7 @@ export class ValidationRulesEvaluator {
           severity: 'INFO',
           status: 'PASS',
           field: 'districtName',
-          message: 'District verified in master data.',
+          message: `District verified in master data (${res.matchedName} - Authorized Jurisdiction).`,
           reason: `Exact match found: ${res.matchedName} (${res.matchedCode}).`,
           extractedValue: districtVal,
           matchedMasterValue: res.matchedName,

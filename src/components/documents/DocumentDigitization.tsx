@@ -295,11 +295,11 @@ export const DocumentDigitization: React.FC = () => {
           aiResult={aiResult}
           initialCorrections={corrections}
           initialChecklist={checklist}
+          onValidityChange={(valid) => setIsCurrentStepValid(valid)}
           onReviewCompleted={(updatedData, corrs, chkList) => {
             setStructuredData(updatedData);
             setCorrections(corrs);
             setChecklist(chkList);
-            setIsCurrentStepValid(true);
           }}
         />
       )}

@@ -1,13 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { WorkspacePanel } from '@/components/workspace/WorkspacePanel';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
-import { SUPPORTED_DOCUMENT_TYPES, DocumentCategoryCode, StructuredLandRecordData, ExtractedField, PartyShare } from '@/config/digitizationSchemas';
+import {
+  SUPPORTED_DOCUMENT_TYPES,
+  DocumentCategoryCode,
+  StructuredLandRecordData,
+  ExtractedField,
+  PartyShare,
+} from '@/config/digitizationSchemas';
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
 import { FieldCorrectionAudit, VerificationChecklistState, DocumentUploadRecord } from '@/types/digitizationCase';
-import { ShieldCheck, Edit3, CornerDownRight, CheckSquare, Info, User, MapPin, Layers, Compass, Users } from 'lucide-react';
+import {
+  ShieldCheck,
+  Edit3,
+  CornerDownRight,
+  CheckSquare,
+  Info,
+  AlertCircle,
+  FileCheck,
+} from 'lucide-react';
 
 interface ExtractionReviewStepProps {
   documentType: DocumentCategoryCode;
@@ -21,6 +35,7 @@ interface ExtractionReviewStepProps {
     corrections: FieldCorrectionAudit[],
     checklist: VerificationChecklistState
   ) => void;
+  onValidityChange?: (isValid: boolean) => void;
   onBack?: () => void;
 }
 
@@ -31,6 +46,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   initialCorrections = [],
   initialChecklist = {},
   onReviewCompleted,
+  onValidityChange,
 }) => {
   const docConfig = SUPPORTED_DOCUMENT_TYPES.find((d) => d.code === documentType) || SUPPORTED_DOCUMENT_TYPES[0];
 
@@ -46,13 +62,33 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const [editReasonCode, setEditReasonCode] = useState<string>('OCR_ERROR');
   const [editError, setEditError] = useState<string | null>(null);
 
+  // Check jurisdiction
+  const valRes = (typeof window !== 'undefined' && (window as any).__LAST_VALIDATION_RESULT__) || null;
+  const extractedDistrict = data.districtName?.value || '';
+  const isJurisdictionBlocked = Boolean(
+    valRes?.findings?.some(
+      (f: any) =>
+        f.ruleId === 'JURISDICTION-DIST-001' ||
+        (f.field === 'districtName' && (f.severity === 'CRITICAL' || f.status === 'ERROR'))
+    ) ||
+      (extractedDistrict &&
+        !extractedDistrict.toLowerCase().includes('kurnool') &&
+        !extractedDistrict.includes('511') &&
+        !extractedDistrict.includes('545'))
+  );
+
+  useEffect(() => {
+    onValidityChange?.(!isJurisdictionBlocked);
+    onReviewCompleted(data, corrections, checklist);
+  }, [data, corrections, checklist, isJurisdictionBlocked]);
+
   const toggleChecklist = (id: string) => {
     setChecklist((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const startEditField = (fieldId: string, currentValue: string) => {
     setEditingFieldId(fieldId);
-    setEditValue(currentValue);
+    setEditValue(currentValue || '');
     setEditReason('');
     setEditReasonCode('OCR_ERROR');
     setEditError(null);
@@ -104,19 +140,36 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
       else if (fieldId === 'boundaryWest') nextData.boundaries.west = { ...nextData.boundaries.west, value: newVal };
       else if (fieldId === 'boundaryNorth') nextData.boundaries.north = { ...nextData.boundaries.north, value: newVal };
       else if (fieldId === 'boundarySouth') nextData.boundaries.south = { ...nextData.boundaries.south, value: newVal };
+
+      // Also update within dynamic custom sections if present
+      if (nextData.customSections && nextData.customSections.length > 0) {
+        nextData.customSections = nextData.customSections.map((sec) => ({
+          ...sec,
+          fields: sec.fields.map((f) => (f.fieldId === fieldId ? { ...f, value: newVal } : f)),
+        }));
+      }
+
       return nextData;
     });
   };
 
-  const getConfidenceBadge = (confidence: number) => {
-    const pct = Math.round(confidence * 100);
-    if (pct >= 90) {
+  const getConfidenceBadge = (confidence?: number) => {
+    const score = typeof confidence === 'number' ? confidence : 0;
+    const pct = Math.round(score * 100);
+
+    if (score <= 0) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-300">
-          {pct}% CONFIDENCE
+        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
+          0% (NOT EXTRACTED / NULL)
         </span>
       );
-    } else if (pct >= 75) {
+    } else if (pct >= 85) {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-300">
+          {pct}% HIGH CONFIDENCE
+        </span>
+      );
+    } else if (pct >= 60) {
       return (
         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
           {pct}% MEDIUM CONFIDENCE
@@ -130,17 +183,22 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
     );
   };
 
-  const renderFieldCard = (
+  const renderGenericFieldCard = (
     fieldId: string,
-    fieldObj?: ExtractedField<string>,
-    customLabelEn?: string,
-    customLabelTe?: string
+    labelEn: string,
+    labelTe: string | undefined,
+    currentValue: string,
+    confidence?: number,
+    evidence?: { sourcePage: number; sourceText: string } | string
   ) => {
-    if (!fieldObj) return null;
-
     const isVerified = !!checklist[fieldId];
     const correction = corrections.find((c) => c.fieldId === fieldId);
     const isEditing = editingFieldId === fieldId;
+
+    const evidenceObj =
+      typeof evidence === 'string'
+        ? { sourcePage: 1, sourceText: evidence }
+        : evidence;
 
     return (
       <div
@@ -163,19 +221,21 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
               className="w-4 h-4 text-navy-900 rounded border-slate-300 focus:ring-navy-800 cursor-pointer"
             />
             <label htmlFor={`chk-${fieldId}`} className="cursor-pointer font-bold text-navy-900 text-xs">
-              {customLabelEn || fieldObj.labelEn}
-              <span className="font-serif font-bold text-amber-800 ml-1 text-[11px]">
-                ({customLabelTe || fieldObj.labelTe})
-              </span>
+              {labelEn}
+              {labelTe && (
+                <span className="font-serif font-bold text-amber-800 ml-1 text-[11px]">
+                  ({labelTe})
+                </span>
+              )}
             </label>
           </div>
 
           <div className="flex items-center gap-1.5">
-            {getConfidenceBadge(fieldObj.confidence)}
+            {getConfidenceBadge(confidence)}
             {!isEditing && (
               <button
                 type="button"
-                onClick={() => startEditField(fieldId, fieldObj.value)}
+                onClick={() => startEditField(fieldId, currentValue)}
                 className="px-2 py-0.5 hover:bg-slate-100 text-navy-800 rounded text-[11px] font-semibold border border-slate-300 flex items-center gap-1"
                 title="Correct AI Value"
               >
@@ -186,25 +246,26 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
           </div>
         </div>
 
-        {/* Current Value Display / Edit Form */}
         {!isEditing ? (
           <div className="space-y-1 pl-6">
             <div className="text-xs font-semibold text-slate-900 bg-white p-2 rounded border border-slate-200">
-              {fieldObj.value || <span className="text-slate-400 italic">Not Available</span>}
+              {currentValue ? (
+                <span>{currentValue}</span>
+              ) : (
+                <span className="text-slate-400 italic">Not Extracted / Null</span>
+              )}
             </div>
 
-            {/* Source Evidence */}
-            {fieldObj.evidence && (
+            {evidenceObj && evidenceObj.sourceText && (
               <div className="flex items-center gap-1 text-[11px] text-slate-500 font-mono">
                 <CornerDownRight className="w-3 h-3 text-slate-400" />
-                <span>Source (Page {fieldObj.evidence.sourcePage}):</span>
+                <span>Source (Page {evidenceObj.sourcePage || 1}):</span>
                 <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 italic">
-                  "{fieldObj.evidence.sourceText}"
+                  "{evidenceObj.sourceText}"
                 </span>
               </div>
             )}
 
-            {/* Correction Audit Trace */}
             {correction && (
               <div className="mt-1.5 p-2 bg-amber-100/70 border border-amber-300 rounded text-xs space-y-0.5 font-mono">
                 <div className="font-bold text-amber-900 flex items-center gap-1 text-[11px]">
@@ -212,7 +273,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
                   <span>VRO Correction Recorded:</span>
                 </div>
                 <div className="text-[11px]">
-                  AI: <span className="line-through text-slate-500">{correction.originalAIValue}</span> →{' '}
+                  AI: <span className="line-through text-slate-500">{correction.originalAIValue || 'null'}</span> →{' '}
                   <span className="font-bold text-navy-900">{correction.correctedValue}</span>
                 </div>
                 <div className="text-[11px] text-slate-700 font-serif italic">
@@ -222,10 +283,8 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
             )}
           </div>
         ) : (
-          /* Inline Correction Form */
           <div className="mt-2 pl-6 p-2.5 bg-amber-50 rounded border border-amber-400 space-y-2.5">
             <div className="font-bold text-navy-900 text-xs">VRO CORRECTION MODE</div>
-
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 block">Corrected Value:</label>
               <input
@@ -235,56 +294,41 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
                 className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800 font-mono"
               />
             </div>
-
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 block">
-                Controlled Correction Reason Category:
-              </label>
+              <label className="text-[11px] font-bold text-slate-700 block">Controlled Correction Reason:</label>
               <select
                 value={editReasonCode}
                 onChange={(e) => setEditReasonCode(e.target.value)}
                 className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800 font-mono"
               >
-                <option value="OCR_ERROR">OCR Character Misread (OCR_ERROR)</option>
-                <option value="HANDWRITING_MISREAD">Handwriting Scan Misread (HANDWRITING_MISREAD)</option>
-                <option value="TRANSLATION_ERROR">Telugu-English Translation Shift (TRANSLATION_ERROR)</option>
-                <option value="EXTRACTION_ERROR">NLP Entity Boundary Error (EXTRACTION_ERROR)</option>
-                <option value="MASTER_DATA_MISMATCH">Master Data Hierarchy Discrepancy (MASTER_DATA_MISMATCH)</option>
-                <option value="CROSS_DATABASE_MISMATCH">Cross-Database LRMS Conflict (CROSS_DATABASE_MISMATCH)</option>
-                <option value="MANUAL_VERIFICATION">VRO Physical Scan Verification (MANUAL_VERIFICATION)</option>
-                <option value="OTHER">Other Reason (OTHER)</option>
+                <option value="OCR_ERROR">OCR Error</option>
+                <option value="MANUAL_VERIFICATION">Manual Verification</option>
               </select>
             </div>
-
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 block">
-                Detailed Correction Explanation:
-              </label>
+              <label className="text-[11px] font-bold text-slate-700 block">Explanation:</label>
               <textarea
                 value={editReason}
                 onChange={(e) => setEditReason(e.target.value)}
                 rows={2}
                 className="w-full px-2 py-1 text-xs border rounded border-slate-300 focus:ring-navy-800"
-                placeholder="Provide specific reason for modifying original AI extracted value..."
               />
             </div>
-
             {editError && <p className="text-[11px] font-bold text-red-700 bg-red-100 p-1 rounded">{editError}</p>}
-
-            <div className="flex items-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => saveCorrection(fieldId, fieldObj.value)}
-                className="px-3 py-1 bg-navy-900 hover:bg-navy-800 text-amber-300 text-xs font-bold rounded shadow-xs"
-              >
-                Save Correction & Audit Trace
-              </button>
+            <div className="flex items-center justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={cancelEdit}
-                className="px-3 py-1 bg-slate-200 text-slate-700 text-xs font-semibold rounded"
+                className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-900 border rounded"
               >
                 Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => saveCorrection(fieldId, currentValue)}
+                className="px-3 py-1 bg-navy-900 text-white rounded text-xs font-bold hover:bg-navy-800 shadow-xs"
+              >
+                Save Correction
               </button>
             </div>
           </div>
@@ -293,304 +337,139 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
     );
   };
 
-  const totalRequiredChecklist = docConfig.checklistFields.length;
-  const verifiedChecklistCount = docConfig.checklistFields.filter((f) => checklist[f.id]).length;
+  const renderFieldCard = (
+    fieldId: string,
+    fieldObj?: ExtractedField<string>,
+    customLabelEn?: string,
+    customLabelTe?: string
+  ) => {
+    if (!fieldObj) return null;
+    return renderGenericFieldCard(
+      fieldId,
+      customLabelEn || fieldObj.labelEn,
+      customLabelTe || fieldObj.labelTe,
+      fieldObj.value,
+      fieldObj.confidence,
+      fieldObj.evidence
+    );
+  };
+
+  const hasGroqChecklist = data.customChecklist && data.customChecklist.length > 0;
+  const activeChecklistItems = hasGroqChecklist
+    ? data.customChecklist!
+    : docConfig.checklistFields.map((f) => ({
+        id: f.id,
+        labelEn: f.labelEn,
+        labelTe: f.labelTe,
+        verified: false,
+        confidence: 0.9,
+      }));
+
+  const totalRequiredChecklist = activeChecklistItems.length;
+  const verifiedChecklistCount = activeChecklistItems.filter((f) => checklist[f.id]).length;
+
+  const displayDocTitleEn = data.documentTitle || docConfig.titleEn;
+  const displayDocTitleTe = data.documentTitleTe || docConfig.titleTe;
+
+  const hasGroqCustomSections = data.customSections && data.customSections.length > 0;
 
   return (
     <div className="space-y-4">
-      {/* View Mode Bar */}
-      <div className="flex items-center justify-between bg-white border border-slate-300 p-2.5 rounded-md shadow-xs">
+      {isJurisdictionBlocked && (
+        <div className="bg-red-50 border-2 border-red-600 p-4 rounded-md shadow-sm text-red-950 flex items-start gap-3">
+          <AlertCircle className="w-10 h-10 text-red-600 flex-shrink-0" />
+          <div>
+            <h4 className="text-sm font-bold text-red-900 uppercase">JURISDICTION MISMATCH</h4>
+            <p className="text-xs">Document indicates district: {extractedDistrict || 'Unknown'}. Kurnool District authorization required.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between bg-white border border-slate-300 p-2.5 rounded-md shadow-xs gap-2">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-navy-900" />
-          <span className="font-bold text-navy-900 text-xs uppercase">
-            AI EXTRACTION REVIEW WORKSPACE • {docConfig.titleEn}
-          </span>
+          <div>
+            <span className="font-bold text-navy-900 text-xs uppercase block">CUSTOM DIGITIZATION WORKSPACE • {displayDocTitleEn}</span>
+            <span className="font-serif text-[11px] text-amber-800">{displayDocTitleTe}</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded border text-xs">
-          <button
-            type="button"
-            onClick={() => setActiveTab('split')}
-            className={`px-3 py-1 rounded font-bold transition-all ${
-              activeTab === 'split' ? 'bg-navy-900 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Split View (Desktop)
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('document')}
-            className={`px-3 py-1 rounded font-bold transition-all md:hidden ${
-              activeTab === 'document' ? 'bg-navy-900 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Original Scan
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('fields')}
-            className={`px-3 py-1 rounded font-bold transition-all md:hidden ${
-              activeTab === 'fields' ? 'bg-navy-900 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Extracted Fields
-          </button>
+          <button type="button" onClick={() => setActiveTab('split')} className={`px-3 py-1 rounded font-bold ${activeTab === 'split' ? 'bg-navy-900 text-white' : ''}`}>Split View</button>
+          <button type="button" onClick={() => setActiveTab('document')} className="px-3 py-1 rounded md:hidden">Scan</button>
+          <button type="button" onClick={() => setActiveTab('fields')} className="px-3 py-1 rounded md:hidden">Fields</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* LEFT PANEL: Document Viewer */}
-        <div
-          className={`md:col-span-6 ${
-            activeTab === 'fields' ? 'hidden md:block' : 'block'
-          }`}
-        >
-          <div className="bg-white p-3 border border-slate-300 rounded-md shadow-sm space-y-2">
-            <h4 className="font-bold text-navy-900 text-xs uppercase flex items-center justify-between">
-              <span>ORIGINAL REVENUE SCAN PREVIEW</span>
-              <span className="font-mono text-slate-500 font-normal">{uploadRecord.pageCount} Page(s)</span>
-            </h4>
+        <div className={`md:col-span-6 ${activeTab === 'fields' ? 'hidden md:block' : 'block'}`}>
+          <div className="bg-white p-3 border border-slate-300 rounded-md shadow-sm sticky top-4">
+            <h4 className="font-bold text-navy-900 text-xs mb-2">ORIGINAL REVENUE SCAN</h4>
             <DocumentViewer originalFileName={uploadRecord.originalFileName} pageCount={uploadRecord.pageCount} />
           </div>
         </div>
 
-        {/* RIGHT PANEL: Grouped Extracted Fields */}
-        <div
-          className={`md:col-span-6 space-y-3.5 ${
-            activeTab === 'document' ? 'hidden md:block' : 'block'
-          }`}
-        >
-          {/* Progress Header */}
+        <div className={`md:col-span-6 space-y-3.5 ${activeTab === 'document' ? 'hidden md:block' : 'block'}`}>
           <div className="bg-navy-50 border border-navy-200 p-3 rounded-md flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckSquare className="w-4 h-4 text-navy-900" />
               <div>
-                <span className="font-bold text-navy-900 text-xs block uppercase">
-                  CATEGORY CHECKLIST PROGRESS
-                </span>
-                <span className="text-[11px] text-slate-600">
-                  {verifiedChecklistCount} of {totalRequiredChecklist} mandatory checklist fields verified
-                </span>
+                <span className="font-bold text-navy-900 text-xs uppercase">PROGRESS ({verifiedChecklistCount}/{totalRequiredChecklist})</span>
               </div>
             </div>
-            <span className="font-mono font-bold text-xs text-navy-900 bg-white px-2 py-1 rounded border">
-              {Math.round((verifiedChecklistCount / Math.max(1, totalRequiredChecklist)) * 100)}%
-            </span>
+            <span className="font-mono font-bold text-xs bg-white px-2 py-1 rounded border">{Math.round((verifiedChecklistCount / Math.max(1, totalRequiredChecklist)) * 100)}%</span>
           </div>
 
-          {/* Grouped Field Cards Container */}
-          <div className="space-y-4 max-h-[640px] overflow-auto pr-1">
-            {/* Phase 4 Validation Summary Panel */}
-            {(() => {
-              const valRes = (typeof window !== 'undefined' && (window as any).__LAST_VALIDATION_RESULT__) || null;
-              if (!valRes) return null;
-              const summary = valRes.summary || {};
-              const findings = valRes.findings || [];
-
-              return (
-                <WorkspacePanel title="SERVER-SIDE MASTER DATA & BUSINESS RULE VALIDATION">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between p-3 bg-navy-900 text-white rounded-md">
-                      <div>
-                        <div className="text-[10px] font-mono text-amber-300 uppercase">VALIDATION STATUS:</div>
-                        <h4 className="text-sm font-bold tracking-wide">
-                          {summary.overallValidationStatus === 'PASS' && '✅ ALL RULES PASSED'}
-                          {summary.overallValidationStatus === 'REVIEW_REQUIRED' && '⚠️ REVIEW REQUIRED'}
-                          {summary.overallValidationStatus === 'FAILED' && '❌ VALIDATION FAILED'}
-                          {summary.overallValidationStatus === 'UNVERIFIED' && '🔍 UNVERIFIED ENTITIES'}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs font-mono">
-                        <span className="bg-green-700 px-2 py-0.5 rounded text-white font-bold">{summary.passedCount || 0} PASS</span>
-                        <span className="bg-amber-600 px-2 py-0.5 rounded text-white font-bold">{summary.warningCount || 0} WARN</span>
-                        <span className="bg-red-700 px-2 py-0.5 rounded text-white font-bold">{summary.errorCount || 0} ERR</span>
-                        <span className="bg-purple-700 px-2 py-0.5 rounded text-white font-bold">{summary.unverifiedCount || 0} UNVERIFIED</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200 text-[11px] font-mono space-y-1 text-slate-700">
-                      <div><span className="font-bold text-navy-900">Master Data Version:</span> {valRes.masterDataVersion || '2025.1-Kurnool'}</div>
-                      <div><span className="font-bold text-navy-900">RuleSet Version:</span> {valRes.ruleSetVersion || 'v4.0.0'}</div>
-                      <div><span className="font-bold text-navy-900">Validation Engine:</span> {valRes.validationEngineVersion || 'v4.0-Deterministic'}</div>
-                    </div>
-
-                    {findings.length > 0 && (
-                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                        {findings.map((f: any, fIdx: number) => (
-                          <div
-                            key={fIdx}
-                            className={`p-2 rounded text-xs border flex items-start justify-between gap-2 ${
-                              f.status === 'PASS'
-                                ? 'bg-green-50 border-green-200 text-green-900'
-                                : f.status === 'WARNING' || f.status === 'UNVERIFIED'
-                                ? 'bg-amber-50 border-amber-300 text-amber-900'
-                                : 'bg-red-50 border-red-300 text-red-900'
-                            }`}
-                          >
-                            <div>
-                              <div className="font-mono font-bold text-[10px] uppercase">
-                                [{f.ruleId}] • {f.field}: <span className="underline">{f.status}</span>
-                              </div>
-                              <p className="text-[11px] mt-0.5">{f.message}</p>
-                              {f.reason && <p className="text-[10px] text-slate-600 mt-0.5">{f.reason}</p>}
-                            </div>
-                            <span className="font-mono text-[9px] font-bold uppercase bg-white/80 px-1.5 py-0.5 rounded border">
-                              {f.severity}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+          <div className="bg-white p-3 rounded-md border border-slate-300 space-y-2">
+            <div className="text-[11px] font-bold text-navy-900 uppercase flex items-center gap-1.5">
+              <FileCheck className="w-3.5 h-3.5" />
+              <span>Document Type Checklist:</span>
+            </div>
+            <div className="space-y-1.5">
+              {activeChecklistItems.map((item) => (
+                <div key={item.id} className={`flex items-start justify-between p-2 rounded border text-xs ${checklist[item.id] ? 'bg-green-50' : 'bg-slate-50'}`}>
+                  <div className="flex items-start gap-2">
+                    <input type="checkbox" checked={!!checklist[item.id]} onChange={() => toggleChecklist(item.id)} className="w-4 h-4 cursor-pointer" />
+                    <label className="font-bold">{item.labelEn}</label>
                   </div>
-                </WorkspacePanel>
-              );
-            })()}
-
-            {/* Phase 5 Cross-Database Verification Panel */}
-            {(() => {
-              const crossRes = (typeof window !== 'undefined' && (window as any).__LAST_CROSS_VERIFY_RESULT__) || null;
-              if (!crossRes) return null;
-              const summary = crossRes.summary || {};
-              const providers = crossRes.providers || [];
-              const duplicates = crossRes.duplicateResults || [];
-              const conflicts = crossRes.conflictResults || [];
-
-              return (
-                <WorkspacePanel title="CROSS-DATABASE VERIFICATION, DUPLICATE & CONFLICT FINDINGS">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between p-3 bg-navy-900 text-white rounded-md">
-                      <div>
-                        <div className="text-[10px] font-mono text-amber-300 uppercase">VERIFICATION STATUS:</div>
-                        <h4 className="text-sm font-bold tracking-wide">
-                          {summary.overallVerificationStatus === 'VERIFIED_MATCH' && '✅ VERIFIED MATCH ACROSS PROVIDERS'}
-                          {summary.overallVerificationStatus === 'CONFLICT_DETECTED' && '❌ CONFLICT DETECTED'}
-                          {summary.overallVerificationStatus === 'REVIEW_REQUIRED' && '⚠️ DUPLICATE CANDIDATE REQUIRES REVIEW'}
-                          {summary.overallVerificationStatus === 'UNAVAILABLE' && '🟡 EXTERNAL PROVIDERS UNAVAILABLE'}
-                          {summary.overallVerificationStatus === 'UNVERIFIED' && '🔍 UNVERIFIED RECORD'}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs font-mono">
-                        <span className="bg-slate-700 px-2 py-0.5 rounded text-white font-bold">{summary.providersQueriedCount || 0} QUERIED</span>
-                        <span className="bg-green-700 px-2 py-0.5 rounded text-white font-bold">{summary.exactFieldMatchesCount || 0} MATCHES</span>
-                        <span className="bg-red-700 px-2 py-0.5 rounded text-white font-bold">{summary.conflictsCount || 0} CONFLICTS</span>
-                        <span className="bg-amber-600 px-2 py-0.5 rounded text-white font-bold">{summary.duplicatesCount || 0} DUPLICATES</span>
-                      </div>
-                    </div>
-
-                    {/* Data Providers Status Badges */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-mono">
-                      {providers.map((p: any, pIdx: number) => (
-                        <div key={pIdx} className="bg-slate-50 p-2 rounded border border-slate-200 flex items-center justify-between">
-                          <span className="font-bold text-navy-900 truncate">{p.providerName}:</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            p.status === 'CONNECTED' || p.status === 'TEST_MODE'
-                              ? 'bg-green-100 text-green-900 border border-green-300'
-                              : 'bg-amber-100 text-amber-900 border border-amber-300'
-                          }`}>
-                            {p.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Duplicates Alert */}
-                    {duplicates.length > 0 && (
-                      <div className="space-y-1.5">
-                        <div className="text-[10px] font-mono font-bold text-amber-800 uppercase">POTENTIAL DUPLICATE CANDIDATES ({duplicates.length}):</div>
-                        {duplicates.map((d: any, dIdx: number) => (
-                          <div key={dIdx} className="p-2.5 bg-amber-50 border-l-4 border-amber-600 rounded text-xs text-amber-900 space-y-1">
-                            <div className="font-bold font-mono text-[11px] uppercase flex justify-between">
-                              <span>[{d.duplicateCategory}] • Candidate ID: {d.candidateId}</span>
-                              <span className="bg-amber-200 px-1.5 py-0.5 rounded text-[10px]">Confidence: {d.matchConfidence}</span>
-                            </div>
-                            <p className="text-[11px]">{d.reason}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Conflicts Alert */}
-                    {conflicts.length > 0 && (
-                      <div className="space-y-1.5">
-                        <div className="text-[10px] font-mono font-bold text-red-800 uppercase">CROSS-RECORD CONFLICTS ({conflicts.length}):</div>
-                        {conflicts.map((c: any, cIdx: number) => (
-                          <div key={cIdx} className="p-2.5 bg-red-50 border-l-4 border-red-600 rounded text-xs text-red-900 space-y-1">
-                            <div className="font-bold font-mono text-[11px] uppercase">
-                              [{c.ruleId}] • Field: {c.field}
-                            </div>
-                            <p className="text-[11px]">{c.reason}</p>
-                            <p className="text-[10px] text-slate-700 font-mono">Recommended: {c.recommendedAction}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </WorkspacePanel>
-              );
-            })()}
-
-            {/* Group 1: Owner Details */}
-            <WorkspacePanel title="1. OWNER & GUARDIAN DETAILS">
-              <div className="space-y-2.5">
-                {renderFieldCard('ownerName', data.ownerName)}
-                {renderFieldCard('fatherOrHusbandName', data.fatherOrHusbandName)}
-              </div>
-            </WorkspacePanel>
-
-            {/* Group 2: Land Identification */}
-            <WorkspacePanel title="2. LAND PARCEL IDENTIFICATION">
-              <div className="space-y-2.5">
-                {renderFieldCard('surveyNumber', data.surveyNumber)}
-                {renderFieldCard('subDivisionNumber', data.subDivisionNumber)}
-                {renderFieldCard('khataNumber', data.khataNumber)}
-              </div>
-            </WorkspacePanel>
-
-            {/* Group 3: Land Area & Classification */}
-            <WorkspacePanel title="3. LAND EXTENT & CLASSIFICATION">
-              <div className="space-y-2.5">
-                {renderFieldCard('extentAcres', data.extentAcres)}
-                {renderFieldCard('landClassification', data.landClassification)}
-              </div>
-            </WorkspacePanel>
-
-            {/* Group 4: Administrative Location */}
-            <WorkspacePanel title="4. ADMINISTRATIVE JURISDICTION">
-              <div className="space-y-2.5">
-                {renderFieldCard('villageName', data.villageName)}
-                {renderFieldCard('mandalName', data.mandalName)}
-                {renderFieldCard('districtName', data.districtName)}
-                {renderFieldCard('documentDate', data.documentDate)}
-              </div>
-            </WorkspacePanel>
-
-            {/* Group 5: Boundaries */}
-            <WorkspacePanel title="5. FOUR SIDE LAND BOUNDARIES (చతురస్ర పరిమితులు)">
-              <div className="space-y-2.5">
-                {renderFieldCard('boundaryEast', data.boundaries.east, 'East Boundary', 'తూర్పు సరిహద్దు')}
-                {renderFieldCard('boundaryWest', data.boundaries.west, 'West Boundary', 'పశ్చిమ సరిహద్దు')}
-                {renderFieldCard('boundaryNorth', data.boundaries.north, 'North Boundary', 'ఉత్తర సరిహద్దు')}
-                {renderFieldCard('boundarySouth', data.boundaries.south, 'South Boundary', 'దక్షిణ సరిహద్దు')}
-              </div>
-            </WorkspacePanel>
-
-            {/* Group 6: Repeatable Parties */}
-            {data.parties && data.parties.value && data.parties.value.length > 0 && (
-              <WorkspacePanel title={`6. PARTITION & INHERITANCE SHARES (${data.parties.value.length} PARTIES)`}>
-                <div className="space-y-2">
-                  {data.parties.value.map((party: PartyShare, pIdx: number) => (
-                    <div key={pIdx} className="bg-slate-50 p-2.5 rounded border border-slate-300 text-xs space-y-1 font-mono">
-                      <div className="font-bold text-navy-900">{party.name}</div>
-                      <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-700">
-                        <div>Relationship: {party.relationship}</div>
-                        <div>Share: {party.share}</div>
-                        <div>Extent: {party.extent}</div>
-                        <div>Survey: {party.surveyNumber || 'N/A'}</div>
-                      </div>
-                    </div>
-                  ))}
+                  {getConfidenceBadge(item.confidence)}
                 </div>
-              </WorkspacePanel>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4 max-h-[640px] overflow-auto pr-1">
+            {hasGroqCustomSections ? (
+              data.customSections!.map((section, sIdx) => (
+                <WorkspacePanel key={section.sectionId || sIdx} title={`${sIdx + 1}. ${section.sectionTitle.toUpperCase()}`}>
+                  <div className="space-y-2.5">
+                    {section.fields.map((field) =>
+                      renderGenericFieldCard(field.fieldId, field.labelEn, field.labelTe, field.value, field.confidence, field.evidence)
+                    )}
+                  </div>
+                </WorkspacePanel>
+              ))
+            ) : (
+              <>
+                <WorkspacePanel title="1. OWNER & IDENTITY">
+                  <div className="space-y-2.5">
+                    {renderFieldCard('ownerName', data.ownerName)}
+                    {renderFieldCard('fatherOrHusbandName', data.fatherOrHusbandName)}
+                  </div>
+                </WorkspacePanel>
+                <WorkspacePanel title="2. LAND IDENTIFICATION">
+                  <div className="space-y-2.5">
+                    {renderFieldCard('surveyNumber', data.surveyNumber)}
+                    {renderFieldCard('extentAcres', data.extentAcres)}
+                  </div>
+                </WorkspacePanel>
+                <WorkspacePanel title="3. ADMINISTRATIVE JURISDICTION">
+                  <div className="space-y-2.5">
+                    {renderFieldCard('villageName', data.villageName)}
+                    {renderFieldCard('districtName', data.districtName)}
+                  </div>
+                </WorkspacePanel>
+              </>
             )}
           </div>
         </div>

@@ -141,6 +141,31 @@ export interface LandBoundaries {
   south: string;
 }
 
+export interface DynamicCustomSectionField {
+  fieldId: string;
+  labelEn: string;
+  labelTe?: string;
+  value: string;
+  confidence?: number;
+  evidence?: SourceEvidence;
+}
+
+export interface DynamicCustomSection {
+  sectionId: string;
+  sectionTitle: string;
+  sectionTitleTe?: string;
+  fields: DynamicCustomSectionField[];
+}
+
+export interface DynamicChecklistItem {
+  id: string;
+  labelEn: string;
+  labelTe?: string;
+  verified?: boolean;
+  confidence?: number;
+  reason?: string;
+}
+
 export interface StructuredLandRecordData {
   ownerName: ExtractedField<string>;
   fatherOrHusbandName: ExtractedField<string>;
@@ -164,4 +189,9 @@ export interface StructuredLandRecordData {
   };
   parties?: ExtractedField<PartyShare[]>;
   additionalNotes?: ExtractedField<string>;
+  customSections?: DynamicCustomSection[];
+  customChecklist?: DynamicChecklistItem[];
+  documentTitle?: string;
+  documentTitleTe?: string;
 }
+
