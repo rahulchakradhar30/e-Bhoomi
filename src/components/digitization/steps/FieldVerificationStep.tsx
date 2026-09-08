@@ -48,6 +48,7 @@ export const FieldVerificationStep: React.FC<FieldVerificationStepProps> = ({
 
     files.forEach((file, idx) => {
       const pId = `PHOTO-${Date.now()}-${idx}`;
+      const imgUrl = URL.createObjectURL(file);
       newPhotos.push({
         photoId: pId,
         fileName: file.name,
@@ -55,6 +56,7 @@ export const FieldVerificationStep: React.FC<FieldVerificationStepProps> = ({
         uploadedAt: new Date().toISOString(),
         uploadedBy: 'AP-545-VRO-00101',
         caption: `Field Inspection Photograph #${photos.length + idx + 1}`,
+        imageUrl: imgUrl,
       });
     });
 
@@ -193,8 +195,16 @@ export const FieldVerificationStep: React.FC<FieldVerificationStepProps> = ({
                       </button>
                     </div>
 
-                    <div className="digi-photo-thumb">
-                      <ImageIcon className="w-7 h-7" />
+                    <div className="digi-photo-thumb" style={{ overflow: 'hidden', padding: 0 }}>
+                      {photo.imageUrl ? (
+                        <img
+                          src={photo.imageUrl}
+                          alt={photo.caption || photo.fileName}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <ImageIcon className="w-7 h-7" />
+                      )}
                     </div>
 
                     <div className="digi-photo-filename" title={photo.fileName}>

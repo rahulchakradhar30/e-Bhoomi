@@ -80,6 +80,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
         throw new Error(data.error || 'Upload failed');
       }
 
+      const localBlobUrl = selectedFile ? URL.createObjectURL(selectedFile) : '';
       const rec: DocumentUploadRecord = {
         originalFileName: data.originalFileName,
         fileType: data.fileType,
@@ -88,6 +89,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
         storageReference: data.storageReference,
         uploadedAt: data.uploadedAt,
         uploadedByOfficerId: 'AP-545-VRO-00101',
+        documentUrl: data.documentUrl || localBlobUrl,
       };
 
       setUploadRecord(rec);

@@ -448,6 +448,7 @@ export const DigitizationHistoryArchive: React.FC = () => {
 
                   <div className="border border-slate-300 rounded bg-slate-100 p-2 min-h-[380px]">
                     <DocumentViewer
+                      documentUrl={selectedCase.documentUpload?.documentUrl || (selectedCase.documentUpload?.storageReference ? `/api/digitization/document?ref=${encodeURIComponent(selectedCase.documentUpload.storageReference)}` : undefined)}
                       originalFileName={selectedCase.documentUpload?.originalFileName || 'document.pdf'}
                       pageCount={selectedCase.documentUpload?.pageCount || 1}
                     />

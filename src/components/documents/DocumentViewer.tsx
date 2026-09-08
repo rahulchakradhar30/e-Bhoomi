@@ -144,18 +144,19 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           </div>
 
           {documentUrl ? (
-            <div className="my-4 text-center">
-              {documentUrl.endsWith('.pdf') ? (
+            <div className="my-2 text-center">
+              {(originalFileName?.toLowerCase().endsWith('.pdf') || documentUrl?.toLowerCase().includes('.pdf')) ? (
                 <iframe
-                  src={`${documentUrl}#page=${currentPage}`}
-                  className="w-full h-[450px] border"
+                  src={`${documentUrl}#page=${currentPage}&toolbar=0&navpanes=0`}
+                  className="w-full h-[520px] border rounded bg-white"
                   title="Document Preview"
                 />
               ) : (
                 <img
                   src={documentUrl}
-                  alt="Scanned Land Record"
-                  className="max-w-full h-auto mx-auto border"
+                  alt={originalFileName || "Scanned Land Record"}
+                  className="max-w-full h-auto mx-auto border rounded shadow-sm"
+                  style={{ maxHeight: '560px', objectFit: 'contain' }}
                 />
               )}
             </div>

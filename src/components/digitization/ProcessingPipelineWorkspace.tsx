@@ -311,7 +311,11 @@ export const ProcessingPipelineWorkspace: React.FC<ProcessingPipelineWorkspacePr
 
           {showPreview && (
             <div style={{ border: '1px solid #0b2545', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
-              <DocumentViewer originalFileName={uploadRecord.originalFileName} pageCount={uploadRecord.pageCount} />
+              <DocumentViewer
+                documentUrl={uploadRecord.documentUrl || (uploadRecord.storageReference ? `/api/digitization/document?ref=${encodeURIComponent(uploadRecord.storageReference)}` : undefined)}
+                originalFileName={uploadRecord.originalFileName}
+                pageCount={uploadRecord.pageCount}
+              />
             </div>
           )}
 

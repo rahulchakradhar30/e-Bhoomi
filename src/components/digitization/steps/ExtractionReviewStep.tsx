@@ -436,6 +436,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
             </div>
             <div style={{ padding: 12 }}>
               <DocumentViewer
+                documentUrl={uploadRecord.documentUrl || (uploadRecord.storageReference ? `/api/digitization/document?ref=${encodeURIComponent(uploadRecord.storageReference)}` : undefined)}
                 originalFileName={uploadRecord.originalFileName}
                 pageCount={uploadRecord.pageCount}
               />

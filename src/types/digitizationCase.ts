@@ -49,6 +49,7 @@ export interface DocumentUploadRecord {
   storageReference: string;
   uploadedAt: string;
   uploadedByOfficerId: string;
+  documentUrl?: string;
 }
 
 export interface FieldCorrectionAudit {
@@ -71,6 +72,7 @@ export interface FieldVerificationPhoto {
   uploadedAt: string;
   uploadedBy: string;
   caption?: string;
+  imageUrl?: string;
 }
 
 export interface FieldVerificationRecord {

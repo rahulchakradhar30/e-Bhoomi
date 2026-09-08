@@ -85,9 +85,12 @@ export async function POST(req: NextRequest) {
     // Persist real file bytes in server-side storage keyed by storageReference
     await cloudinaryStorage.storeDocument(storageReference, buffer, file.type, file.name);
 
+    const documentUrl = `/api/digitization/document?ref=${encodeURIComponent(storageReference)}`;
+
     return NextResponse.json({
       success: true,
       storageReference,
+      documentUrl,
       originalFileName: file.name,
       fileType: file.type,
       fileSizeBytes: file.size,
