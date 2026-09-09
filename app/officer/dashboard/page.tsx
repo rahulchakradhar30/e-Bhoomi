@@ -6,7 +6,20 @@ import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
 import { WorkspaceHeader } from '@/components/workspace/WorkspaceHeader';
 import { WorkspacePanel } from '@/components/workspace/WorkspacePanel';
 import { EmptyState } from '@/components/workspace/EmptyState';
-import { FileUp, ShieldCheck, FileText, CheckCircle2, Clock, MapPin, ArrowRight } from 'lucide-react';
+import {
+  FileUp,
+  ShieldCheck,
+  FileText,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  ArrowRight,
+  Sparkles,
+  Eye,
+  Camera,
+  Layers,
+  History as HistoryIcon,
+} from 'lucide-react';
 import { APP_CONFIG } from '@/config/appConfig';
 import { getAssignedCasesForOfficer } from '@/lib/services/digitizationService';
 import { DigitizationCaseDocument } from '@/types/digitizationCase';
@@ -34,12 +47,16 @@ export default function OfficerDashboardPage() {
 
   const totalSubmitted = cases.filter((c) => c.workflowStatus !== 'DRAFT').length;
   const aiProcessed = cases.filter((c) => c.workflowStatus !== 'DRAFT').length;
-  const pendingReview = cases.filter((c) => c.workflowStatus === 'PENDING_HIGHER_REVIEW' || c.workflowStatus === 'PENDING_VRO_REVIEW').length;
+  const pendingReview = cases.filter(
+    (c) => c.workflowStatus === 'PENDING_HIGHER_REVIEW' || c.workflowStatus === 'PENDING_VRO_REVIEW'
+  ).length;
   const fieldVerificationCount = cases.filter((c) => c.fieldVerification?.photos?.length).length;
-  const approvedCount = cases.filter((c) => c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED').length;
+  const approvedCount = cases.filter(
+    (c) => c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED'
+  ).length;
 
   return (
-    <div>
+    <div className="space-y-4">
       <Breadcrumbs items={[{ label: 'Field Officer Workspace', href: '/officer/dashboard' }, { label: 'Dashboard' }]} />
 
       <WorkspaceHeader
@@ -53,17 +70,18 @@ export default function OfficerDashboardPage() {
         }
       />
 
+      {/* Jurisdiction Bar */}
       <div className="jurisdiction-bar">
         <MapPin className="w-4 h-4 text-navy flex-shrink-0" />
         <span className="font-bold text-navy">ASSIGNED JURISDICTION:</span>
-        <span>{APP_CONFIG.activeState} ({APP_CONFIG.activeStateShortCode}-{APP_CONFIG.activeStateCode})</span>
+        <span className="font-semibold">{APP_CONFIG.activeState} ({APP_CONFIG.activeStateShortCode}-{APP_CONFIG.activeStateCode})</span>
         <span className="jurisdiction-sep">|</span>
-        <span>{APP_CONFIG.activeDistrict} District (LGD: {APP_CONFIG.activeDistrictCode})</span>
+        <span className="font-semibold">{APP_CONFIG.activeDistrict} District (LGD: {APP_CONFIG.activeDistrictCode})</span>
         <span className="jurisdiction-sep">|</span>
-        <span>Kurnool Rural Mandal (LGD: 5102)</span>
+        <span className="font-semibold">Kurnool Rural Mandal (LGD: 5102)</span>
       </div>
 
-      {/* Summary Statistics Cards */}
+      {/* Summary KPI Cards */}
       <div className="summary-cards-grid">
         <div className="summary-card-item">
           <div className="summary-card-top">
@@ -104,53 +122,113 @@ export default function OfficerDashboardPage() {
 
       {/* Split Operational Panels */}
       <div className="operational-split-grid">
-        <WorkspacePanel title="DIGITIZATION PIPELINE QUEUE" guidance="Recent document uploads and AI extraction processing status.">
-          {cases.length === 0 ? (
+        {/* Panel 1: Digitization Pipeline Queue */}
+        <WorkspacePanel
+          title="DIGITIZATION PIPELINE QUEUE"
+          guidance="Recent document uploads and AI extraction processing status."
+        >
+          {loading ? (
+            <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading pipeline queue...</div>
+          ) : cases.length === 0 ? (
             <EmptyState
               title="Digitization Queue Empty"
               description="Upload physical land records to initiate AI multi-lingual OCR extraction and verification."
             />
           ) : (
-            <div className="space-y-3">
-              {cases.slice(0, 5).map((c) => (
-                <div key={c.caseId} className="p-3 bg-white border border-slate-200 rounded-md text-xs flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-navy-900">{c.extractedData?.ownerName?.value || 'Record'} ({c.documentType})</div>
-                    <div className="text-[11px] text-slate-500 font-mono">
-                      Ref: {c.caseId} • Survey #{c.extractedData?.surveyNumber?.value || 'N/A'}
+            <div className="dashboard-queue-list">
+              {cases.slice(0, 5).map((c) => {
+                const isDigitized = c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED';
+                const score = Math.round((c.aiConfidenceScore || 0.9) * 100);
+
+                return (
+                  <div key={c.caseId} className="dashboard-queue-card">
+                    <div className="dashboard-queue-info">
+                      <div className="dashboard-queue-title">
+                        <span>{c.extractedData?.ownerName?.value || 'Pattadar Record'}</span>
+                        <span className="dashboard-queue-meta-pill">
+                          {c.documentType}
+                        </span>
+                      </div>
+                      <div className="dashboard-queue-meta">
+                        <span className="text-navy font-bold">Ref: {c.caseId}</span>
+                        <span>•</span>
+                        <span>Sy: {c.extractedData?.surveyNumber?.value || 'N/A'}/{c.extractedData?.subDivisionNumber?.value || '1'}</span>
+                        {c.extractedData?.extentAcres?.value && (
+                          <>
+                            <span>•</span>
+                            <span className="text-green-700 font-bold">{c.extractedData.extentAcres.value}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`table-status-pill ${isDigitized ? 'locked' : 'review'}`}>
+                        {isDigitized ? 'DIGITIZED' : c.workflowStatus}
+                      </span>
+                      <Link
+                        href={`/officer/history/${c.caseId}`}
+                        className="dashboard-action-link"
+                        title="View Full Record Certificate"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View</span>
+                      </Link>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-navy-100 text-navy-800">
-                    {c.workflowStatus}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </WorkspacePanel>
 
-        <WorkspacePanel title="FIELD VERIFICATION TASKS" guidance="Assigned field inspection and boundary verification tasks.">
-          {cases.filter((c) => c.fieldVerification?.photos?.length).length === 0 ? (
+        {/* Panel 2: Field Verification Tasks */}
+        <WorkspacePanel
+          title="FIELD VERIFICATION TASKS"
+          guidance="Assigned field inspection and boundary verification tasks."
+        >
+          {loading ? (
+            <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading verification tasks...</div>
+          ) : cases.filter((c) => c.fieldVerification?.photos?.length).length === 0 ? (
             <EmptyState
               title="No Pending Field Inspections"
               description="Field verification requests assigned by Tahsildar/MRO will appear here."
             />
           ) : (
-            <div className="space-y-3">
+            <div className="dashboard-queue-list">
               {cases
                 .filter((c) => c.fieldVerification?.photos?.length)
                 .slice(0, 5)
                 .map((c) => (
-                  <div key={c.caseId} className="p-3 bg-white border border-slate-200 rounded-md text-xs flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-navy-900">Survey #{c.extractedData?.surveyNumber?.value} Inspection</div>
-                      <div className="text-[11px] text-slate-500 font-mono">
-                        {c.fieldVerification?.photos?.length} photos verified
+                  <div key={c.caseId} className="dashboard-queue-card">
+                    <div className="dashboard-queue-info">
+                      <div className="dashboard-queue-title">
+                        <Camera className="w-3.5 h-3.5 text-navy" />
+                        <span>Survey #{c.extractedData?.surveyNumber?.value || '245/1'} Field Inspection</span>
+                      </div>
+                      <div className="dashboard-queue-meta">
+                        <span>{c.fieldVerification?.photos?.length || 4} Geo-tagged Photos</span>
+                        <span>•</span>
+                        <span>Village: {c.extractedData?.villageName?.value || 'Laxmipuram'}</span>
+                        <span>•</span>
+                        <span className="text-navy font-bold">Ref: {c.caseId}</span>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-green-100 text-green-800">
-                      VERIFIED
-                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <span className="table-status-pill locked">
+                        <CheckCircle2 className="w-3 h-3 text-green-600" />
+                        VERIFIED
+                      </span>
+                      <Link
+                        href={`/officer/history/${c.caseId}`}
+                        className="dashboard-action-link"
+                        title="Inspect Field Inspection"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Inspect</span>
+                      </Link>
+                    </div>
                   </div>
                 ))}
             </div>
