@@ -3577,4 +3577,687 @@ h1, h2, h3, h4, h5, h6 {
   font-family: monospace;
 }
 
+/* ==========================================================================
+   DIGITIZATION HISTORY & ARCHIVE TABLE ENHANCED STYLING
+   ========================================================================== */
 
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.summary-card-item {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-top: 3px solid var(--goi-navy);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.summary-card-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.summary-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.summary-card-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.summary-card-count {
+  font-size: 1.65rem;
+  font-weight: 800;
+  font-family: monospace;
+  line-height: 1;
+}
+
+.summary-card-count.text-navy { color: #0b2545; }
+.summary-card-count.text-green { color: #15803d; }
+.summary-card-count.text-amber { color: #b45309; }
+.summary-card-count.text-blue { color: #1d4ed8; }
+
+.archive-toolbar {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  margin-bottom: 16px;
+}
+
+.archive-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+}
+
+.archive-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  font-size: 0.82rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.archive-search-input:focus {
+  background: #ffffff;
+  border-color: #0b2545;
+  box-shadow: 0 0 0 2px rgba(11, 37, 69, 0.12);
+}
+
+.archive-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.archive-filters-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn-group {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.filter-toggle-btn {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  border-right: 1px solid #cbd5e1;
+  transition: all 0.15s ease;
+}
+
+.filter-toggle-btn:last-child {
+  border-right: none;
+}
+
+.filter-toggle-btn.active {
+  background: #0b2545;
+  color: #ffffff;
+}
+
+.filter-toggle-btn:hover:not(.active) {
+  background: #f1f5f9;
+  color: #0b2545;
+}
+
+.excel-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.excel-export-btn:hover {
+  background: #166534;
+  box-shadow: 0 2px 4px rgba(22, 101, 52, 0.25);
+}
+
+/* Tabular Grid Table */
+.gov-archive-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.gov-archive-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.8rem;
+  min-width: 980px;
+}
+
+.gov-archive-table thead {
+  background: #0b2545;
+  color: #ffffff;
+}
+
+.gov-archive-table th {
+  padding: 11px 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #001833;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.gov-archive-table th:last-child {
+  border-right: none;
+}
+
+.gov-archive-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.15s ease;
+}
+
+.gov-archive-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.gov-archive-table tbody tr:hover {
+  background: #eff6ff !important;
+}
+
+.gov-archive-table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+  border-right: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+.gov-archive-table td:last-child {
+  border-right: none;
+}
+
+.table-ref-id {
+  font-family: monospace;
+  font-weight: 800;
+  color: #0b2545;
+  font-size: 0.82rem;
+}
+
+.table-doc-title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.table-doc-sub {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-family: 'Noto Sans Telugu', sans-serif;
+}
+
+.table-pattadar-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.table-pattadar-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.table-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+.table-score-badge.high {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.table-score-badge.med {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.table-score-badge.low {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.table-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.table-status-pill.locked {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.table-status-pill.review {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.table-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #0b2545;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px solid #001833;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.table-view-btn:hover {
+  background: #003366;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 51, 102, 0.3);
+}
+
+/* ==========================================================================
+   OFFICIAL DIGITIZED LAND RECORD DETAIL CERTIFICATE PAGE
+   ========================================================================== */
+
+.gov-certificate-card {
+  background: #ffffff;
+  border: 2px solid #0b2545;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(11, 37, 69, 0.08);
+  overflow: hidden;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.gov-certificate-header {
+  background: linear-gradient(135deg, #0b2545 0%, #003366 100%);
+  color: #ffffff;
+  padding: 20px 24px;
+  border-bottom: 4px solid #ff9933;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gov-cert-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gov-cert-emblem {
+  width: 54px;
+  height: 54px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.gov-cert-title-block h1 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.gov-cert-title-block p {
+  font-size: 0.76rem;
+  color: #e2e8f0;
+}
+
+.gov-cert-title-block .telugu-sub {
+  font-family: 'Noto Sans Telugu', sans-serif;
+  color: #fde68a;
+  font-size: 0.74rem;
+  margin-top: 2px;
+}
+
+.gov-cert-seal-box {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  padding: 8px 14px;
+  text-align: right;
+  backdrop-filter: blur(4px);
+}
+
+.gov-cert-seal-text {
+  font-size: 0.68rem;
+  color: #fbbf24;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gov-cert-seal-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.gov-cert-status-strip {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gov-cert-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.gov-cert-meta-item strong {
+  color: #0b2545;
+  font-weight: 700;
+}
+
+.gov-cert-section {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.gov-cert-section:last-child {
+  border-bottom: none;
+}
+
+.gov-cert-sec-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #0b2545;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+
+.gov-cert-sec-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gov-cert-sec-title .te-title {
+  font-family: 'Noto Sans Telugu', sans-serif;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Detail Tables */
+.gov-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.gov-detail-cell {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+
+.gov-detail-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gov-detail-label .te-label {
+  font-family: 'Noto Sans Telugu', sans-serif;
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.gov-detail-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0b2545;
+}
+
+.gov-detail-value.mono {
+  font-family: monospace;
+}
+
+/* Four Boundaries Compass Grid */
+.boundaries-compass-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .boundaries-compass-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.boundary-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 12px;
+  border-left: 4px solid #0b2545;
+}
+
+.boundary-direction {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0b2545;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.boundary-direction .te-dir {
+  font-family: 'Noto Sans Telugu', sans-serif;
+  color: #64748b;
+}
+
+.boundary-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Comparison Table */
+.gov-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-top: 10px;
+}
+
+.gov-compare-table th {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.7rem;
+}
+
+.gov-compare-table td {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.gov-compare-table tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+/* Legal Attestation Signature Block */
+.gov-attest-block {
+  background: #f8fafc;
+  border: 2px dashed #0b2545;
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gov-attest-text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.gov-attest-declaration {
+  font-size: 0.82rem;
+  color: #1e293b;
+  line-height: 1.5;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.gov-attest-officer {
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+.gov-digital-signature-seal {
+  background: #0b2545;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 6px;
+  text-align: center;
+  min-width: 190px;
+  box-shadow: 0 2px 8px rgba(11, 37, 69, 0.2);
+}
+
+.gov-sig-title {
+  font-size: 0.68rem;
+  color: #fbbf24;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gov-sig-hash {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: #e2e8f0;
+  margin: 4px 0;
+}
+
+.gov-sig-verified {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Print Certificate Media Queries */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  .top-utility-bar,
+  .top-tricolor-bar,
+  .header-container,
+  .contextual-app-header-strip,
+  .sidebar-container,
+  .footer-container,
+  .no-print,
+  .archive-toolbar {
+    display: none !important;
+  }
+  .portal-main-content {
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+  .gov-certificate-card {
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+  .gov-certificate-header {
+    background: #0b2545 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
