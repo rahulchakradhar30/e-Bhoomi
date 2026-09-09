@@ -110,7 +110,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%', maxWidth: '900px', margin: '0 auto' }}>
       {/* Category Banner */}
       <div className="digi-upload-banner">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

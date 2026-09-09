@@ -65,6 +65,7 @@ if (fs.existsSync(targetPages)) {
 const targetNodeModules = path.join(targetDir, 'node_modules');
 if (
   !fs.existsSync(targetNodeModules) || 
+  !fs.existsSync(path.join(targetNodeModules, 'next')) ||
   !fs.existsSync(path.join(targetNodeModules, 'firebase')) ||
   !fs.existsSync(path.join(targetNodeModules, 'firebase-admin')) ||
   !fs.existsSync(path.join(targetNodeModules, 'nodemailer'))
@@ -73,8 +74,14 @@ if (
   spawnSync('npm.cmd', ['install', '--no-fund', '--no-audit'], { cwd: targetDir, stdio: 'inherit', shell: true });
 }
 
-console.log(`Executing: npx next ${command}`);
-const child = spawnSync('npx.cmd', ['next', command, ...(command === 'dev' ? ['-p', '3000'] : [])], {
+const nextBin = path.join(targetDir, 'node_modules', '.bin', 'next.cmd');
+const executable = fs.existsSync(nextBin) ? nextBin : 'npx.cmd';
+const args = fs.existsSync(nextBin) 
+  ? [command, ...(command === 'dev' ? ['-p', '3000'] : [])]
+  : ['next', command, ...(command === 'dev' ? ['-p', '3000'] : [])];
+
+console.log(`Executing: ${executable} ${args.join(' ')}`);
+const child = spawnSync(executable, args, {
   cwd: targetDir,
   stdio: 'inherit',
   shell: true,

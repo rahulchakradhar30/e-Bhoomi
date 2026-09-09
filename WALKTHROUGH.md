@@ -1,6 +1,28 @@
-# eBhoomi UI Refinement, Security Hardening, Master Data, Session Management & Confidential Forgot Password
+# e-Bhoomi — Comprehensive System Walkthrough
 
-This document details the visual, responsive, security hardening, master data consolidation, session management, and confidential authentication features implemented across the eBhoomi portal.
+## Summary of Global Responsive Design & Viewport Optimization
+
+### 1. Global Responsive Architecture (`app/globals.css`)
+- **Single Unified Codebase**: Engineered a multi-tier CSS Grid and Flexbox responsive foundation covering all viewport dimensions (320px–1920px+) with zero device-sniffing or duplicate pages.
+- **Dynamic Viewport Height (`100dvh`)**: Eliminated layout jumps and button clipping caused by mobile address bar animations on Android and iOS Safari.
+- **Fluid Container Margins**: Upgraded `.content-container` and `.digi-workspace-wrapper` to fluid padding using `clamp(0.75rem, 3vw, 1.5rem)`.
+- **Zero Document-Level Horizontal Overflow**: Enforced strict internal horizontal scrolling on all data tables, audit logs, and directory browsers via `.table-responsive-wrapper`.
+
+### 2. Multi-Tier Breakpoint Specifications
+- **Large Desktop / 4K ($\ge 1440\text{px}$)**: Standard centered container, 5-column dashboard cards, side-by-side digitization workspace.
+- **Standard Laptop ($1280\text{px} - 1439\text{px}$)**: 4-column metric cards, 3-column master data hierarchy browser.
+- **Tablet Landscape & Small Laptop ($1024\text{px} - 1279\text{px}$)**: 3-column metric cards, 2-column master data grid, stacked operational split panels.
+- **Tablet Portrait & Phablets ($768\text{px} - 1023\text{px}$)**: 2-column metric cards, 1-column form layouts, stacked dual-pane workspace, responsive header logo scaling.
+- **Standard Mobile ($480\text{px} - 767\text{px}$)**: 1-column form fields, full-width touch buttons ($\ge 42\text{px}$), minimum $16\text{px}$ input font size to prevent iOS auto-zoom, stacked action bars.
+- **Compact & Ultra-Small Mobile ($320\text{px} - 479\text{px}$)**: Proportional micro-logos, stacked top utility bar, vertical officer user badge, touch-safe survey chips.
+
+### 3. Workflow & Component-Level Responsiveness
+- **Public Land Search**: Fluid location selection cascade (2 cols $\to$ 1 col), touch-friendly survey chips grid, internally scrolling results table, responsive record inspection modal.
+- **Land Digitization Workspace**: Smooth horizontal scrolling 8-step stepper, dual-pane document/checklist layout that reflows into a single intuitive column on mobile, responsive inline correction editor, and sticky bottom action bar.
+- **Administrative & Officer Tables**: Responsive filters and search controls (`OfficerDirectoryTable`, `MasterDataBrowser`), export modal dialog with internal scrolling.
+- **Visual Identity Preservation**: 100% fidelity to Government of India land resource design language, tricolor accents, and official branding.
+
+---
 
 ## Summary of Confidential Forgot Password Feature
 

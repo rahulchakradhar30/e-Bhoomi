@@ -108,9 +108,9 @@ export const OfficerDirectoryTable: React.FC = () => {
     <div className="table-responsive-wrapper" style={{ minHeight: '400px' }}>
       
       {/* Filters Bar */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, minWidth: '300px' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <div style={{ display: 'flex', gap: '12px', flex: '1 1 280px', flexWrap: 'wrap', minWidth: 0 }}>
+          <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '160px' }}>
             <Search className="w-4 h-4 text-gray-400" style={{ position: 'absolute', left: 12, top: 10 }} />
             <input 
               type="text" 
@@ -118,14 +118,14 @@ export const OfficerDirectoryTable: React.FC = () => {
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="form-input"
-              style={{ paddingLeft: '36px', height: '38px', margin: 0 }}
+              style={{ paddingLeft: '36px', height: '38px', margin: 0, width: '100%' }}
             />
           </div>
           <select 
             className="form-select" 
             value={category} 
             onChange={e => setCategory(e.target.value)}
-            style={{ width: '200px', height: '38px', margin: 0 }}
+            style={{ flex: '1 1 180px', minWidth: '150px', height: '38px', margin: 0 }}
           >
             <option value="ALL">All Categories</option>
             <option value="FIELD_VRO">Village Revenue Officers</option>
@@ -134,7 +134,7 @@ export const OfficerDirectoryTable: React.FC = () => {
             <option value="DISTRICT_COLLECTOR">District Collectors</option>
           </select>
         </div>
-        <button className="gov-nav-btn login-btn" style={{ height: '38px', padding: '0 16px' }} onClick={() => setShowExportModal(true)}>
+        <button className="gov-nav-btn login-btn" style={{ height: '38px', padding: '0 16px', flexShrink: 0 }} onClick={() => setShowExportModal(true)}>
           <Download className="w-4 h-4" />
           <span>Export Excel</span>
         </button>
@@ -207,11 +207,11 @@ export const OfficerDirectoryTable: React.FC = () => {
 
       {/* Export Modal */}
       {showExportModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', width: '400px', maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, color: '#1e293b', fontWeight: 600 }}>Excel Export Options</h3>
-              <button onClick={() => setShowExportModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X className="w-5 h-5 text-gray-500" /></button>
+              <button onClick={() => setShowExportModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {Object.keys(exportCols).map((col) => (
@@ -225,7 +225,7 @@ export const OfficerDirectoryTable: React.FC = () => {
                 </label>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button onClick={() => setShowExportModal(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleExport} className="gov-nav-btn login-btn" style={{ padding: '8px 16px', minHeight: 'auto' }}>Download</button>
             </div>
