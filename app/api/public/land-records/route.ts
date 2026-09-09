@@ -9,16 +9,18 @@ export async function GET(request: NextRequest) {
     const districtId = searchParams.get('districtId');
     const divisionId = searchParams.get('divisionId') || searchParams.get('revenueDivisionId');
     const mandalId = searchParams.get('mandalId') || searchParams.get('mandalOrTalukId');
-    const villageId = searchParams.get('villageId');
+    const villageId = searchParams.get('villageId') || searchParams.get('localityCode');
+    const sachivalayamId = searchParams.get('sachivalayamId') || searchParams.get('sachivalayamCode');
+    const locId = sachivalayamId || villageId;
     const surveyNumber = searchParams.get('surveyNumber');
     const isSurveysLookup = searchParams.get('type') === 'surveys' || searchParams.get('surveys') === 'true';
 
-    if (!districtId || !mandalId || !villageId) {
+    if (!districtId || !mandalId || (!villageId && !sachivalayamId)) {
       return NextResponse.json(
         {
           success: false,
           code: 'validation/missing-parameters',
-          message: 'Location parameters required: districtId, mandalId, villageId.'
+          message: 'Location parameters required: districtId, mandalId, villageId / sachivalayamId.'
         },
         { status: 400 }
       );
@@ -30,16 +32,21 @@ export async function GET(request: NextRequest) {
         let queryRef = adminDb
           .collection('landRecords')
           .where('districtId', '==', districtId)
-          .where('mandalOrTalukId', '==', mandalId)
-          .where('villageId', '==', villageId);
+          .where('mandalOrTalukId', '==', mandalId);
 
         const snap = await queryRef.get();
         const surveySet = new Set<string>();
 
         snap.docs.forEach((doc) => {
           const data = doc.data();
+          const matchesLocation =
+            (villageId && data.villageId === villageId) ||
+            (sachivalayamId && (data.sachivalayamId === sachivalayamId || data.sachivalayamCode === sachivalayamId)) ||
+            (locId && (data.villageId === locId || data.sachivalayamId === locId));
+
           const vStatus = data.verificationStatus;
           if (
+            matchesLocation &&
             (!vStatus || ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(vStatus)) &&
             data.surveyNumber
           ) {
@@ -53,14 +60,18 @@ export async function GET(request: NextRequest) {
             .collection('digitizationCases')
             .where('districtCode', '==', districtId)
             .where('mandalCode', '==', mandalId)
-            .where('villageCode', '==', villageId)
             .get();
 
           caseSnap.docs.forEach((doc) => {
             const data = doc.data();
+            const matchesLocation =
+              (villageId && data.villageCode === villageId) ||
+              (sachivalayamId && data.sachivalayamCode === sachivalayamId) ||
+              (locId && (data.villageCode === locId || data.sachivalayamCode === locId));
+
             const wStatus = data.workflowStatus;
             const surv = data.extractedData?.surveyNumber?.value;
-            if (['DIGITIZED', 'APPROVED', 'VERIFIED'].includes(wStatus) && surv) {
+            if (matchesLocation && ['DIGITIZED', 'APPROVED', 'VERIFIED'].includes(wStatus) && surv) {
               surveySet.add(surv);
             }
           });
@@ -89,8 +100,7 @@ export async function GET(request: NextRequest) {
     let queryRef = adminDb
       .collection('landRecords')
       .where('districtId', '==', districtId)
-      .where('mandalOrTalukId', '==', mandalId)
-      .where('villageId', '==', villageId);
+      .where('mandalOrTalukId', '==', mandalId);
 
     if (surveyNumber) {
       queryRef = queryRef.where('surveyNumber', '==', surveyNumber);
@@ -100,8 +110,13 @@ export async function GET(request: NextRequest) {
 
     let matchingDocs = querySnap.docs.filter((doc) => {
       const data = doc.data();
+      const matchesLocation =
+        (villageId && data.villageId === villageId) ||
+        (sachivalayamId && (data.sachivalayamId === sachivalayamId || data.sachivalayamCode === sachivalayamId)) ||
+        (locId && (data.villageId === locId || data.sachivalayamId === locId));
+
       const vStatus = data.verificationStatus;
-      return !vStatus || ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(vStatus);
+      return matchesLocation && (!vStatus || ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(vStatus));
     });
 
     // If landRecords collection had no match, check finalized digitizationCases
@@ -118,11 +133,13 @@ export async function GET(request: NextRequest) {
           revenueDivisionId: data.revenueDivisionId || '',
           mandalOrTalukId: data.mandalOrTalukId || '',
           villageId: data.villageId || '',
+          sachivalayamId: data.sachivalayamId || data.sachivalayamCode || '',
           stateName: data.stateName || 'Andhra Pradesh',
           districtName: data.districtName || 'Kurnool',
           revenueDivisionName: data.revenueDivisionName || 'Kurnool Revenue Division',
           mandalName: data.mandalName || '',
           villageName: data.villageName || '',
+          sachivalayamName: data.sachivalayamName || '',
           surveyNumber: data.surveyNumber || '',
           subdivisionNumber: data.subDivisionNumber || data.subdivisionNumber || '1',
           subDivisionNumber: data.subDivisionNumber || data.subdivisionNumber || '1',
@@ -143,17 +160,21 @@ export async function GET(request: NextRequest) {
       let caseQuery = adminDb
         .collection('digitizationCases')
         .where('districtCode', '==', districtId)
-        .where('mandalCode', '==', mandalId)
-        .where('villageCode', '==', villageId);
+        .where('mandalCode', '==', mandalId);
 
       const caseSnap = await caseQuery.get();
       publicRecords = caseSnap.docs
         .filter((doc) => {
           const data = doc.data();
+          const matchesLocation =
+            (villageId && data.villageCode === villageId) ||
+            (sachivalayamId && data.sachivalayamCode === sachivalayamId) ||
+            (locId && (data.villageCode === locId || data.sachivalayamCode === locId));
+
           const wStatus = data.workflowStatus;
           const surv = data.extractedData?.surveyNumber?.value;
           const matchesSurvey = !surveyNumber || surv === surveyNumber;
-          return ['DIGITIZED', 'APPROVED', 'VERIFIED'].includes(wStatus) && matchesSurvey;
+          return matchesLocation && ['DIGITIZED', 'APPROVED', 'VERIFIED'].includes(wStatus) && matchesSurvey;
         })
         .map((doc) => {
           const data = doc.data();
@@ -166,11 +187,13 @@ export async function GET(request: NextRequest) {
             revenueDivisionId: data.divisionCode || '',
             mandalOrTalukId: data.mandalCode || '',
             villageId: data.villageCode || '',
+            sachivalayamId: data.sachivalayamCode || '',
             stateName: 'Andhra Pradesh',
             districtName: ext?.districtName?.value || 'Kurnool',
             revenueDivisionName: ext?.revenueDivision?.value || 'Kurnool Revenue Division',
             mandalName: ext?.mandalName?.value || '',
             villageName: ext?.villageName?.value || '',
+            sachivalayamName: ext?.sachivalayamName?.value || '',
             surveyNumber: ext?.surveyNumber?.value || '',
             subdivisionNumber: ext?.subDivisionNumber?.value || '1',
             subDivisionNumber: ext?.subDivisionNumber?.value || '1',

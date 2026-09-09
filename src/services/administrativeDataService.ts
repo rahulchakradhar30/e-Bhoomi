@@ -177,6 +177,24 @@ export const getSachivalayams = (localityIdOrMandalId?: string): SachivalayamRec
   );
 };
 
+export const getSachivalayamsForVillage = (villageCode?: string, mandalCode?: string): SachivalayamRecord[] => {
+  const allSach = (sachivalayams as unknown) as SachivalayamRecord[];
+  if (!villageCode && !mandalCode) return allSach;
+
+  if (villageCode) {
+    const matched = allSach.filter(
+      (s) => s.locality_code === villageCode || s.sachivalayam_code === villageCode
+    );
+    if (matched.length > 0) return matched;
+  }
+
+  if (mandalCode) {
+    return allSach.filter((s) => s.subdistrict_code === mandalCode);
+  }
+
+  return [];
+};
+
 export const searchLocations = (query?: string, stateCode?: string): DistrictRecord[] => {
   if (!query) return [];
   const q = query.toLowerCase().trim();

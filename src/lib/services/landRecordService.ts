@@ -57,43 +57,43 @@ export async function getLandRecord(recordId: string): Promise<LandRecordDocumen
 export async function queryLandRecordsBySurvey(
   districtId: string,
   mandalOrTalukId: string,
-  villageId: string,
+  villageOrSachivalayamId: string,
   surveyNumber: string
 ): Promise<LandRecordDocument[]> {
   const local = getLocalLandRecordsCache().filter(
     (r) =>
       (r.districtId === districtId || !districtId) &&
       (r.mandalOrTalukId === mandalOrTalukId || !mandalOrTalukId) &&
-      (r.villageId === villageId || !villageId) &&
+      (r.villageId === villageOrSachivalayamId ||
+        r.sachivalayamId === villageOrSachivalayamId ||
+        !villageOrSachivalayamId) &&
       (r.surveyNumber === surveyNumber || !surveyNumber) &&
       ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(r.verificationStatus)
   );
 
   try {
-    let q = query(
+    const q1 = query(
       collection(db, LAND_RECORDS_COLLECTION),
       where('districtId', '==', districtId),
-      where('mandalOrTalukId', '==', mandalOrTalukId),
-      where('villageId', '==', villageId)
+      where('mandalOrTalukId', '==', mandalOrTalukId)
     );
 
-    if (surveyNumber) {
-      q = query(
-        collection(db, LAND_RECORDS_COLLECTION),
-        where('districtId', '==', districtId),
-        where('mandalOrTalukId', '==', mandalOrTalukId),
-        where('villageId', '==', villageId),
-        where('surveyNumber', '==', surveyNumber)
-      );
-    }
-
-    const snap = await getDocs(q);
+    const snap = await getDocs(q1);
     const fromDb = snap.docs.map((d) => d.data() as LandRecordDocument);
     fromDb.forEach(updateLocalLandRecordsCache);
 
     const mergedMap = new Map<string, LandRecordDocument>();
     local.forEach((r) => mergedMap.set(r.recordId, r));
-    fromDb.forEach((r) => mergedMap.set(r.recordId, r));
+    fromDb.forEach((r) => {
+      const matchVillage =
+        !villageOrSachivalayamId ||
+        r.villageId === villageOrSachivalayamId ||
+        r.sachivalayamId === villageOrSachivalayamId;
+      const matchSurvey = !surveyNumber || r.surveyNumber === surveyNumber;
+      if (matchVillage && matchSurvey) {
+        mergedMap.set(r.recordId, r);
+      }
+    });
 
     return Array.from(mergedMap.values()).filter((r) =>
       ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(r.verificationStatus)
@@ -107,13 +107,15 @@ export async function queryLandRecordsBySurvey(
 export async function queryVerifiedSurveyNumbersForLocation(
   districtId: string,
   mandalId: string,
-  villageId: string
+  villageOrSachivalayamId: string
 ): Promise<string[]> {
   const localMatches = getLocalLandRecordsCache().filter(
     (r) =>
       (r.districtId === districtId || !districtId) &&
       (r.mandalOrTalukId === mandalId || !mandalId) &&
-      (r.villageId === villageId || !villageId) &&
+      (r.villageId === villageOrSachivalayamId ||
+        r.sachivalayamId === villageOrSachivalayamId ||
+        !villageOrSachivalayamId) &&
       ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(r.verificationStatus)
   );
 
@@ -126,14 +128,21 @@ export async function queryVerifiedSurveyNumbersForLocation(
     const q = query(
       collection(db, LAND_RECORDS_COLLECTION),
       where('districtId', '==', districtId),
-      where('mandalOrTalukId', '==', mandalId),
-      where('villageId', '==', villageId)
+      where('mandalOrTalukId', '==', mandalId)
     );
     const snap = await getDocs(q);
     snap.docs.forEach((d) => {
       const data = d.data() as LandRecordDocument;
       updateLocalLandRecordsCache(data);
-      if (['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(data.verificationStatus) && data.surveyNumber) {
+      const matchVillage =
+        !villageOrSachivalayamId ||
+        data.villageId === villageOrSachivalayamId ||
+        data.sachivalayamId === villageOrSachivalayamId;
+      if (
+        matchVillage &&
+        ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'].includes(data.verificationStatus) &&
+        data.surveyNumber
+      ) {
         surveys.add(data.surveyNumber);
       }
     });
@@ -192,11 +201,13 @@ export interface PublicLandRecordView {
   revenueDivisionId: string;
   mandalOrTalukId: string;
   villageId: string;
+  sachivalayamId?: string;
   stateName: string;
   districtName: string;
   revenueDivisionName: string;
   mandalName: string;
   villageName: string;
+  sachivalayamName?: string;
   surveyNumber: string;
   subdivisionNumber: string;
   subDivisionNumber: string;
@@ -226,11 +237,13 @@ export function filterPublicFields(record: LandRecordDocument): PublicLandRecord
     revenueDivisionId: record.revenueDivisionId || '',
     mandalOrTalukId: record.mandalOrTalukId || '',
     villageId: record.villageId || '',
+    sachivalayamId: record.sachivalayamId || '',
     stateName: record.stateName || 'Andhra Pradesh',
     districtName: record.districtName || 'Kurnool',
     revenueDivisionName: record.revenueDivisionName || 'Kurnool Revenue Division',
     mandalName: record.mandalName || '',
     villageName: record.villageName || '',
+    sachivalayamName: record.sachivalayamName || record.villageName || '',
     surveyNumber: record.surveyNumber || '',
     subdivisionNumber: record.subDivisionNumber || '1',
     subDivisionNumber: record.subDivisionNumber || '1',

@@ -175,6 +175,7 @@ export interface StructuredLandRecordData {
   extentAcres: ExtractedField<string>;
   landClassification: ExtractedField<string>;
   villageName: ExtractedField<string>;
+  sachivalayamName?: ExtractedField<string>;
   mandalName: ExtractedField<string>;
   revenueDivision: ExtractedField<string>;
   districtName: ExtractedField<string>;

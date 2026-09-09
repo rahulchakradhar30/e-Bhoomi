@@ -9,8 +9,6 @@ import {
   StructuredLandRecordData,
   ExtractedField,
   PartyShare,
-  DynamicCustomSection,
-  DynamicCustomSectionField,
 } from '@/config/digitizationSchemas';
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
@@ -20,22 +18,24 @@ import {
   ShieldCheck,
   Edit3,
   CornerDownRight,
-  CheckSquare,
   Info,
   AlertCircle,
   FileCheck,
-  Building,
   MapPin,
-  Check,
-  Layers,
-  Compass,
+  CheckCircle2,
 } from 'lucide-react';
 
 import {
+  getDistricts,
   getRevenueDivisions,
-  isMandalInDivision,
-  getDivisionForMandal,
+  getSubdistricts,
+  getVillages,
+  getSachivalayamsForVillage,
+  DistrictRecord,
   RevenueDivisionRecord,
+  SubdistrictRecord,
+  VillageRecord,
+  SachivalayamRecord,
 } from '@/services/administrativeDataService';
 
 interface ExtractionReviewStepProps {
@@ -82,23 +82,90 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const distRes = useMemo(() => masterResolver.resolveDistrict(rawDistrict), [rawDistrict, masterResolver]);
 
   const activeDistrictCode = distRes.matchedCode === '545' || distRes.matchedCode === '511' ? '511' : (distRes.matchedCode || '511');
-  const availableRevenueDivisions = useMemo(() => getRevenueDivisions(activeDistrictCode), [activeDistrictCode]);
 
-  // Determine selected revenue division code from data or state
-  const currentDivName = (data.revenueDivision?.value || '').trim();
-  const matchedDivRecord = useMemo(() => {
-    return availableRevenueDivisions.find(
-      (d) =>
-        d.division_code === currentDivName ||
-        d.name.toLowerCase() === currentDivName.toLowerCase() ||
-        currentDivName.toLowerCase().includes(d.name.toLowerCase().replace(' revenue division', ''))
-    );
-  }, [availableRevenueDivisions, currentDivName]);
+  // Master Data Hierarchy Lists
+  const districtsList = useMemo(() => getDistricts('28'), []);
 
-  const [selectedDivisionCode, setSelectedDivisionCode] = useState<string>(
-    matchedDivRecord?.division_code || ''
-  );
+  // Cascading Location Codes
+  const [districtCode, setDistrictCode] = useState<string>(activeDistrictCode);
+  const [divisionCode, setDivisionCode] = useState<string>('');
+  const [mandalCode, setMandalCode] = useState<string>('');
+  const [villageCode, setVillageCode] = useState<string>('');
+  const [sachivalayamCode, setSachivalayamCode] = useState<string>('');
 
+  const divisionsList = useMemo(() => getRevenueDivisions(districtCode), [districtCode]);
+  const mandalsList = useMemo(() => getSubdistricts('28', districtCode, divisionCode), [districtCode, divisionCode]);
+  const villagesList = useMemo(() => getVillages(mandalCode), [mandalCode]);
+  const sachivalayamsList = useMemo(() => getSachivalayamsForVillage(villageCode, mandalCode), [villageCode, mandalCode]);
+
+  // Auto-match initial extracted values against master data
+  useEffect(() => {
+    // 1. Match Division if already named or extracted
+    if (!divisionCode && divisionsList.length > 0) {
+      const curDivName = (data.revenueDivision?.value || '').toLowerCase().trim();
+      const matchD = divisionsList.find(
+        (d) =>
+          d.division_code === curDivName ||
+          d.name.toLowerCase() === curDivName ||
+          (curDivName && curDivName.includes(d.name.toLowerCase().replace(' revenue division', '')))
+      );
+      if (matchD) {
+        setDivisionCode(matchD.division_code);
+      }
+    }
+  }, [divisionsList, divisionCode, data.revenueDivision?.value]);
+
+  useEffect(() => {
+    // 2. Match Mandal if division is selected
+    if (divisionCode && !mandalCode && mandalsList.length > 0) {
+      const curMandalName = (data.mandalName?.value || '').toLowerCase().trim();
+      const matchM = mandalsList.find(
+        (m) =>
+          m.subdistrict_code === curMandalName ||
+          m.name.toLowerCase() === curMandalName ||
+          (curMandalName && curMandalName.includes(m.name.toLowerCase()))
+      );
+      if (matchM) {
+        setMandalCode(matchM.subdistrict_code);
+      }
+    }
+  }, [divisionCode, mandalsList, mandalCode, data.mandalName?.value]);
+
+  useEffect(() => {
+    // 3. Match Village if mandal is selected
+    if (mandalCode && !villageCode && villagesList.length > 0) {
+      const curVillageName = (data.villageName?.value || '').toLowerCase().trim();
+      const matchV = villagesList.find(
+        (v) =>
+          v.village_code === curVillageName ||
+          v.name.toLowerCase() === curVillageName ||
+          (curVillageName && curVillageName.includes(v.name.toLowerCase()))
+      );
+      if (matchV) {
+        setVillageCode(matchV.village_code);
+      }
+    }
+  }, [mandalCode, villagesList, villageCode, data.villageName?.value]);
+
+  useEffect(() => {
+    // 4. Match Sachivalayam if village is selected
+    if (villageCode && !sachivalayamCode && sachivalayamsList.length > 0) {
+      const curSachName = (data.sachivalayamName?.value || '').toLowerCase().trim();
+      const matchS = sachivalayamsList.find(
+        (s) =>
+          s.sachivalayam_code === curSachName ||
+          s.name.toLowerCase() === curSachName ||
+          (curSachName && curSachName.includes(s.name.toLowerCase()))
+      );
+      if (matchS) {
+        setSachivalayamCode(matchS.sachivalayam_code);
+      } else if (sachivalayamsList.length > 0) {
+        setSachivalayamCode(sachivalayamsList[0].sachivalayam_code);
+      }
+    }
+  }, [villageCode, sachivalayamsList, sachivalayamCode, data.sachivalayamName?.value]);
+
+  // Out-of-District Jurisdiction Check
   const isKurnoolDistrict =
     !rawDistrict ||
     ['unknown', 'not extracted', 'n/a', '', 'null'].includes(rawDistrict.toLowerCase()) ||
@@ -117,33 +184,14 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
     ) && !isKurnoolDistrict) || isExplicitMismatch
   );
 
-  // Revenue Division Validation
-  const isRevenueDivisionMissing = !selectedDivisionCode;
-  const currentMandalName = (data.mandalName?.value || '').trim();
-  const isMandalValidForDivision = useMemo(() => {
-    if (!selectedDivisionCode || !currentMandalName) return true;
-    return isMandalInDivision(currentMandalName, selectedDivisionCode);
-  }, [selectedDivisionCode, currentMandalName]);
-
-  const suggestedDivision = useMemo(() => {
-    if (!currentMandalName) return null;
-    return getDivisionForMandal(currentMandalName);
-  }, [currentMandalName]);
-
-  const isDivisionMandalMismatch = Boolean(
-    selectedDivisionCode &&
-    currentMandalName &&
-    suggestedDivision &&
-    !isMandalValidForDivision
-  );
-
-  const isStepValid = !isJurisdictionBlocked && !isRevenueDivisionMissing && !isDivisionMandalMismatch;
+  // Administrative Hierarchy Completeness Validation
+  const isLocationIncomplete = !districtCode || !divisionCode || !mandalCode || !villageCode || !sachivalayamCode;
+  const isStepValid = !isJurisdictionBlocked && !isLocationIncomplete;
 
   useEffect(() => {
     onValidityChange?.(isStepValid);
     onReviewCompleted(data, corrections, checklist);
   }, [data, corrections, checklist, isStepValid]);
-
 
   const toggleChecklist = (id: string) => {
     setChecklist((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -209,6 +257,62 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
 
       return nextData;
     });
+  };
+
+  // Cascading Selection Handlers
+  const handleDistrictChange = (dCode: string) => {
+    setDistrictCode(dCode);
+    setDivisionCode('');
+    setMandalCode('');
+    setVillageCode('');
+    setSachivalayamCode('');
+    const dObj = districtsList.find((d) => d.district_code === dCode);
+    updateStructuredFieldValue('districtName', dObj?.name || '');
+  };
+
+  const handleDivisionChange = (divCode: string) => {
+    setDivisionCode(divCode);
+    setMandalCode('');
+    setVillageCode('');
+    setSachivalayamCode('');
+    const divObj = divisionsList.find((d) => d.division_code === divCode);
+    updateStructuredFieldValue('revenueDivision', divObj?.name || '');
+    setChecklist((prev) => ({ ...prev, revenueDivision: Boolean(divCode) }));
+  };
+
+  const handleMandalChange = (mCode: string) => {
+    setMandalCode(mCode);
+    setVillageCode('');
+    setSachivalayamCode('');
+    const mObj = mandalsList.find((m) => m.subdistrict_code === mCode);
+    updateStructuredFieldValue('mandalName', mObj?.name || '');
+    setChecklist((prev) => ({ ...prev, mandalName: Boolean(mCode) }));
+  };
+
+  const handleVillageChange = (vCode: string) => {
+    setVillageCode(vCode);
+    setSachivalayamCode('');
+    const vObj = villagesList.find((v) => v.village_code === vCode);
+    updateStructuredFieldValue('villageName', vObj?.name || '');
+    setChecklist((prev) => ({ ...prev, villageName: Boolean(vCode) }));
+  };
+
+  const handleSachivalayamChange = (sCode: string) => {
+    setSachivalayamCode(sCode);
+    const sObj = sachivalayamsList.find((s) => s.sachivalayam_code === sCode);
+    if (sObj) {
+      setData((prev) => ({
+        ...prev,
+        sachivalayamName: {
+          fieldId: 'sachivalayamName',
+          labelEn: 'Sachivalayam Name',
+          labelTe: 'సచివాలయం పేరు',
+          value: sObj.name,
+          confidence: 1.0,
+        },
+      }));
+      setChecklist((prev) => ({ ...prev, sachivalayamName: Boolean(sCode) }));
+    }
   };
 
   const getConfidenceBadge = (confidence?: number) => {
@@ -583,24 +687,19 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
             {renderFieldCard('landClassification', data.landClassification, 'Land Classification / Nature', 'భూమి వర్గీకరణ')}
           </WorkspacePanel>
 
-          <WorkspacePanel title="3. ADMINISTRATIVE JURISDICTION & RECORD DATE">
-            {renderFieldCard('villageName', data.villageName, 'Village Name', 'గ్రామం పేరు')}
-            {renderFieldCard('mandalName', data.mandalName, 'Mandal Name', 'మండలం పేరు')}
-
-            {/* Authoritative Revenue Division Selector (Manual Selection Required) */}
+          <WorkspacePanel
+            title="3. ADMINISTRATIVE JURISDICTION & RECORD DATE"
+            guidance="Authoritative 5-tier location hierarchy. Select Revenue Division, Mandal, Village, and Sachivalayam."
+          >
+            {/* Complete 5-Tier Cascading Administrative Jurisdiction Card */}
             <div
-              className={`digi-field-card ${selectedDivisionCode ? 'is-verified' : ''}`}
+              className={`digi-field-card ${!isLocationIncomplete ? 'is-verified' : ''}`}
               style={{
-                border: isRevenueDivisionMissing
-                  ? '2px solid #f59e0b'
-                  : isDivisionMandalMismatch
-                  ? '2px solid #ef4444'
-                  : '1px solid #cbd5e1',
-                background: isRevenueDivisionMissing
-                  ? '#fffbeb'
-                  : isDivisionMandalMismatch
-                  ? '#fef2f2'
-                  : '#ffffff',
+                border: isLocationIncomplete ? '2px solid #f59e0b' : '1px solid #cbd5e1',
+                background: isLocationIncomplete ? '#fffbeb' : '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
               }}
             >
               <div className="digi-field-top">
@@ -617,60 +716,165 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
                       marginRight: 6,
                     }}
                   >
-                    MANUAL SELECTION REQUIRED
+                    MANDATORY JURISDICTION HIERARCHY
                   </span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#0b2545', fontSize: '0.85rem' }}>
-                    <span className="digi-field-label-en">Revenue Division</span>
-                    <span className="digi-field-label-te">(రెవెన్యూ డివిజన్)</span>
+                    <MapPin style={{ width: 14, height: 14 }} />
+                    <span className="digi-field-label-en">Administrative Location Selection</span>
                   </label>
                 </div>
 
                 <div className="digi-field-actions">
-                  {selectedDivisionCode && !isDivisionMandalMismatch ? (
-                    <span className="digi-conf-pill digi-conf-high">VERIFIED JURISDICTION</span>
+                  {!isLocationIncomplete ? (
+                    <span className="digi-conf-pill digi-conf-high">VERIFIED LOCATION</span>
                   ) : (
-                    <span className="digi-conf-pill digi-conf-null">SELECTION PENDING</span>
+                    <span className="digi-conf-pill digi-conf-null">SELECTION REQUIRED</span>
                   )}
                 </div>
               </div>
 
-              <div style={{ marginTop: 8 }}>
-                <select
-                  id="vro-select-revenue-division"
-                  className="digi-edit-select"
-                  value={selectedDivisionCode}
-                  onChange={(e) => {
-                    const code = e.target.value;
-                    setSelectedDivisionCode(code);
-                    const divObj = availableRevenueDivisions.find((d) => d.division_code === code);
-                    const divName = divObj ? divObj.name : '';
-                    updateStructuredFieldValue('revenueDivision', divName);
-                    setChecklist((prev) => ({ ...prev, revenueDivision: Boolean(code) }));
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    borderRadius: 6,
-                    border: '1px solid #94a3b8',
-                    color: '#0b2545',
-                    background: '#ffffff',
-                  }}
-                >
-                  <option value="">-- Select Authoritative Revenue Division --</option>
-                  {availableRevenueDivisions.map((r) => (
-                    <option key={r.division_code} value={r.division_code}>
-                      {r.name} ({r.division_code})
-                    </option>
-                  ))}
-                </select>
+              {/* 5-Tier Form Fields */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginTop: 4 }}>
+                {/* 1. District */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0b2545', marginBottom: 4 }}>
+                    District (జిల్లా) *
+                  </label>
+                  <select
+                    id="vro-select-district"
+                    className="digi-edit-select"
+                    value={districtCode}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem', borderRadius: 6, border: '1px solid #94a3b8' }}
+                  >
+                    {districtsList.map((d) => (
+                      <option key={d.district_code} value={d.district_code}>
+                        {d.name} ({d.district_code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. Revenue Division */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0b2545', marginBottom: 4 }}>
+                    Revenue Division (రెవెన్యూ డివిజన్) *
+                  </label>
+                  <select
+                    id="vro-select-revenue-division"
+                    className="digi-edit-select"
+                    value={divisionCode}
+                    disabled={!districtCode}
+                    onChange={(e) => handleDivisionChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '0.82rem',
+                      borderRadius: 6,
+                      border: !divisionCode ? '2px solid #f59e0b' : '1px solid #94a3b8',
+                      background: !divisionCode ? '#fefce8' : '#ffffff',
+                    }}
+                  >
+                    <option value="">-- Select Revenue Division --</option>
+                    {divisionsList.map((r) => (
+                      <option key={r.division_code} value={r.division_code}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 3. Mandal */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0b2545', marginBottom: 4 }}>
+                    Mandal (మండలం) *
+                  </label>
+                  <select
+                    id="vro-select-mandal"
+                    className="digi-edit-select"
+                    value={mandalCode}
+                    disabled={!divisionCode}
+                    onChange={(e) => handleMandalChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '0.82rem',
+                      borderRadius: 6,
+                      border: !mandalCode ? '2px solid #f59e0b' : '1px solid #94a3b8',
+                      background: !mandalCode ? '#fefce8' : '#ffffff',
+                    }}
+                  >
+                    <option value="">{divisionCode ? '-- Select Mandal --' : 'Select division first'}</option>
+                    {mandalsList.map((m) => (
+                      <option key={m.subdistrict_code} value={m.subdistrict_code}>
+                        {m.name} ({m.type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Village */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0b2545', marginBottom: 4 }}>
+                    Village / Locality (గ్రామం / లోకాలిటీ) *
+                  </label>
+                  <select
+                    id="vro-select-village"
+                    className="digi-edit-select"
+                    value={villageCode}
+                    disabled={!mandalCode}
+                    onChange={(e) => handleVillageChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '0.82rem',
+                      borderRadius: 6,
+                      border: !villageCode ? '2px solid #f59e0b' : '1px solid #94a3b8',
+                      background: !villageCode ? '#fefce8' : '#ffffff',
+                    }}
+                  >
+                    <option value="">{mandalCode ? '-- Select Village --' : 'Select mandal first'}</option>
+                    {villagesList.map((v) => (
+                      <option key={v.village_code} value={v.village_code}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 5. Sachivalayam */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0b2545', marginBottom: 4 }}>
+                    Sachivalayam (సచివాలయం) *
+                  </label>
+                  <select
+                    id="vro-select-sachivalayam"
+                    className="digi-edit-select"
+                    value={sachivalayamCode}
+                    disabled={!villageCode && !mandalCode}
+                    onChange={(e) => handleSachivalayamChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '0.82rem',
+                      borderRadius: 6,
+                      border: !sachivalayamCode ? '2px solid #f59e0b' : '1px solid #94a3b8',
+                      background: !sachivalayamCode ? '#fefce8' : '#ffffff',
+                    }}
+                  >
+                    <option value="">{villageCode || mandalCode ? '-- Select Sachivalayam --' : 'Select village first'}</option>
+                    {sachivalayamsList.map((s) => (
+                      <option key={s.sachivalayam_code} value={s.sachivalayam_code}>
+                        {s.name} ({s.area_type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {isRevenueDivisionMissing && (
+              {isLocationIncomplete && (
                 <div
                   style={{
-                    marginTop: 8,
                     padding: '6px 10px',
                     background: '#fef3c7',
                     border: '1px solid #fde68a',
@@ -683,35 +887,34 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
                   }}
                 >
                   <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
-                  <span>Please select the Revenue Division before submitting the digitized record.</span>
+                  <span>Please complete all administrative location fields (District, Revenue Division, Mandal, Village, Sachivalayam) before submitting.</span>
                 </div>
               )}
 
-              {isDivisionMandalMismatch && (
+              {!isLocationIncomplete && (
                 <div
                   style={{
-                    marginTop: 8,
                     padding: '6px 10px',
-                    background: '#fee2e2',
-                    border: '1px solid #fca5a5',
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
                     borderRadius: 4,
                     fontSize: '0.75rem',
-                    color: '#991b1b',
+                    color: '#166534',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
                   }}
                 >
-                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0 }} />
                   <span>
-                    Validation Error: Mandal '<strong>{currentMandalName}</strong>' belongs to '
-                    <strong>{suggestedDivision?.name}</strong>'. Please select the matching Revenue Division.
+                    Location verified: <strong>{data.districtName?.value || 'Kurnool'}</strong> →{' '}
+                    <strong>{data.revenueDivision?.value}</strong> → <strong>{data.mandalName?.value}</strong> →{' '}
+                    <strong>{data.villageName?.value}</strong> → <strong>{data.sachivalayamName?.value}</strong>
                   </span>
                 </div>
               )}
             </div>
 
-            {renderFieldCard('districtName', data.districtName, 'District Name', 'జిల్లా పేరు')}
             {renderFieldCard('documentDate', data.documentDate, 'Record / Proceeding Date', 'రికార్డు / ప్రొసీడింగ్ తేదీ')}
           </WorkspacePanel>
 
@@ -739,7 +942,7 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
                     borderRadius: 6,
                     padding: '10px 14px',
                     fontSize: '0.8rem',
-                    fontFamily: 'monospace'
+                    fontFamily: 'monospace',
                   }}
                 >
                   <div style={{ fontWeight: 800, color: '#0b2545', marginBottom: 4 }}>{party.name}</div>

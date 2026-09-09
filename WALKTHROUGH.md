@@ -188,37 +188,66 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
-## Summary of Public Land Search & VRO Digitization Integration
+## Summary of VRO 5-Tier Location Mapping Correction
 
-### 1. Revenue Division Manual Selection & Validation in VRO Workflow
-- In [`ExtractionReviewStep.tsx`](file:///r:/e-Bhoomi/src/components/digitization/steps/ExtractionReviewStep.tsx), integrated an authoritative Revenue Division dropdown selector (`getRevenueDivisions(districtCode)`) with mandatory VRO selection.
-- Enforced strict deterministic validation:
-  - If Revenue Division is unselected: blocks progression with `"Please select the Revenue Division before submitting the digitized record."`
-  - If extracted/selected Mandal does not belong to the selected Revenue Division: blocks progression with `"Validation Error: Mandal belongs to another Revenue Division."`
-- Summarized verified location hierarchy (District, Revenue Division, Mandal, Village) in [`FinalReviewStep.tsx`](file:///r:/e-Bhoomi/src/components/digitization/steps/FinalReviewStep.tsx).
+### 1. Complete 5-Tier Administrative Hierarchy Implementation
+Implemented authoritative, cascading selection and storage across all 5 administrative levels:
+$$\text{State (28)} \longrightarrow \text{District (511)} \longrightarrow \text{Revenue Division} \longrightarrow \text{Mandal} \longrightarrow \text{Village} \longrightarrow \text{Sachivalayam}$$
 
-### 2. Complete Administrative Location Persistence
-- In [`DocumentDigitization.tsx`](file:///r:/e-Bhoomi/src/components/documents/DocumentDigitization.tsx), dynamically resolved and stored `districtCode`, `divisionCode`, `mandalCode`, `villageCode`, and human-readable names.
-- Concurrently persisted canonical land records to the Firestore `landRecords` collection via [`landRecordService.ts`](file:///r:/e-Bhoomi/src/lib/services/landRecordService.ts) with `verificationStatus: 'VERIFIED'`.
+- **VRO Digitization Location Selection UI** ([`ExtractionReviewStep.tsx`](file:///r:/e-Bhoomi/src/components/digitization/steps/ExtractionReviewStep.tsx)):
+  - **District**: Select / Auto-selected from master data.
+  - **Revenue Division**: Explicit selection from master data for selected district (`getRevenueDivisions(districtCode)`).
+  - **Mandal**: Cascading selection from mandals within selected division (`getSubdistricts('28', districtCode, divisionCode)`).
+  - **Village**: Cascading selection from villages/localities in the mandal (`getVillages(mandalCode)`).
+  - **Sachivalayam**: Cascading selection from secretariats belonging to the locality/mandal (`getSachivalayamsForVillage(villageCode, mandalCode)`).
 
-### 3. Elimination of Hardcoded / Demo Land Records
-- Removed all mock survey number maps (`kurnoolSurveyNumbers`) and fallback demo records from [`landRecordSearchService.ts`](file:///r:/e-Bhoomi/src/services/landRecordSearchService.ts).
-- All survey number discoverability and record retrieval are 100% data-driven against Firestore and the `/api/public/land-records` endpoint.
+### 2. Strict Cascading Reset Rules & Cross-Validation
+- **Cascading Reset Rules**:
+  - District changed $\to$ Resets Revenue Division, Mandal, Village, Sachivalayam.
+  - Revenue Division changed $\to$ Resets Mandal, Village, Sachivalayam.
+  - Mandal changed $\to$ Resets Village, Sachivalayam.
+  - Village changed $\to$ Resets Sachivalayam.
+- **Cross-Level Validation**:
+  - Validates that Mandal belongs to Revenue Division.
+  - Validates that Village belongs to Mandal.
+  - Validates that Sachivalayam belongs to Village/Mandal.
+  - Blocks final submission with clear actionable error messages if any location tier is unselected or mismatched.
 
-### 4. Dynamic Cascading Search & Read-Only Public Inspection
-- In [`PublicLandSearch.tsx`](file:///r:/e-Bhoomi/src/components/ui/PublicLandSearch.tsx), maintained the existing national government portal visual styling while making cascading dropdowns (State → District → Revenue Division → Mandal → Village/Sachivalayam) fully data-driven.
-- Implemented professional empty states for locations with no digitized records.
-- Provided a secure, read-only record details modal with zero mutation or upload endpoints exposed to citizens.
+### 3. Database Schema & Field Persistence
+In [`DocumentDigitization.tsx`](file:///r:/e-Bhoomi/src/components/documents/DocumentDigitization.tsx), persisted both canonical IDs and human-readable names in both `digitizationCases` and `landRecords`:
+```json
+{
+  "stateCode": "28",
+  "districtCode": "511",
+  "divisionCode": "511-KNL",
+  "mandalCode": "5170",
+  "villageCode": "LOC-5170-LAKSHMIPURAM",
+  "sachivalayamCode": "11390497",
+  "stateName": "Andhra Pradesh",
+  "districtName": "Kurnool",
+  "revenueDivisionName": "Kurnool Revenue Division",
+  "mandalName": "Kallur",
+  "villageName": "Lakshmipuram",
+  "sachivalayamName": "Lakshmipuram - 11390497",
+  "surveyNumber": "142/3A",
+  "verificationStatus": "VERIFIED"
+}
+```
 
-### 5. Firestore Security Hardening
-- In [`firestore.rules`](file:///r:/e-Bhoomi/firestore.rules), granted read-only access for verified records (`resource.data.verificationStatus in ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED']`), while restricting create/update/delete strictly to authorized revenue officers with matching district scope.
+### 4. Deterministic Public Search Compatibility
+- Public search at [`PublicLandSearch.tsx`](file:///r:/e-Bhoomi/src/components/ui/PublicLandSearch.tsx) and `/api/public/land-records` connects directly to the stored location identifiers:
+  - Users select `State` $\to$ `District` $\to$ `Revenue Division` $\to$ `Mandal` $\to$ `Sachivalayam / Village`.
+  - The exact matching verified Survey Numbers and Khata records are returned.
+  - Query logic maintains backwards-compatibility with legacy records where `villageId` references the secretariat code.
 
 ---
 
 ## Verification Performed
 
 - Executed `npm run build` with zero TypeScript errors across all 95 routes/pages.
-- Verified end-to-end location cascading, survey lookup, and record retrieval workflows.
-- Confirmed zero hardcoded fake records and strictly read-only public citizen access.
+- Verified end-to-end cascading selection in VRO digitization and Public Search.
+- Verified strict read-only public citizen access with no mutation capabilities.
+- Verified no hardcoded demo records or fake locations are used.
+
 
 

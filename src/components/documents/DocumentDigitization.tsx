@@ -28,7 +28,7 @@ import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
 import { createDigitizationCase, getActiveDraftForOfficer, saveDigitizationDraft } from '@/lib/services/digitizationService';
 import { createLandRecord } from '@/lib/services/landRecordService';
 import { LandRecordDocument } from '@/types/landRecord';
-import { getRevenueDivisions, getSubdistricts, getSachivalayams } from '@/services/administrativeDataService';
+import { getRevenueDivisions, getSubdistricts, getVillages, getSachivalayams, getSachivalayamsForVillage } from '@/services/administrativeDataService';
 import { useCurrentUser } from '@/context/AuthContext';
 
 export const DocumentDigitization: React.FC = () => {
@@ -168,12 +168,14 @@ export const DocumentDigitization: React.FC = () => {
       ? 'PENDING_HIGHER_REVIEW'
       : 'DIGITIZED';
 
-    // Dynamically resolve administrative location hierarchy from master data
+    // Dynamically resolve authoritative administrative location hierarchy from master data
     const rawDist = structuredData?.districtName?.value || 'Kurnool';
     const rawDiv = structuredData?.revenueDivision?.value || '';
     const rawMandal = structuredData?.mandalName?.value || 'Kallur';
     const rawVillage = structuredData?.villageName?.value || 'Lakshmipuram';
+    const rawSach = structuredData?.sachivalayamName?.value || '';
 
+    // 1. Revenue Division
     const allDivs = getRevenueDivisions('511');
     const matchedDiv = allDivs.find(
       (d) =>
@@ -185,6 +187,7 @@ export const DocumentDigitization: React.FC = () => {
     const divCode = matchedDiv ? matchedDiv.division_code : 'RD-511-KURNOOL';
     const divName = matchedDiv ? matchedDiv.name : 'Kurnool Revenue Division';
 
+    // 2. Mandal
     const allMandals = getSubdistricts('28', '511', divCode);
     const matchedMandal = allMandals.find(
       (m) =>
@@ -196,16 +199,29 @@ export const DocumentDigitization: React.FC = () => {
     const mandalCode = matchedMandal ? matchedMandal.subdistrict_code : '5170';
     const mandalName = matchedMandal ? matchedMandal.name : rawMandal;
 
-    const allSach = getSachivalayams(mandalCode);
+    // 3. Village / Locality
+    const allVillages = getVillages(mandalCode);
+    const matchedVillage = allVillages.find(
+      (v) =>
+        v.name.toLowerCase() === rawVillage.toLowerCase() ||
+        rawVillage.toLowerCase().includes(v.name.toLowerCase()) ||
+        v.village_code === rawVillage
+    ) || allVillages[0];
+
+    const villageCode = matchedVillage ? matchedVillage.village_code : 'LOC-5170-LAKSHMIPURAM';
+    const villageName = matchedVillage ? matchedVillage.name : rawVillage;
+
+    // 4. Sachivalayam
+    const allSach = getSachivalayamsForVillage(villageCode, mandalCode);
     const matchedSach = allSach.find(
       (s) =>
-        s.name.toLowerCase() === rawVillage.toLowerCase() ||
-        rawVillage.toLowerCase().includes(s.name.toLowerCase()) ||
-        s.sachivalayam_code === rawVillage
+        s.name.toLowerCase() === rawSach.toLowerCase() ||
+        (rawSach && rawSach.toLowerCase().includes(s.name.toLowerCase())) ||
+        s.sachivalayam_code === rawSach
     ) || allSach[0];
 
-    const villageCode = matchedSach ? matchedSach.sachivalayam_code : '11390497';
-    const villageName = matchedSach ? matchedSach.name : rawVillage;
+    const sachivalayamCode = matchedSach ? matchedSach.sachivalayam_code : '11390497';
+    const sachivalayamName = matchedSach ? matchedSach.name : (rawSach || villageName);
 
     const caseDoc: DigitizationCaseDocument = {
       caseId,
@@ -226,6 +242,8 @@ export const DocumentDigitization: React.FC = () => {
       divisionCode: divCode,
       mandalCode: mandalCode,
       villageCode: villageCode,
+      sachivalayamCode: sachivalayamCode,
+      sachivalayamName: sachivalayamName,
       initialConsent,
       finalConsent: finalConsentRec,
       documentUpload: uploadRecord,
@@ -248,11 +266,13 @@ export const DocumentDigitization: React.FC = () => {
       revenueDivisionId: divCode,
       mandalOrTalukId: mandalCode,
       villageId: villageCode,
+      sachivalayamId: sachivalayamCode,
       stateName: 'Andhra Pradesh',
       districtName: 'Kurnool',
       revenueDivisionName: divName,
       mandalName: mandalName,
       villageName: villageName,
+      sachivalayamName: sachivalayamName,
       surveyNumber: structuredData?.surveyNumber?.value || '101',
       subDivisionNumber: structuredData?.subDivisionNumber?.value || '1',
       khataNumber: structuredData?.khataNumber?.value || '',

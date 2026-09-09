@@ -115,6 +115,8 @@ export interface DigitizationCaseDocument {
   divisionCode: string;
   mandalCode: string;
   villageCode: string;
+  sachivalayamCode?: string;
+  sachivalayamName?: string;
 
   // Phase Records
   initialConsent?: VROConsentRecord;

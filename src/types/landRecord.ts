@@ -30,11 +30,13 @@ export interface LandRecordDocument {
   revenueDivisionId: string;
   mandalOrTalukId: string;
   villageId: string;
+  sachivalayamId?: string;
   stateName?: string;
   districtName?: string;
   revenueDivisionName?: string;
   mandalName?: string;
   villageName?: string;
+  sachivalayamName?: string;
   surveyNumber: string;
   subDivisionNumber: string;
   khataNumber?: string;
