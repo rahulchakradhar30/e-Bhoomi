@@ -31,6 +31,13 @@ import {
   Compass,
 } from 'lucide-react';
 
+import {
+  getRevenueDivisions,
+  isMandalInDivision,
+  getDivisionForMandal,
+  RevenueDivisionRecord,
+} from '@/services/administrativeDataService';
+
 interface ExtractionReviewStepProps {
   documentType: DocumentCategoryCode;
   uploadRecord: DocumentUploadRecord;
@@ -74,6 +81,24 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
   const rawDistrict = (data.districtName?.value || '').trim();
   const distRes = useMemo(() => masterResolver.resolveDistrict(rawDistrict), [rawDistrict, masterResolver]);
 
+  const activeDistrictCode = distRes.matchedCode === '545' || distRes.matchedCode === '511' ? '511' : (distRes.matchedCode || '511');
+  const availableRevenueDivisions = useMemo(() => getRevenueDivisions(activeDistrictCode), [activeDistrictCode]);
+
+  // Determine selected revenue division code from data or state
+  const currentDivName = (data.revenueDivision?.value || '').trim();
+  const matchedDivRecord = useMemo(() => {
+    return availableRevenueDivisions.find(
+      (d) =>
+        d.division_code === currentDivName ||
+        d.name.toLowerCase() === currentDivName.toLowerCase() ||
+        currentDivName.toLowerCase().includes(d.name.toLowerCase().replace(' revenue division', ''))
+    );
+  }, [availableRevenueDivisions, currentDivName]);
+
+  const [selectedDivisionCode, setSelectedDivisionCode] = useState<string>(
+    matchedDivRecord?.division_code || ''
+  );
+
   const isKurnoolDistrict =
     !rawDistrict ||
     ['unknown', 'not extracted', 'n/a', '', 'null'].includes(rawDistrict.toLowerCase()) ||
@@ -92,10 +117,33 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
     ) && !isKurnoolDistrict) || isExplicitMismatch
   );
 
+  // Revenue Division Validation
+  const isRevenueDivisionMissing = !selectedDivisionCode;
+  const currentMandalName = (data.mandalName?.value || '').trim();
+  const isMandalValidForDivision = useMemo(() => {
+    if (!selectedDivisionCode || !currentMandalName) return true;
+    return isMandalInDivision(currentMandalName, selectedDivisionCode);
+  }, [selectedDivisionCode, currentMandalName]);
+
+  const suggestedDivision = useMemo(() => {
+    if (!currentMandalName) return null;
+    return getDivisionForMandal(currentMandalName);
+  }, [currentMandalName]);
+
+  const isDivisionMandalMismatch = Boolean(
+    selectedDivisionCode &&
+    currentMandalName &&
+    suggestedDivision &&
+    !isMandalValidForDivision
+  );
+
+  const isStepValid = !isJurisdictionBlocked && !isRevenueDivisionMissing && !isDivisionMandalMismatch;
+
   useEffect(() => {
-    onValidityChange?.(!isJurisdictionBlocked);
+    onValidityChange?.(isStepValid);
     onReviewCompleted(data, corrections, checklist);
-  }, [data, corrections, checklist, isJurisdictionBlocked]);
+  }, [data, corrections, checklist, isStepValid]);
+
 
   const toggleChecklist = (id: string) => {
     setChecklist((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -538,7 +586,131 @@ export const ExtractionReviewStep: React.FC<ExtractionReviewStepProps> = ({
           <WorkspacePanel title="3. ADMINISTRATIVE JURISDICTION & RECORD DATE">
             {renderFieldCard('villageName', data.villageName, 'Village Name', 'గ్రామం పేరు')}
             {renderFieldCard('mandalName', data.mandalName, 'Mandal Name', 'మండలం పేరు')}
-            {renderFieldCard('revenueDivision', data.revenueDivision, 'Revenue Division', 'రెవెన్యూ డివిజన్')}
+
+            {/* Authoritative Revenue Division Selector (Manual Selection Required) */}
+            <div
+              className={`digi-field-card ${selectedDivisionCode ? 'is-verified' : ''}`}
+              style={{
+                border: isRevenueDivisionMissing
+                  ? '2px solid #f59e0b'
+                  : isDivisionMandalMismatch
+                  ? '2px solid #ef4444'
+                  : '1px solid #cbd5e1',
+                background: isRevenueDivisionMissing
+                  ? '#fffbeb'
+                  : isDivisionMandalMismatch
+                  ? '#fef2f2'
+                  : '#ffffff',
+              }}
+            >
+              <div className="digi-field-top">
+                <div className="digi-field-label-group">
+                  <span
+                    style={{
+                      background: '#0b2545',
+                      color: '#fbbf24',
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      fontFamily: 'monospace',
+                      marginRight: 6,
+                    }}
+                  >
+                    MANUAL SELECTION REQUIRED
+                  </span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#0b2545', fontSize: '0.85rem' }}>
+                    <span className="digi-field-label-en">Revenue Division</span>
+                    <span className="digi-field-label-te">(రెవెన్యూ డివిజన్)</span>
+                  </label>
+                </div>
+
+                <div className="digi-field-actions">
+                  {selectedDivisionCode && !isDivisionMandalMismatch ? (
+                    <span className="digi-conf-pill digi-conf-high">VERIFIED JURISDICTION</span>
+                  ) : (
+                    <span className="digi-conf-pill digi-conf-null">SELECTION PENDING</span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <select
+                  id="vro-select-revenue-division"
+                  className="digi-edit-select"
+                  value={selectedDivisionCode}
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    setSelectedDivisionCode(code);
+                    const divObj = availableRevenueDivisions.find((d) => d.division_code === code);
+                    const divName = divObj ? divObj.name : '';
+                    updateStructuredFieldValue('revenueDivision', divName);
+                    setChecklist((prev) => ({ ...prev, revenueDivision: Boolean(code) }));
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    borderRadius: 6,
+                    border: '1px solid #94a3b8',
+                    color: '#0b2545',
+                    background: '#ffffff',
+                  }}
+                >
+                  <option value="">-- Select Authoritative Revenue Division --</option>
+                  {availableRevenueDivisions.map((r) => (
+                    <option key={r.division_code} value={r.division_code}>
+                      {r.name} ({r.division_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {isRevenueDivisionMissing && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: '6px 10px',
+                    background: '#fef3c7',
+                    border: '1px solid #fde68a',
+                    borderRadius: 4,
+                    fontSize: '0.75rem',
+                    color: '#92400e',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <span>Please select the Revenue Division before submitting the digitized record.</span>
+                </div>
+              )}
+
+              {isDivisionMandalMismatch && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: '6px 10px',
+                    background: '#fee2e2',
+                    border: '1px solid #fca5a5',
+                    borderRadius: 4,
+                    fontSize: '0.75rem',
+                    color: '#991b1b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <span>
+                    Validation Error: Mandal '<strong>{currentMandalName}</strong>' belongs to '
+                    <strong>{suggestedDivision?.name}</strong>'. Please select the matching Revenue Division.
+                  </span>
+                </div>
+              )}
+            </div>
+
             {renderFieldCard('districtName', data.districtName, 'District Name', 'జిల్లా పేరు')}
             {renderFieldCard('documentDate', data.documentDate, 'Record / Proceeding Date', 'రికార్డు / ప్రొసీడింగ్ తేదీ')}
           </WorkspacePanel>

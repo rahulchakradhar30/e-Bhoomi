@@ -191,3 +191,38 @@ export const searchLocations = (query?: string, stateCode?: string): DistrictRec
     (d.display_code && d.display_code.toLowerCase().includes(q))
   );
 };
+
+export const isMandalInDivision = (mandalCodeOrName: string, divisionCode: string): boolean => {
+  if (!mandalCodeOrName || !divisionCode) return false;
+  const allSub = (subdistricts as unknown) as SubdistrictRecord[];
+  const norm = mandalCodeOrName.trim().toLowerCase();
+  
+  const match = allSub.find(
+    s =>
+      (s.subdistrict_code === mandalCodeOrName ||
+        s.name.toLowerCase() === norm ||
+        (s.local_name && s.local_name.toLowerCase() === norm) ||
+        norm.includes(s.name.toLowerCase())) &&
+      s.division_code === divisionCode
+  );
+  return Boolean(match);
+};
+
+export const getDivisionForMandal = (mandalCodeOrName: string): RevenueDivisionRecord | null => {
+  if (!mandalCodeOrName) return null;
+  const allSub = (subdistricts as unknown) as SubdistrictRecord[];
+  const allDivs = (revenueDivisions as unknown) as RevenueDivisionRecord[];
+  const norm = mandalCodeOrName.trim().toLowerCase();
+
+  const sub = allSub.find(
+    s =>
+      s.subdistrict_code === mandalCodeOrName ||
+      s.name.toLowerCase() === norm ||
+      (s.local_name && s.local_name.toLowerCase() === norm) ||
+      norm.includes(s.name.toLowerCase())
+  );
+  if (!sub) return null;
+
+  return allDivs.find(d => d.division_code === sub.division_code) || null;
+};
+

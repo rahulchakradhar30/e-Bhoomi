@@ -4,16 +4,17 @@
  * Provides type-safe location discovery, survey number lookup,
  * mobile OTP verification session management, and public record access.
  * 
- * Decoupled from presentation layer. Zero fake records/OTPs fabricated.
+ * Strictly data-driven. Zero fake / demo land records.
  */
 
 import { getStates, getDistricts, getRevenueDivisions, getSubdistricts, getVillages, getSachivalayams } from './administrativeDataService';
+import { queryVerifiedSurveyNumbersForLocation, queryLandRecordsBySurvey, filterPublicFields } from '@/lib/services/landRecordService';
 import { APP_CONFIG } from '../config/appConfig';
 
 export interface PublicSearchLocationContext {
   stateCode: string;
   districtCode: string;
-  divisionCode: string;
+  divisionCode?: string;
   mandalCode: string;
   villageCode: string;
   surveyNumber: string;
@@ -23,11 +24,16 @@ export interface PublicSearchResultRecord {
   id: string;
   surveyNumber: string;
   subdivisionNumber: string;
+  khataNumber?: string;
   villageName: string;
   mandalName: string;
+  revenueDivisionName?: string;
   districtName: string;
+  stateName?: string;
   extentAcres: string;
+  extent?: number;
   landType: string;
+  landClassification?: string;
   recordType: string;
   digitizationStatus: 'Not Digitized' | 'Processing' | 'Digitized' | 'Verified' | 'Field Verification Completed';
   verificationStatus: 'Pending Verification' | 'Verified' | 'Requires Review' | 'Correction Requested';
@@ -74,28 +80,43 @@ export const fetchPublicSachivalayams = async (mandalCode: string) => {
   return getSachivalayams(mandalCode);
 };
 
-// 2. Survey Number Lookup API
-export const searchPublicSurveyNumbers = async (sachivalayamCode: string, query: string): Promise<string[]> => {
+// 2. Data-Driven Survey Number Lookup API (Queries actual digitized database records)
+export const searchPublicSurveyNumbers = async (
+  sachivalayamCode: string,
+  query: string = '',
+  locationContext?: { districtCode?: string; mandalCode?: string; divisionCode?: string }
+): Promise<string[]> => {
   if (!sachivalayamCode) return [];
-  
-  // Real survey numbers derived from backend master data.
-  // Mapping to authoritative Sachivalayam codes imported from Excel:
-  const kurnoolSurveyNumbers: Record<string, string[]> = {
-    '11390497': ['101', '102/1', '102/2', '103', '104/A', '105', '106/B', '107', '108/1'], // AREKAL
-    '11390503': ['201', '202/1', '203', '204/B', '205/1', '206'], // CHINNAPENDEKAL
-    '11390511': ['301', '302', '303/A', '304', '305'], // JALIBENCHI
-    '11390513': ['401', '402/1', '403', '404'], // KADITHONAL
-    '11390518': ['501', '502', '503/1', '504']  // Basapuram (Excel Code)
-  };
 
-  const availableSurveys = kurnoolSurveyNumbers[sachivalayamCode] || ['101', '102/1', '103', '104/A', '105'];
-  
-  if (!query.trim()) {
-    return availableSurveys;
+  const districtId = locationContext?.districtCode || '511';
+  const mandalId = locationContext?.mandalCode || '';
+
+  try {
+    const res = await fetch(
+      `/api/public/land-records?districtId=${encodeURIComponent(districtId)}&mandalId=${encodeURIComponent(mandalId)}&villageId=${encodeURIComponent(sachivalayamCode)}&type=surveys`
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.surveyNumbers)) {
+        let list: string[] = data.surveyNumbers;
+        if (query.trim()) {
+          const q = query.toLowerCase().trim();
+          list = list.filter((s) => s.toLowerCase().includes(q));
+        }
+        return list;
+      }
+    }
+  } catch (err) {
+    console.warn('Network survey lookup failed, falling back to client cache:', err);
   }
 
+  // Client-side fallback to verified records
+  const localSurveys = await queryVerifiedSurveyNumbersForLocation(districtId, mandalId, sachivalayamCode);
+  if (!query.trim()) {
+    return localSurveys;
+  }
   const q = query.toLowerCase().trim();
-  return availableSurveys.filter(s => s.toLowerCase().includes(q));
+  return localSurveys.filter((s) => s.toLowerCase().includes(q));
 };
 
 // 3. Registered Mobile OTP API Boundaries
@@ -135,27 +156,32 @@ export const verifyPublicRecordOtp = async (
   };
 };
 
-// 4. Fetch Land Records for Session
+// 4. Fetch Actual Land Records for Location & Survey
 export const fetchPublicLandRecords = async (
   sessionId: string,
   context: PublicSearchLocationContext
 ): Promise<PublicSearchResultRecord[]> => {
-  // Returns authoritative digitized record format for selected jurisdiction
-  return [
-    {
-      id: `REC-AP-KUR-${context.surveyNumber || '101'}`,
-      surveyNumber: context.surveyNumber || '101',
-      subdivisionNumber: '1',
-      villageName: 'Gargeyapuram',
-      mandalName: 'Kurnool Rural',
-      districtName: 'Kurnool',
-      extentAcres: '2.45',
-      landType: 'Dry Agricultural (Patta)',
-      recordType: 'Adangal / Pahani & ROR 1-B',
-      digitizationStatus: 'Digitized',
-      verificationStatus: 'Verified',
-      lastApprovedVersion: '2026-AP-REV-v4',
-      sourceRecordReference: 'LGD-AP-545-600101-101'
+  try {
+    const res = await fetch(
+      `/api/public/land-records?districtId=${encodeURIComponent(context.districtCode)}&divisionId=${encodeURIComponent(context.divisionCode || '')}&mandalId=${encodeURIComponent(context.mandalCode)}&villageId=${encodeURIComponent(context.villageCode)}&surveyNumber=${encodeURIComponent(context.surveyNumber)}`
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.records)) {
+        return data.records;
+      }
     }
-  ];
+  } catch (err) {
+    console.warn('Network land record query failed, falling back to client store:', err);
+  }
+
+  // Client-side fallback to verified records in Firestore / localStorage
+  const localRecords = await queryLandRecordsBySurvey(
+    context.districtCode,
+    context.mandalCode,
+    context.villageCode,
+    context.surveyNumber
+  );
+
+  return localRecords.map(filterPublicFields);
 };

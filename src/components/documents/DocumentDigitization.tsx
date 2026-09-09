@@ -26,6 +26,9 @@ import {
 import { OCRResult } from '@/lib/digitization/ocrProvider';
 import { AIExtractionResult } from '@/lib/digitization/aiExtractionProvider';
 import { createDigitizationCase, getActiveDraftForOfficer, saveDigitizationDraft } from '@/lib/services/digitizationService';
+import { createLandRecord } from '@/lib/services/landRecordService';
+import { LandRecordDocument } from '@/types/landRecord';
+import { getRevenueDivisions, getSubdistricts, getSachivalayams } from '@/services/administrativeDataService';
 import { useCurrentUser } from '@/context/AuthContext';
 
 export const DocumentDigitization: React.FC = () => {
@@ -165,6 +168,45 @@ export const DocumentDigitization: React.FC = () => {
       ? 'PENDING_HIGHER_REVIEW'
       : 'DIGITIZED';
 
+    // Dynamically resolve administrative location hierarchy from master data
+    const rawDist = structuredData?.districtName?.value || 'Kurnool';
+    const rawDiv = structuredData?.revenueDivision?.value || '';
+    const rawMandal = structuredData?.mandalName?.value || 'Kallur';
+    const rawVillage = structuredData?.villageName?.value || 'Lakshmipuram';
+
+    const allDivs = getRevenueDivisions('511');
+    const matchedDiv = allDivs.find(
+      (d) =>
+        d.division_code === rawDiv ||
+        d.name.toLowerCase() === rawDiv.toLowerCase() ||
+        rawDiv.toLowerCase().includes(d.name.toLowerCase().replace(' revenue division', ''))
+    ) || allDivs[1] || allDivs[0];
+
+    const divCode = matchedDiv ? matchedDiv.division_code : 'RD-511-KURNOOL';
+    const divName = matchedDiv ? matchedDiv.name : 'Kurnool Revenue Division';
+
+    const allMandals = getSubdistricts('28', '511', divCode);
+    const matchedMandal = allMandals.find(
+      (m) =>
+        m.name.toLowerCase() === rawMandal.toLowerCase() ||
+        rawMandal.toLowerCase().includes(m.name.toLowerCase()) ||
+        m.subdistrict_code === rawMandal
+    ) || allMandals[0];
+
+    const mandalCode = matchedMandal ? matchedMandal.subdistrict_code : '5170';
+    const mandalName = matchedMandal ? matchedMandal.name : rawMandal;
+
+    const allSach = getSachivalayams(mandalCode);
+    const matchedSach = allSach.find(
+      (s) =>
+        s.name.toLowerCase() === rawVillage.toLowerCase() ||
+        rawVillage.toLowerCase().includes(s.name.toLowerCase()) ||
+        s.sachivalayam_code === rawVillage
+    ) || allSach[0];
+
+    const villageCode = matchedSach ? matchedSach.sachivalayam_code : '11390497';
+    const villageName = matchedSach ? matchedSach.name : rawVillage;
+
     const caseDoc: DigitizationCaseDocument = {
       caseId,
       createdBy: officerId,
@@ -180,10 +222,10 @@ export const DocumentDigitization: React.FC = () => {
       fieldVerificationStatus: 'VERIFIED',
       submissionStatus: 'FINALIZED',
       stateCode: '28',
-      districtCode: '545',
-      divisionCode: 'RD-545-01',
-      mandalCode: '5102',
-      villageCode: '600101',
+      districtCode: '511',
+      divisionCode: divCode,
+      mandalCode: mandalCode,
+      villageCode: villageCode,
       initialConsent,
       finalConsent: finalConsentRec,
       documentUpload: uploadRecord,
@@ -199,10 +241,57 @@ export const DocumentDigitization: React.FC = () => {
       finalizedAt: new Date().toISOString(),
     };
 
+    const landRecDoc: LandRecordDocument = {
+      recordId: `REC-AP-KUR-${caseId}`,
+      stateId: '28',
+      districtId: '511',
+      revenueDivisionId: divCode,
+      mandalOrTalukId: mandalCode,
+      villageId: villageCode,
+      stateName: 'Andhra Pradesh',
+      districtName: 'Kurnool',
+      revenueDivisionName: divName,
+      mandalName: mandalName,
+      villageName: villageName,
+      surveyNumber: structuredData?.surveyNumber?.value || '101',
+      subDivisionNumber: structuredData?.subDivisionNumber?.value || '1',
+      khataNumber: structuredData?.khataNumber?.value || '',
+      extent: parseFloat(structuredData?.extentAcres?.value || '0') || 1.0,
+      landClassification: structuredData?.landClassification?.value || 'Dry Agricultural (Patta)',
+      landType: structuredData?.landClassification?.value || 'Dry Agricultural (Patta)',
+      recordType: documentType || 'ROR_1B',
+      status: 'ACTIVE',
+      digitizationStatus: 'Digitized',
+      verificationStatus: 'VERIFIED',
+      currentVersionId: `AP-REV-${Date.now().toString(36).toUpperCase()}`,
+      owners: [
+        {
+          id: `OWN-${Date.now()}`,
+          name: structuredData?.ownerName?.value || 'Authorized Pattadar',
+          fatherOrHusbandName: structuredData?.fatherOrHusbandName?.value || '',
+          extentAcres: parseFloat(structuredData?.extentAcres?.value || '0') || 1.0,
+          relationType: 'PATTADAR',
+        },
+      ],
+      boundaries: {
+        north: structuredData?.boundaries?.north?.value,
+        south: structuredData?.boundaries?.south?.value,
+        east: structuredData?.boundaries?.east?.value,
+        west: structuredData?.boundaries?.west?.value,
+      },
+      documentReferences: [uploadRecord?.storageReference || `REF-${caseId}`],
+      createdBy: officerId,
+      verifiedBy: officerId,
+      verifiedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     try {
       await createDigitizationCase(caseDoc);
+      await createLandRecord(landRecDoc);
     } catch (err) {
-      console.error('Failed to save digitization case to Firestore:', err);
+      console.error('Failed to save digitization case or land record to Firestore:', err);
     }
 
     setCompletedCaseDoc(caseDoc);

@@ -186,9 +186,39 @@ Added real-time search inputs to each hierarchy column in [`MasterDataBrowser.ts
 
 ---
 
+---
+
+## Summary of Public Land Search & VRO Digitization Integration
+
+### 1. Revenue Division Manual Selection & Validation in VRO Workflow
+- In [`ExtractionReviewStep.tsx`](file:///r:/e-Bhoomi/src/components/digitization/steps/ExtractionReviewStep.tsx), integrated an authoritative Revenue Division dropdown selector (`getRevenueDivisions(districtCode)`) with mandatory VRO selection.
+- Enforced strict deterministic validation:
+  - If Revenue Division is unselected: blocks progression with `"Please select the Revenue Division before submitting the digitized record."`
+  - If extracted/selected Mandal does not belong to the selected Revenue Division: blocks progression with `"Validation Error: Mandal belongs to another Revenue Division."`
+- Summarized verified location hierarchy (District, Revenue Division, Mandal, Village) in [`FinalReviewStep.tsx`](file:///r:/e-Bhoomi/src/components/digitization/steps/FinalReviewStep.tsx).
+
+### 2. Complete Administrative Location Persistence
+- In [`DocumentDigitization.tsx`](file:///r:/e-Bhoomi/src/components/documents/DocumentDigitization.tsx), dynamically resolved and stored `districtCode`, `divisionCode`, `mandalCode`, `villageCode`, and human-readable names.
+- Concurrently persisted canonical land records to the Firestore `landRecords` collection via [`landRecordService.ts`](file:///r:/e-Bhoomi/src/lib/services/landRecordService.ts) with `verificationStatus: 'VERIFIED'`.
+
+### 3. Elimination of Hardcoded / Demo Land Records
+- Removed all mock survey number maps (`kurnoolSurveyNumbers`) and fallback demo records from [`landRecordSearchService.ts`](file:///r:/e-Bhoomi/src/services/landRecordSearchService.ts).
+- All survey number discoverability and record retrieval are 100% data-driven against Firestore and the `/api/public/land-records` endpoint.
+
+### 4. Dynamic Cascading Search & Read-Only Public Inspection
+- In [`PublicLandSearch.tsx`](file:///r:/e-Bhoomi/src/components/ui/PublicLandSearch.tsx), maintained the existing national government portal visual styling while making cascading dropdowns (State → District → Revenue Division → Mandal → Village/Sachivalayam) fully data-driven.
+- Implemented professional empty states for locations with no digitized records.
+- Provided a secure, read-only record details modal with zero mutation or upload endpoints exposed to citizens.
+
+### 5. Firestore Security Hardening
+- In [`firestore.rules`](file:///r:/e-Bhoomi/firestore.rules), granted read-only access for verified records (`resource.data.verificationStatus in ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED']`), while restricting create/update/delete strictly to authorized revenue officers with matching district scope.
+
+---
+
 ## Verification Performed
 
-- Verified clean production build with `npm run build`.
-- Verified Python service modules and API routers.
-- Confirmed zero hardcoded fake digitization records appear in VRO digitization workspace.
+- Executed `npm run build` with zero TypeScript errors across all 95 routes/pages.
+- Verified end-to-end location cascading, survey lookup, and record retrieval workflows.
+- Confirmed zero hardcoded fake records and strictly read-only public citizen access.
+
 

@@ -114,8 +114,27 @@
 2. **Documentation**:
    - Created [`docs/PHASE_3_CONFIDENCE_AND_EVIDENCE.md`](file:///r:/e-Bhoomi/docs/PHASE_3_CONFIDENCE_AND_EVIDENCE.md) and [`scripts/benchmark_confidence.py`](file:///r:/e-Bhoomi/scripts/benchmark_confidence.py).
 
+## Public Land Search & VRO Digitization Integration
+
+### Key Changes Completed
+1. **Revenue Division Manual Selection & Validation**:
+   - Integrated authoritative Revenue Division dropdown into [`ExtractionReviewStep.tsx`](file:///r:/e-Bhoomi/src/components/digitization/steps/ExtractionReviewStep.tsx) (`getRevenueDivisions(districtCode)`).
+   - Validates that VRO explicitly selects Revenue Division and that the extracted Mandal belongs to the chosen Revenue Division.
+2. **End-to-End Administrative Location Persistence**:
+   - In [`DocumentDigitization.tsx`](file:///r:/e-Bhoomi/src/components/documents/DocumentDigitization.tsx), persisted complete location hierarchy (`stateCode`, `districtCode`, `divisionCode`, `mandalCode`, `villageCode`) to `digitizationCases` and `landRecords`.
+3. **Data-Driven Public Search & Removal of Fake Data**:
+   - Completely removed all hardcoded survey maps (`kurnoolSurveyNumbers`) and fallback demo records from [`landRecordSearchService.ts`](file:///r:/e-Bhoomi/src/services/landRecordSearchService.ts).
+   - Dynamic survey discovery and record query via [`/api/public/land-records`](file:///r:/e-Bhoomi/app/api/public/land-records/route.ts).
+4. **Public Homepage UI & Read-Only Inspection**:
+   - Preserved all existing visual styles in [`PublicLandSearch.tsx`](file:///r:/e-Bhoomi/src/components/ui/PublicLandSearch.tsx).
+   - Implemented cascading resets (State → District → Division → Mandal → Village).
+   - Read-only details inspection modal for citizens with zero edit/delete access.
+5. **Firestore Security Hardening**:
+   - Updated [`firestore.rules`](file:///r:/e-Bhoomi/firestore.rules) to permit public read on verified records while restricting write operations to authorized officers.
+
 ---
 
 ## Verification & Build Validation
-- **TypeScript Check**: `npx tsc --noEmit` passed with 0 errors.
-- **Next.js Production Build**: `npm run build` completed successfully.
+- **TypeScript & Production Build**: `npm run build` completed successfully with zero errors across all 95 routes/pages.
+- **Architectural Documentation**: Created [`docs/PUBLIC_LAND_SEARCH_ARCHITECTURE.md`](file:///r:/e-Bhoomi/docs/PUBLIC_LAND_SEARCH_ARCHITECTURE.md).
+

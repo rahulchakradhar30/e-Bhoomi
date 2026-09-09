@@ -1,9 +1,10 @@
-export type RecordType = 'ROR_1B' | 'ADANGAL' | 'PATTADAR_PASSBOOK' | 'MUTATION';
+export type RecordType = 'ROR_1B' | 'ADANGAL' | 'PATTADAR_PASSBOOK' | 'MUTATION' | 'PARTITION' | 'PASSBOOK' | 'LEGACY_REVENUE';
 
 export type VerificationStatus =
   | 'UNVERIFIED'
   | 'FIELD_VERIFIED'
   | 'MRO_APPROVED'
+  | 'VERIFIED'
   | 'CORRECTION_REQUESTED'
   | 'REJECTED';
 
@@ -29,16 +30,29 @@ export interface LandRecordDocument {
   revenueDivisionId: string;
   mandalOrTalukId: string;
   villageId: string;
+  stateName?: string;
+  districtName?: string;
+  revenueDivisionName?: string;
+  mandalName?: string;
+  villageName?: string;
   surveyNumber: string;
   subDivisionNumber: string;
+  khataNumber?: string;
   extent: number;
+  landClassification?: string;
+  landType?: string;
   owners: LandOwner[];
   boundaries?: BoundaryDetails;
   documentReferences: string[];
   recordType: RecordType;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+  digitizationStatus?: 'Not Digitized' | 'Processing' | 'Digitized' | 'Verified' | 'Field Verification Completed' | 'COMPLETED';
   verificationStatus: VerificationStatus;
   currentVersionId: string;
+  createdBy?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
+

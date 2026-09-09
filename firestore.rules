@@ -169,10 +169,16 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // LAND RECORDS
+    // LAND RECORDS (Verified records viewable publicly in read-only mode)
     // ============================================================
     match /landRecords/{recordId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() || resource.data.verificationStatus in ['VERIFIED', 'FIELD_VERIFIED', 'MRO_APPROVED'];
+      allow create, update: if isOfficer() && matchesDistrictScope();
+      allow delete: if false;
+    }
+
+    match /publicLandRecords/{recordId} {
+      allow read: if true;
       allow create, update: if isOfficer() && matchesDistrictScope();
       allow delete: if false;
     }

@@ -76,7 +76,7 @@ export const FinalReviewStep: React.FC<FinalReviewStepProps> = ({
                 {structuredData.ownerName?.value || 'Pattadar'} • Survey #{structuredData.surveyNumber?.value || '142'}
               </h3>
               <p style={{ fontSize: '0.75rem', color: '#cbd5e1', margin: 0 }}>
-                {docConfig.titleEn} ({docConfig.titleTe}) • Village: {structuredData.villageName?.value || 'Kallur'}, Mandal: {structuredData.mandalName?.value || 'Kurnool Rural'}
+                {docConfig.titleEn} ({docConfig.titleTe}) • District: {structuredData.districtName?.value || 'Kurnool'} • Division: {structuredData.revenueDivision?.value || 'Kurnool'} • Mandal: {structuredData.mandalName?.value || 'Kurnool Rural'} • Village: {structuredData.villageName?.value || 'Kallur'}
               </p>
             </div>
 
