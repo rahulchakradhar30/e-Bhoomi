@@ -15,9 +15,6 @@ import {
   Users,
   Eye,
   CheckSquare,
-  ArrowRight,
-  AlertTriangle,
-  Building2,
 } from 'lucide-react';
 import { APP_CONFIG } from '@/config/appConfig';
 import { getCasesForJurisdiction } from '@/lib/services/digitizationService';
@@ -50,6 +47,27 @@ export default function MroDashboardPage() {
   const correctionsSent = cases.filter((c) => c.workflowStatus === 'CORRECTION_REQUIRED');
   const fieldVerifications = cases.filter((c) => c.fieldVerification?.photos?.length);
 
+  // Dynamically extract genuine subordinate VROs from active cases
+  const vroMap = new Map<string, { id: string; totalCases: number; villages: Set<string>; digitized: number }>();
+  cases.forEach((c) => {
+    const officerId = c.createdBy || c.assignedOfficer || 'VRO-Officer';
+    const village = c.extractedData?.villageName?.value;
+    const isDigi = c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED';
+
+    if (!vroMap.has(officerId)) {
+      vroMap.set(officerId, { id: officerId, totalCases: 0, villages: new Set(), digitized: 0 });
+    }
+    const rec = vroMap.get(officerId)!;
+    rec.totalCases += 1;
+    if (isDigi) rec.digitized += 1;
+    if (village) rec.villages.add(village);
+  });
+  const genuineVros = Array.from(vroMap.values());
+
+  const sampleCase = cases.find((c) => c.extractedData?.mandalName?.value);
+  const mandalName = sampleCase?.extractedData?.mandalName?.value || 'Kurnool Rural Mandal (LGD: 5102)';
+  const districtName = sampleCase?.extractedData?.districtName?.value || APP_CONFIG.activeDistrict;
+
   return (
     <div className="space-y-4">
       <Breadcrumbs items={[{ label: 'MRO Workspace', href: '/mro/dashboard' }, { label: 'Dashboard' }]} />
@@ -68,9 +86,9 @@ export default function MroDashboardPage() {
       <div className="jurisdiction-bar">
         <MapPin className="w-4 h-4 text-navy flex-shrink-0" />
         <span className="font-bold text-navy">MANDAL JURISDICTION:</span>
-        <span className="font-semibold">Kurnool Rural Mandal (LGD: 5102)</span>
+        <span className="font-semibold">{mandalName}</span>
         <span className="jurisdiction-sep">|</span>
-        <span className="font-semibold">{APP_CONFIG.activeDistrict} District (LGD: {APP_CONFIG.activeDistrictCode})</span>
+        <span className="font-semibold">{districtName} District</span>
         <span className="jurisdiction-sep">|</span>
         <span className="font-semibold">{APP_CONFIG.activeState}</span>
       </div>
@@ -78,10 +96,10 @@ export default function MroDashboardPage() {
       <div className="summary-cards-grid">
         <div className="summary-card-item">
           <div className="summary-card-top">
-            <span className="summary-card-title">ASSIGNED VROs</span>
+            <span className="summary-card-title">ACTIVE VROs</span>
             <Users className="w-4 h-4 text-navy" />
           </div>
-          <div className="summary-card-count text-navy">8</div>
+          <div className="summary-card-count text-navy">{genuineVros.length}</div>
         </div>
         <div className="summary-card-item">
           <div className="summary-card-top">
@@ -116,7 +134,7 @@ export default function MroDashboardPage() {
       <div className="operational-split-grid">
         <WorkspacePanel
           title="PENDING MUTATION & DIGITIZATION APPROVALS"
-          guidance="Records submitted by Village Revenue Officers for statutory endorsement."
+          guidance="Genuine records submitted by Village Revenue Officers awaiting statutory endorsement."
         >
           {loading ? (
             <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading approval queue...</div>
@@ -137,9 +155,18 @@ export default function MroDashboardPage() {
                     <div className="dashboard-queue-meta">
                       <span className="text-navy font-bold">Ref: {c.caseId}</span>
                       <span>•</span>
-                      <span>Sy: {c.extractedData?.surveyNumber?.value}/{c.extractedData?.subDivisionNumber?.value || '1'}</span>
+                      <span>
+                        Sy: {c.extractedData?.surveyNumber?.value || 'N/A'}
+                        {c.extractedData?.subDivisionNumber?.value ? `/${c.extractedData.subDivisionNumber.value}` : ''}
+                      </span>
+                      {c.extractedData?.villageName?.value && (
+                        <>
+                          <span>•</span>
+                          <span>{c.extractedData.villageName.value}</span>
+                        </>
+                      )}
                       <span>•</span>
-                      <span>VRO: {c.createdBy}</span>
+                      <span>Officer: {c.createdBy}</span>
                     </div>
                   </div>
 
@@ -158,36 +185,43 @@ export default function MroDashboardPage() {
 
         <WorkspacePanel
           title="SUBORDINATE FIELD OFFICER DIRECTORY"
-          guidance="Field officers assigned to villages within this mandal."
+          guidance="Field officers who have submitted digitization records in this jurisdiction."
         >
-          <div className="dashboard-queue-list">
-            {[
-              { id: 'AP-545-VRO-00101', name: 'K. Rama Rao', village: 'Laxmipuram & Kallur', pending: pendingApprovals.length, status: 'Active' },
-              { id: 'AP-545-VRO-00102', name: 'B. Venkat Reddy', village: 'Nidzur & Peddapadu', pending: 0, status: 'Active' },
-              { id: 'AP-545-VRO-00103', name: 'M. Padmavathi', village: 'Ulchala & Munagalapadu', pending: 0, status: 'Active' },
-              { id: 'AP-545-VRO-00104', name: 'S. Narayana', village: 'Gargeyapuram', pending: 0, status: 'Active' },
-            ].map((vro) => (
-              <div key={vro.id} className="dashboard-queue-card">
-                <div className="dashboard-queue-info">
-                  <div className="dashboard-queue-title">
-                    <span>{vro.name}</span>
-                    <span className="dashboard-queue-meta-pill">{vro.id}</span>
+          {loading ? (
+            <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading officer directory...</div>
+          ) : genuineVros.length === 0 ? (
+            <EmptyState
+              title="No Active Field Submissions"
+              description="Officers submitting digitized records will be listed here dynamically."
+            />
+          ) : (
+            <div className="dashboard-queue-list">
+              {genuineVros.map((vro) => (
+                <div key={vro.id} className="dashboard-queue-card">
+                  <div className="dashboard-queue-info">
+                    <div className="dashboard-queue-title">
+                      <span>Officer ID: {vro.id}</span>
+                      <span className="dashboard-queue-meta-pill">{vro.totalCases} Submitted</span>
+                    </div>
+                    <div className="dashboard-queue-meta">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      <span>
+                        Jurisdiction:{' '}
+                        {vro.villages.size > 0 ? Array.from(vro.villages).join(', ') : 'Assigned Jurisdiction'}
+                      </span>
+                      <span>•</span>
+                      <span className="text-green-700 font-bold">{vro.digitized} Digitized</span>
+                    </div>
                   </div>
-                  <div className="dashboard-queue-meta">
-                    <MapPin className="w-3 h-3 text-slate-400" />
-                    <span>Jurisdiction: {vro.village}</span>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2">
                   <span className="table-status-pill locked">
                     <CheckCircle2 className="w-3 h-3 text-green-600" />
-                    {vro.status}
+                    ACTIVE
                   </span>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </WorkspacePanel>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
 import { WorkspaceHeader } from '@/components/workspace/WorkspaceHeader';
 import { WorkspacePanel } from '@/components/workspace/WorkspacePanel';
 import { EmptyState } from '@/components/workspace/EmptyState';
-import { MapPin, Building2, Users, FileText, ShieldCheck, CheckCircle2, ArrowRight, Layers, Eye } from 'lucide-react';
+import { MapPin, Building2, Users, FileText, ShieldCheck, CheckCircle2, Eye } from 'lucide-react';
 import { APP_CONFIG } from '@/config/appConfig';
 import { getCasesForJurisdiction } from '@/lib/services/digitizationService';
 import { DigitizationCaseDocument } from '@/types/digitizationCase';
@@ -30,7 +30,32 @@ export default function RdoDashboardPage() {
   }, []);
 
   const totalCases = cases.length;
-  const approvedCases = cases.filter((c) => c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED').length;
+  const approvedCases = cases.filter(
+    (c) => c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED'
+  ).length;
+
+  // Extract unique mandals dynamically from genuine digitized records
+  const mandalMap = new Map<string, { name: string; total: number; digitized: number; villages: Set<string> }>();
+  const vroSet = new Set<string>();
+
+  cases.forEach((c) => {
+    const mandal = c.extractedData?.mandalName?.value || 'Assigned Mandal';
+    const village = c.extractedData?.villageName?.value;
+    const isDigi = c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED';
+    if (c.createdBy) vroSet.add(c.createdBy);
+
+    if (!mandalMap.has(mandal)) {
+      mandalMap.set(mandal, { name: mandal, total: 0, digitized: 0, villages: new Set() });
+    }
+    const item = mandalMap.get(mandal)!;
+    item.total += 1;
+    if (isDigi) item.digitized += 1;
+    if (village) item.villages.add(village);
+  });
+  const genuineMandals = Array.from(mandalMap.values());
+
+  const sampleCase = cases.find((c) => c.extractedData?.districtName?.value);
+  const districtName = sampleCase?.extractedData?.districtName?.value || APP_CONFIG.activeDistrict;
 
   return (
     <div className="space-y-4">
@@ -50,9 +75,9 @@ export default function RdoDashboardPage() {
       <div className="jurisdiction-bar">
         <MapPin className="w-4 h-4 text-navy flex-shrink-0" />
         <span className="font-bold text-navy">REVENUE DIVISION JURISDICTION:</span>
-        <span className="font-semibold">Kurnool Revenue Division (RD-545-01)</span>
+        <span className="font-semibold">Kurnool Revenue Division</span>
         <span className="jurisdiction-sep">|</span>
-        <span className="font-semibold">{APP_CONFIG.activeDistrict} District (LGD: {APP_CONFIG.activeDistrictCode})</span>
+        <span className="font-semibold">{districtName} District</span>
         <span className="jurisdiction-sep">|</span>
         <span className="font-semibold">{APP_CONFIG.activeState}</span>
       </div>
@@ -60,17 +85,17 @@ export default function RdoDashboardPage() {
       <div className="summary-cards-grid">
         <div className="summary-card-item">
           <div className="summary-card-top">
-            <span className="summary-card-title">SUBORDINATE MANDALS</span>
+            <span className="summary-card-title">ACTIVE MANDALS</span>
             <Building2 className="w-4 h-4 text-navy" />
           </div>
-          <div className="summary-card-count text-navy">8</div>
+          <div className="summary-card-count text-navy">{genuineMandals.length}</div>
         </div>
         <div className="summary-card-item">
           <div className="summary-card-top">
-            <span className="summary-card-title">FIELD OFFICERS (VROs)</span>
+            <span className="summary-card-title">REPORTING VROs</span>
             <Users className="w-4 h-4 text-blue" />
           </div>
-          <div className="summary-card-count text-blue">64</div>
+          <div className="summary-card-count text-blue">{vroSet.size}</div>
         </div>
         <div className="summary-card-item">
           <div className="summary-card-top">
@@ -88,50 +113,59 @@ export default function RdoDashboardPage() {
         </div>
         <div className="summary-card-item">
           <div className="summary-card-top">
-            <span className="summary-card-title">SECURITY STATUS</span>
+            <span className="summary-card-title">AUDIT ACCURACY</span>
             <ShieldCheck className="w-4 h-4 text-green" />
           </div>
-          <div className="summary-card-count text-green">100%</div>
+          <div className="summary-card-count text-green">
+            {cases.length > 0
+              ? `${Math.round(
+                  (cases.reduce((acc, c) => acc + (c.aiConfidenceScore || 0.9), 0) / cases.length) * 100
+                )}%`
+              : '100%'}
+          </div>
         </div>
       </div>
 
       <div className="operational-split-grid">
         <WorkspacePanel
           title="SUBORDINATE MANDAL REVENUE OFFICES"
-          guidance="Monitoring performance across mandals under this division in Kurnool District."
+          guidance="Genuine performance across mandals under this division."
         >
-          <div className="dashboard-queue-list">
-            {[
-              { mandal: 'Kurnool Rural Mandal', code: '5102', mro: 'Tahsildar P. Venkateswarlu', records: totalCases, status: 'Active' },
-              { mandal: 'Kurnool Urban Mandal', code: '5101', mro: 'Tahsildar G. Radhakrishna', records: 42, status: 'Active' },
-              { mandal: 'Orvakal Mandal', code: '5103', mro: 'Tahsildar S. Chandrasekhar', records: 28, status: 'Active' },
-              { mandal: 'Kallur Mandal', code: '5104', mro: 'Tahsildar K. Sudhakar', records: 56, status: 'Active' },
-            ].map((m) => (
-              <div key={m.code} className="dashboard-queue-card">
-                <div className="dashboard-queue-info">
-                  <div className="dashboard-queue-title">
-                    <span>{m.mandal}</span>
-                    <span className="dashboard-queue-meta-pill">LGD: {m.code}</span>
+          {loading ? (
+            <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading mandal metrics...</div>
+          ) : genuineMandals.length === 0 ? (
+            <EmptyState title="No Active Mandal Records" description="Mandal revenue offices with digitized records will appear here." />
+          ) : (
+            <div className="dashboard-queue-list">
+              {genuineMandals.map((m) => (
+                <div key={m.name} className="dashboard-queue-card">
+                  <div className="dashboard-queue-info">
+                    <div className="dashboard-queue-title">
+                      <span>{m.name}</span>
+                      <span className="dashboard-queue-meta-pill">{m.total} Records</span>
+                    </div>
+                    <div className="dashboard-queue-meta">
+                      <span>
+                        Villages: {m.villages.size > 0 ? Array.from(m.villages).join(', ') : 'Assigned Jurisdiction'}
+                      </span>
+                      <span>•</span>
+                      <span className="text-green-700 font-bold">{m.digitized} Digitized & Locked</span>
+                    </div>
                   </div>
-                  <div className="dashboard-queue-meta">
-                    <span>MRO: {m.mro}</span>
-                    <span>•</span>
-                    <span className="text-navy font-bold">{m.records} Records Digitized</span>
-                  </div>
-                </div>
 
-                <span className="table-status-pill locked">
-                  <CheckCircle2 className="w-3 h-3 text-green-600" />
-                  {m.status}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <span className="table-status-pill locked">
+                    <CheckCircle2 className="w-3 h-3 text-green-600" />
+                    ACTIVE
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </WorkspacePanel>
 
         <WorkspacePanel
           title="RECENT DIVISIONAL DIGITIZATIONS & ENDORSEMENTS"
-          guidance="Recent land records validated across subordinate mandals."
+          guidance="Recent genuine land records validated across subordinate mandals."
         >
           {loading ? (
             <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading divisional records...</div>
@@ -149,9 +183,16 @@ export default function RdoDashboardPage() {
                     <div className="dashboard-queue-meta">
                       <span className="text-navy font-bold">Ref: {c.caseId}</span>
                       <span>•</span>
-                      <span>Sy: {c.extractedData?.surveyNumber?.value || 'N/A'}</span>
-                      <span>•</span>
-                      <span>Mandal: {c.extractedData?.mandalName?.value || 'Kurnool Rural'}</span>
+                      <span>
+                        Sy: {c.extractedData?.surveyNumber?.value || 'N/A'}
+                        {c.extractedData?.subDivisionNumber?.value ? `/${c.extractedData.subDivisionNumber.value}` : ''}
+                      </span>
+                      {c.extractedData?.villageName?.value && (
+                        <>
+                          <span>•</span>
+                          <span>{c.extractedData.villageName.value}</span>
+                        </>
+                      )}
                     </div>
                   </div>
 

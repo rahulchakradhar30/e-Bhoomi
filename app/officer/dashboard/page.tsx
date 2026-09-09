@@ -13,12 +13,9 @@ import {
   CheckCircle2,
   Clock,
   MapPin,
-  ArrowRight,
-  Sparkles,
   Eye,
   Camera,
   Layers,
-  History as HistoryIcon,
 } from 'lucide-react';
 import { APP_CONFIG } from '@/config/appConfig';
 import { getAssignedCasesForOfficer } from '@/lib/services/digitizationService';
@@ -30,10 +27,11 @@ export default function OfficerDashboardPage() {
   const [cases, setCases] = useState<DigitizationCaseDocument[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const officerId = officerProfile?.officerId || 'AP-545-VRO-00101';
+
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        const officerId = officerProfile?.officerId || 'AP-545-VRO-00101';
         const fetched = await getAssignedCasesForOfficer(officerId);
         setCases(fetched);
       } catch (err) {
@@ -43,7 +41,7 @@ export default function OfficerDashboardPage() {
       }
     };
     fetchCases();
-  }, [officerProfile]);
+  }, [officerId]);
 
   const totalSubmitted = cases.filter((c) => c.workflowStatus !== 'DRAFT').length;
   const aiProcessed = cases.filter((c) => c.workflowStatus !== 'DRAFT').length;
@@ -54,6 +52,13 @@ export default function OfficerDashboardPage() {
   const approvedCount = cases.filter(
     (c) => c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED'
   ).length;
+
+  // Genuine active jurisdiction details from cases or officer profile
+  const sampleCase = cases.find((c) => c.extractedData?.villageName?.value || c.extractedData?.mandalName?.value);
+  const jurisdictionState = APP_CONFIG.activeState;
+  const jurisdictionDistrict = sampleCase?.extractedData?.districtName?.value || APP_CONFIG.activeDistrict;
+  const jurisdictionMandal = sampleCase?.extractedData?.mandalName?.value || (officerProfile?.mandalOrTalukId ? `Mandal LGD: ${officerProfile.mandalOrTalukId}` : 'Kurnool Rural Mandal');
+  const jurisdictionVillage = sampleCase?.extractedData?.villageName?.value || '';
 
   return (
     <div className="space-y-4">
@@ -70,15 +75,21 @@ export default function OfficerDashboardPage() {
         }
       />
 
-      {/* Jurisdiction Bar */}
+      {/* Dynamic Genuine Jurisdiction Bar */}
       <div className="jurisdiction-bar">
         <MapPin className="w-4 h-4 text-navy flex-shrink-0" />
         <span className="font-bold text-navy">ASSIGNED JURISDICTION:</span>
-        <span className="font-semibold">{APP_CONFIG.activeState} ({APP_CONFIG.activeStateShortCode}-{APP_CONFIG.activeStateCode})</span>
+        <span className="font-semibold">{jurisdictionState}</span>
         <span className="jurisdiction-sep">|</span>
-        <span className="font-semibold">{APP_CONFIG.activeDistrict} District (LGD: {APP_CONFIG.activeDistrictCode})</span>
+        <span className="font-semibold">{jurisdictionDistrict} District</span>
         <span className="jurisdiction-sep">|</span>
-        <span className="font-semibold">Kurnool Rural Mandal (LGD: 5102)</span>
+        <span className="font-semibold">{jurisdictionMandal}</span>
+        {jurisdictionVillage && (
+          <>
+            <span className="jurisdiction-sep">|</span>
+            <span className="font-semibold">Village: {jurisdictionVillage}</span>
+          </>
+        )}
       </div>
 
       {/* Summary KPI Cards */}
@@ -125,7 +136,7 @@ export default function OfficerDashboardPage() {
         {/* Panel 1: Digitization Pipeline Queue */}
         <WorkspacePanel
           title="DIGITIZATION PIPELINE QUEUE"
-          guidance="Recent document uploads and AI extraction processing status."
+          guidance="Genuine document uploads and AI extraction processing status."
         >
           {loading ? (
             <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading pipeline queue...</div>
@@ -138,7 +149,6 @@ export default function OfficerDashboardPage() {
             <div className="dashboard-queue-list">
               {cases.slice(0, 5).map((c) => {
                 const isDigitized = c.workflowStatus === 'DIGITIZED' || c.workflowStatus === 'FINAL_SUBMITTED';
-                const score = Math.round((c.aiConfidenceScore || 0.9) * 100);
 
                 return (
                   <div key={c.caseId} className="dashboard-queue-card">
@@ -152,11 +162,20 @@ export default function OfficerDashboardPage() {
                       <div className="dashboard-queue-meta">
                         <span className="text-navy font-bold">Ref: {c.caseId}</span>
                         <span>•</span>
-                        <span>Sy: {c.extractedData?.surveyNumber?.value || 'N/A'}/{c.extractedData?.subDivisionNumber?.value || '1'}</span>
+                        <span>
+                          Sy: {c.extractedData?.surveyNumber?.value || 'N/A'}
+                          {c.extractedData?.subDivisionNumber?.value ? `/${c.extractedData.subDivisionNumber.value}` : ''}
+                        </span>
                         {c.extractedData?.extentAcres?.value && (
                           <>
                             <span>•</span>
                             <span className="text-green-700 font-bold">{c.extractedData.extentAcres.value}</span>
+                          </>
+                        )}
+                        {c.extractedData?.villageName?.value && (
+                          <>
+                            <span>•</span>
+                            <span>{c.extractedData.villageName.value}</span>
                           </>
                         )}
                       </div>
@@ -185,14 +204,14 @@ export default function OfficerDashboardPage() {
         {/* Panel 2: Field Verification Tasks */}
         <WorkspacePanel
           title="FIELD VERIFICATION TASKS"
-          guidance="Assigned field inspection and boundary verification tasks."
+          guidance="Genuine field inspection and boundary verification records."
         >
           {loading ? (
             <div className="p-4 text-center text-xs text-slate-500 font-mono">Loading verification tasks...</div>
           ) : cases.filter((c) => c.fieldVerification?.photos?.length).length === 0 ? (
             <EmptyState
               title="No Pending Field Inspections"
-              description="Field verification requests assigned by Tahsildar/MRO will appear here."
+              description="Field verification requests assigned for physical inspection will appear here."
             />
           ) : (
             <div className="dashboard-queue-list">
@@ -204,12 +223,19 @@ export default function OfficerDashboardPage() {
                     <div className="dashboard-queue-info">
                       <div className="dashboard-queue-title">
                         <Camera className="w-3.5 h-3.5 text-navy" />
-                        <span>Survey #{c.extractedData?.surveyNumber?.value || '245/1'} Field Inspection</span>
+                        <span>
+                          Survey #{c.extractedData?.surveyNumber?.value || 'N/A'}
+                          {c.extractedData?.subDivisionNumber?.value ? `/${c.extractedData.subDivisionNumber.value}` : ''} Field Inspection
+                        </span>
                       </div>
                       <div className="dashboard-queue-meta">
-                        <span>{c.fieldVerification?.photos?.length || 4} Geo-tagged Photos</span>
-                        <span>•</span>
-                        <span>Village: {c.extractedData?.villageName?.value || 'Laxmipuram'}</span>
+                        <span>{c.fieldVerification?.photos?.length} Geo-tagged Photos</span>
+                        {c.extractedData?.villageName?.value && (
+                          <>
+                            <span>•</span>
+                            <span>Village: {c.extractedData.villageName.value}</span>
+                          </>
+                        )}
                         <span>•</span>
                         <span className="text-navy font-bold">Ref: {c.caseId}</span>
                       </div>
